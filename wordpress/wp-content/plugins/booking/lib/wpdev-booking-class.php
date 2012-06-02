@@ -668,12 +668,12 @@ if (!class_exists('wpdev_booking')) {
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             $version = $this->get_version();
             //$is_can = apply_bk_filter('multiuser_is_user_can_be_here', true, 'not_low_level_user'); //Anxo customizarion
-            if ($version != 'free') { //Anxo customizarion
+//            if ($version != 'free') { //Anxo customizarion
 
                 $pagehook4 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Resources', 'wpdev-booking'), __('Resources', 'wpdev-booking'), $users_roles[3],
                         WPDEV_BK_FILE .'wpdev-booking-resources', array(&$this, 'on_show_booking_page_resources')  );
                 add_action("admin_print_scripts-" . $pagehook4 , array( &$this, 'client_side_print_booking_head'));
-            }
+//            }
 
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // S E T T I N G S
@@ -703,7 +703,7 @@ if (!class_exists('wpdev_booking')) {
 
         // Resources
         function on_show_booking_page_resources() {
-            $this->on_show_page_adminmenu('wpdev-booking-resources','/img/General-setting-64x64.png', __('Booking resources managment', 'wpdev-booking'),4);
+            $this->on_show_page_adminmenu('wpdev-booking-resources','/img/General-setting-64x64.png', __('Booking resources management', 'wpdev-booking'),4);
         }
 
         //Show content
@@ -1299,6 +1299,93 @@ if (!class_exists('wpdev_booking')) {
             global $wpdb;
 
             if ($bk_type === 'not_set') $bk_type = $this->get_default_type();
+            
+            echo "bk_type = " . $bk_type;
+
+            $only_today = $only_for_today = false;
+            if (isset($_GET['bk_filter'])) {
+                if ($_GET['bk_filter'] == 'today_new' ) $only_today = true;
+                if ($_GET['bk_filter'] == 'today_all' ) $only_for_today = true;
+            }
+            
+            echo "only_today is $only_today";
+            echo "only_for_today is $only_for_today";
+
+            $sql = "SELECT * FROM v_booking_by_resource";
+
+//            if ($bk_type!=0) $sql .= "             AND bk.booking_type = ". $bk_type ."";
+
+//            if ($only_today) $sql .= "             AND DATE(bk.modification_date) =  CURDATE() ";
+            
+
+//            $sql .= apply_bk_filter('get_sql_4_dates_from_other_types', ''  , $bk_type, $approved ); // Select bk ID from other TYPES, if they partly exist inside of DATES
+
+//            $sql .= "   ORDER BY bk.booking_id DESC, dt.booking_date ASC ";
+            
+            echo "sql = " . $sql;
+
+//            $result = $wpdb->get_results($wpdb->prepare( $sql ));
+//debuge($result, $sql);
+            ///////////////////////////////////////////////////////////////////
+            //transforms results into structure
+            ?> 
+            <div style="width:100%">
+                <div style="width:90%; float:left;">
+                    <div class="hasDatepick">
+                        <div class="datepick-inline datepick-multi" style="width: 2522px;">
+                            <div class="datepick-one-month datepick-new-row">
+                                <div class="datepick-header">May 2012</div>
+                                <table class="datepick" cellspacing="0" cellpadding="0">
+                                    <thead>
+                                        <tr class="datepick-title-row">
+                                            <th><span title="Room">Room</span></th>
+                                            <th><span title="Monday">Mo<br/>1</span></th>
+                                            <th><span title="Tuesday">Tu<br/>2</span></th>
+                                            <th><span title="Wednesday">We<br/>3</span></th>
+                                            <th><span title="Thursday">Th<br/>4</span></th>
+                                            <th><span title="Friday">Fr<br/>5</span></th>
+                                            <th class="datepick-week-end-cell"><span title="Saturday">Sa<br/>6</span></th>
+                                            <th class="datepick-week-end-cell"><span title="Sunday">Su<br/>7</span></th>
+                                            <th><span title="Monday">Mo<br/>8</span></th>
+                                            <th><span title="Tuesday">Tu<br/>9</span></th>
+                                            <th><span title="Wednesday">We<br/>10</span></th>
+                                            <th><span title="Thursday">Th<br/>11</span></th>
+                                            <th><span title="Friday">Fr<br/>12</span></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="datepick-days-row">
+                                            <td class="datepick-days-cell">Double Room</td>
+                                            <td class="datepick-days-cell datepick-unselectable date_user_unavailable" style="width:80px;">1</td>
+                                            <td class="datepick-days-cell datepick-unselectable date_user_unavailable" style="width:80px;">2</td>
+                                            <td class="datepick-days-cell datepick-unselectable date_user_unavailable" style="width:80px;">3</td>
+                                            <td class="datepick-days-cell date_approved" style="width:80px;">4</td>
+                                            <td class="datepick-days-cell date_approved" style="width:80px;">5</td>
+                                            <td class="datepick-days-cell datepick-week-end-cell datepick-unselectable date2approve date_admin_blank" style="width:80px;">6</td>
+                                            <td class="datepick-days-cell datepick-week-end-cell datepick-unselectable date2approve date_admin_blank" style="width:80px;">7</td>
+                                            <td class="datepick-days-cell date_approved" style="width:80px;">8</td>
+                                            <td class="datepick-days-cell date_approved" style="width:80px;">9</td>
+                                            <td class="datepick-days-cell datepick-unselectable date_user_unavailable" style="width:80px;">10</td>
+                                            <td class="datepick-days-cell datepick-unselectable date_user_unavailable" style="width:80px;">11</td>
+                                            <td class="datepick-days-cell datepick-unselectable date_user_unavailable" style="width:80px;">12</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+            return true;
+        }
+
+        //Write Admin booking table
+        function booking_table_DEPRECATED($approved = 0, $bk_type = 'not_set', $is_show_table_header = true, $is_show_link_2_bk_res = false ) {
+
+            global $wpdb;
+
+            if ($bk_type === 'not_set') $bk_type = $this->get_default_type();
 
             $only_today = $only_for_today = false;
             if (isset($_GET['bk_filter'])) {
@@ -1719,7 +1806,7 @@ if (!class_exists('wpdev_booking')) {
             }
 
         }
-
+        
         // Get dates
         function get_dates ($approved = 'all', $bk_type = 1, $additional_bk_types= array() ) {
             // if ( ! defined('WP_ADMIN') ) if ($approved == 0)  return array(array(),array());
@@ -2209,15 +2296,167 @@ if (!class_exists('wpdev_booking')) {
         //content of resources management page
         function content_of_resource_page(){
 
-            $is_can = apply_bk_filter('multiuser_is_user_can_be_here', true, 'check_for_active_users');
-            if (! $is_can) return false;
+            global $wpdb;
+            
+            // if the user has just submitted an "Add new resource" request
+            if ( isset($_POST['type_name_new'])) {
+                $wpdb->insert($wpdb->prefix ."bookingresources", 
+                     array( 'name' => $_POST['type_name_new'], 
+                            'capacity' => $_POST['type_capacity_new'], 
+                            'parent_resource_id' => $_POST['type_parent_new']));
+
+                // for clarity, set parent resource capacity to NULL if there is at least one child resource
+                $wpdb->query($wpdb->prepare(
+                    "UPDATE ".$wpdb->prefix ."bookingresources br_p
+                      INNER JOIN ".$wpdb->prefix ."bookingresources br_c
+                         ON br_c.parent_resource_id = br_p.resource_id
+                        SET br_p.capacity = NULL 
+                      WHERE br_p.parent_resource_id IS NULL"));
+                
+                // likewise, leaf nodes (dorm beds) should have an implied capacity of 1
+                $wpdb->query($wpdb->prepare(
+                    "UPDATE ".$wpdb->prefix ."bookingresources
+                        SET capacity = 1
+                      WHERE parent_resource_id IS NOT NULL"));
+                      
+                // https://core.trac.wordpress.org/ticket/15158   null's aren't being set properly
+                $wpdb->query($wpdb->prepare(
+                    "UPDATE ".$wpdb->prefix ."bookingresources 
+                        SET parent_resource_id = NULL 
+                      WHERE parent_resource_id = 0"));
+            }
+
+            // this is where we query all our resources (in order)
+            $all_resources = $wpdb->get_results($wpdb->prepare(
+                "SELECT br.resource_id, br.name, br.capacity, br.parent_resource_id, 
+                        (SELECT COUNT(*) FROM ".$wpdb->prefix ."bookingresources WHERE parent_resource_id = br.resource_id) AS number_children 
+                   FROM ".$wpdb->prefix ."bookingresources br
+                  ORDER BY COALESCE(parent_resource_id, resource_id), resource_id"));
 
             ?> <div style="margin-top:10px;height:1px;clear:both;border-top:1px solid #bbc;"></div>  <?php
             ?> <div id="ajax_respond"></div>
             <div class="clear" ></div>
             <div id="ajax_working"></div>
             <div id="poststuff" class="metabox-holder" style="margin-top:0px;">
-            <?php make_bk_action('wpdev_booking_resources_show_content'); ?>
+                <div style="float:left;">
+                    <table class="resource_table0 booking_table" cellspacing="0" cellpadding="0" style="width:99%;">
+                        <tbody>
+                            <tr>
+                                <th style="width:15px;"><input id="resources_items_all" class="resources_items" type="checkbox" name="resources_items_all" onclick="javascript:jWPDev('.resources_items').attr('checked', this.checked);"></th>
+                                <th style="width:10px; height:35px; border-left: 1px solid #BBBBBB;">ID</th>
+                                <th style="height:35px;">Resource Name</th>
+                                <th class="tipcy" title="Max number of occupants" style="width:50px;">Capacity</th>
+                            </tr>
+            <?php
+                foreach ($all_resources as $res) {
+            ?>
+                            <tr>
+                                <th><input id="resources_items_<?php echo $res->resource_id; ?>" class="resources_items" type="checkbox" name="resources_items_<?php echo $res->resource_id; ?>"></th>
+                                <td style="font-size:10px; font-weight: bold; border-right: 0px solid #ddd; border-left: 1px solid #aaa; text-align: center;"><?php echo $res->resource_id; ?></td>
+            <?php
+                    if($res->parent_resource_id == null) { // if this is a parent resource, make it bold
+            ?>
+                                <td style="font-size: 11px;"><input id="type_name<?php echo $res->resource_id; ?>" type="text" name="type_name<?php echo $res->resource_id; ?>" value="<?php echo $res->name; ?>" style="width:210px; font-weight:bold;" maxlength="50"></td>
+            <?php
+                    } else { // if this *belongs* to another resource, left pad it and not bold
+            ?>
+                                <td style="font-size: 11px; padding-left: 50px;"><input id="type_name<?php echo $res->resource_id; ?>" type="text" name="type_name<?php echo $res->resource_id; ?>" value="<?php echo $res->name; ?>" style="width:170px; font-size:11px;" maxlength="50"></td>
+            <?php
+                    }
+                    
+                    if($res->parent_resource_id != null) {  // if this is a leaf (belongs to a parent resource), capacity implied == 1 (ie. one dorm bed)
+            ?>
+                                <td/>
+            <?php
+                    } else if($res->number_children == 0) {  // if this resource doesn't have any children, we can edit the capacity (not implied)
+            ?>
+                                <td style="font-size: 11px;"><input id="type_capacity<?php echo $res->resource_id; ?>" type="text" name="type_capacity<?php echo $res->resource_id; ?>" value="<?php echo $res->capacity; ?>" style="width:50px; font-size:11px;" maxlength="2"></td>
+            <?php
+                    } else { // this resource has children, so the capacity is the total number of children
+            ?>
+                                <td style="text-align:center; font-weight:bold;"><?php echo $res->number_children; ?></td>
+            <?php
+                    }
+            ?>
+                            </tr>
+            <?php
+                }
+            ?>
+                        </tbody>
+                    </table>
+                    <div class="clear" style="height:10px;"></div>
+                    <input class="button-primary" type="submit" name="submit_resources" value="Save" style="float:left;">
+                    <div class="clear" style="height:10px;"></div>
+                </div>
+                <div style="width:320px; float:right;">
+                    <form id="post_option_add_resources" method="post" action="" name="post_option_add_resources">
+                        <table class="resource_table0 booking_table" cellspacing="0" cellpadding="0" style="width:99%;">
+                            <tbody>
+                                <tr><th style="height:30px;">Add New Resource(s)</th></tr>
+                                <tr><td class="alternative_color" style="height:40px;">
+                                    <table style="width:100%; padding:0px;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="padding:0px; height:32px; font-weight:bold;">Name:</td>
+                                                <td style="padding:0px;"><input id="type_name_new" type="text" name="type_name_new" value="" maxlength="50" style="float:left; width:100%;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td colspan="2" style="height:1px; padding:0px; border-top: 1px solid #ccc;"></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:0px; height:32px;">Parent:</td>
+                                                <td style="padding:0px;">
+                                                    <select id="type_parent_new" name="type_parent_new" style="float:left; width:100%;">
+                                                        <option value="0"> - </option>
+            <?php
+                // only one level of descendants are allowed
+                $parents = $wpdb->get_results($wpdb->prepare(
+                    "SELECT resource_id, name FROM ".$wpdb->prefix ."bookingresources 
+                      WHERE parent_resource_id IS NULL
+                      ORDER BY resource_id"));
+                foreach ($parents as $p_rec) {
+                    echo '<option value="' . $p_rec->resource_id . '">' . $p_rec->name . '</option>';
+                }
+            ?>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:0px; height:32px;">Capacity:</td>
+                                                <td style="padding:0px;">
+                                                    <select id="type_capacity_new" name="type_capacity_new" style="float:left; width:50px;">
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
+                                                        <option value="3">3</option>
+                                                        <option value="4">4</option>
+                                                        <option value="5">5</option>
+                                                        <option value="6">6</option>
+                                                        <option value="7">7</option>
+                                                        <option value="8">8</option>
+                                                        <option value="9">9</option>
+                                                        <option value="10">10</option>
+                                                        <option value="11">11</option>
+                                                        <option value="12">12</option>
+                                                        <option value="13">13</option>
+                                                        <option value="14">14</option>
+                                                        <option value="15">15</option>
+                                                        <option value="16">16</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td></tr>
+                                <tr>
+                                    <td style="height:35px; border-top:1px solid #ccc;">
+                                        <input class="button-secondary" type="submit" name="submit_add_resources" value="+ Add new resource(s)" style="float:left;">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="clear" style="height:40px;"></div>
+                    </form>
+            <?php /*make_bk_action('wpdev_booking_resources_show_content');*/ ?>
             <?php // if( $this->wpdev_bk_pro === false )  $this->show_help('pro','resource_management'); ?>
             </div> <?php
 
@@ -4053,7 +4292,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
             //   Admin and Client
             if($is_admin) { ?> <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/css/admin.css" rel="stylesheet" type="text/css" />  <?php
                 ?>
-                            <style type="text/css">
+                            <!-- num calendar selection has been disabled! xxx   style type="text/css">
                                 #wpdev-booking-general .datepick-inline {
                 <?php
                 $cal_count = get_user_option( 'booking_admin_calendar_count');
@@ -4065,7 +4304,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                 <?php echo ' width:' . (309*$calendars__count) . 'px !important;'; ?>
                                 }
                                 .datepick-one-month  {height:320px;}
-                            </style> <?php
+                            </style--> <?php
             } else {
                 if ( strpos($_SERVER['REQUEST_URI'],'wp-admin/admin.php?') !==false ) {
                     ?> <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/css/admin.css" rel="stylesheet" type="text/css" />  <?php
@@ -4084,8 +4323,23 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
         //   C L I E N T   S I D E     &    H O O K S
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+////////////////////////////////// BEGIN CUSTOM CODE //////////////////////////////////
                 // Get scripts for calendar activation
                 function get_script_for_calendar($bk_type, $additional_bk_types, $my_selected_dates_without_calendar, $my_boook_count, $start_month_calendar = false ){
+                    $start_script_code = "<script type='text/javascript'>";
+                    $start_script_code .= "  jWPDev(document).ready( function(){";
+                    $start_script_code .= "  init_datepick_cal('". $bk_type ."', [], ".
+                                                $my_boook_count ." , ". get_bk_option( 'booking_start_day_weeek' ) ;
+                    $start_js_month = ", false " ;
+                    $start_script_code .= $start_js_month .  "  );  ";
+                    $start_script_code .= "}); </script>";
+                    return $start_script_code;
+                }
+////////////////////////////////// END CUSTOM CODE ///////////////////////////////////
+
+                // Get scripts for calendar activation
+                function get_script_for_calendar_OLD($bk_type, $additional_bk_types, $my_selected_dates_without_calendar, $my_boook_count, $start_month_calendar = false ){
 
                     $my_boook_type = $bk_type;
                     $start_script_code = "<script type='text/javascript'>";
@@ -4178,7 +4432,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                 // Get code of the legend here
                 function get_legend(){
                     $my_result = '';
-                    if (get_bk_option( 'booking_is_show_legend' ) == 'On') { //TODO: check here according legend
+//                    if (get_bk_option( 'booking_is_show_legend' ) == 'On') { //TODO: check here according legend
                         $my_result .= '<div class="block_hints datepick">';
                         $my_result .= '<div class="wpdev_hint_with_text"><div class="block_free datepick-days-cell"><a>#</a></div><div class="block_text">- '.__('Available','wpdev-booking') .'</div></div>';
                         $my_result .= '<div class="wpdev_hint_with_text"><div class="block_booked date_approved">#</div><div class="block_text">- '.__('Booked','wpdev-booking') .'</div></div>';
@@ -4187,9 +4441,30 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             if ($this->wpdev_bk_pro->wpdev_bk_premium !== false)
                                 $my_result .= '<div class="wpdev_hint_with_text"><div class="block_time timespartly">#</div><div class="block_text">- '.__('Partially booked','wpdev-booking') .'</div></div>';
                         $my_result .= '</div><div class="wpdev_clear_hint"></div>';
-                    }
+//                    }
                     return $my_result;
                 }
+
+////////////////////////////// BEGIN CUSTOM CODE ////////////////////////////////////
+        // Get form
+        function get_booking_form_v2($my_boook_type) {
+            $my_form =  '<div style="text-align:left;">
+                    <p>'.__('First Name (required)', 'wpdev-booking').':<br />  <span class="wpdev-form-control-wrap name'.$my_boook_type.'"><input type="text" name="name'.$my_boook_type.'" value="" class="wpdev-validates-as-required" size="40" /></span> </p>
+                    <p>'.__('Last Name (required)', 'wpdev-booking').':<br />  <span class="wpdev-form-control-wrap secondname'.$my_boook_type.'"><input type="text" name="secondname'.$my_boook_type.'" value="" class="wpdev-validates-as-required" size="40" /></span> </p>
+                    <p>Add <input type="text" name="num_visitors" value="" class="wpdev-validates-as-required" size="5" /> 
+                           <input type="radio" name="gender" value="Male" checked>Male<br>
+                           <input type="radio" name="gender" value="Female">Female<br> visitors to Resource 
+                       <input type="button" value="'.__('GO', 'wpdev-booking').'" onclick="add_booking_allocation(this.form,\''.getBookingLocale().'\');" />
+                    </p>
+                    <p><div id="booking_allocations"><!-- dorm allocations get inserted here via ajax--></div></p>
+                    <p><div id="ajax_respond"><!-- ajax response here--></div></p>
+                    <p>'.__('Details', 'wpdev-booking').':<br />          <span class="wpdev-form-control-wrap details'.$my_boook_type.'"><textarea name="details'.$my_boook_type.'" cols="40" rows="10"></textarea></span> </p>';
+            $my_form .=  '<p><input type="button" value="'.__('Send', 'wpdev-booking').'" onclick="mybooking_submit(this.form,'.$my_boook_type.',\''.getBookingLocale().'\');" /></p>
+                    </div>';
+
+            return $my_form;
+        }
+//////////////////////////// END CUSTOM CODE ////////////////////////////////////////
 
         // Get form
         function get_booking_form($my_boook_type) {
@@ -4209,14 +4484,52 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
         // Get booking form
         function get_booking_form_action($my_boook_type=1,$my_boook_count=1, $my_booking_form = 'standard',  $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
 
-            $res = $this->add_booking_form_action($my_boook_type,$my_boook_count, 0, $my_booking_form , $my_selected_dates_without_calendar, $start_month_calendar );
+//            $res = $this->add_booking_form_action($my_boook_type,$my_boook_count, 0, $my_booking_form , $my_selected_dates_without_calendar, $start_month_calendar );
+            $res = $this->add_booking_form_action;
             return $res;
 
         }
 
+//////////////////////// BEGIN CUSTOM CODE ////////////////////////////
         //Show booking form from action call - wpdev_bk_add_form
-        function add_booking_form_action($bk_type =1, $cal_count =1, $is_echo = 1, $my_booking_form = 'standard', $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
 
+        function add_booking_form_action($bk_type =1, $cal_count =1, $is_echo = 1, $my_booking_form = 'standard', $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
+  
+        // if we are here, then the URI should be correct
+//            if( strpos($_SERVER['REQUEST_URI'],'wpdev-booking-reservation')) {
+//            }
+
+            if($_SERVER['REQUEST_METHOD'] == 'POST') {
+                $comment_insert = 'you just did a post';
+            } else {
+//                session_start();
+                $comment_insert = 'just a get';
+            }
+
+            $start_script_code = $this->get_script_for_calendar(
+                1, // $bk_type, 
+                array(), // $additional_bk_types 
+                '', //$my_selected_dates_without_calendar, 
+                1, //$cal_count, 
+                false //$start_month_calendar 
+            );
+
+            $my_result =  ' ' . $this->get__client_side_booking_content_v2(
+                1, //$bk_type, 
+                'standard', //$my_booking_form, 
+                '' //$my_selected_dates_without_calendar 
+            ) . ' ' . $start_script_code . $comment_insert;
+            
+//            $my_result = apply_filters('wpdev_booking_form', $my_result , $bk_type);
+            //return $my_result . $comment_insert;
+
+            if ( $is_echo )            echo $my_result;
+            else                       return $my_result;
+        }
+//////////////////////// END CUSTOM CODE ////////////////////////////
+        
+        //Show booking form from action call - wpdev_bk_add_form
+        function add_booking_form_action_OLD($bk_type =1, $cal_count =1, $is_echo = 1, $my_booking_form = 'standard', $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
             $is_booking_resource_exist = apply_bk_filter('wpdev_is_booking_resource_exist',true, $bk_type, $is_echo );
             if (! $is_booking_resource_exist) {
                 if ( $is_echo )     echo '';
@@ -4303,6 +4616,59 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 
 
         }
+
+////////////////////////// BEGIN CUSTOM CODE /////////////////////////////////////
+
+        // Get content at client side of  C A L E N D A R
+        function get__client_side_booking_content_v2($my_boook_type = 1 , $my_booking_form = 'standard', $my_selected_dates_without_calendar = '') {
+
+            $nl = '<div style="clear:both;height:10px;"></div>';                                                            // New line
+            if ($my_selected_dates_without_calendar=='') {
+                $calendar  = '<div id="calendar_booking'.$my_boook_type.'">&nbsp;</div>';
+//                $booking_is_show_powered_by_notice = get_bk_option( 'booking_is_show_powered_by_notice' );             // check
+//                if(  $this->wpdev_bk_pro == false  )   
+//                        if ($booking_is_show_powered_by_notice == 'On')
+//                            $calendar .= '<div style="font-size:9px;text-align:left;">Powered by <a href="http://onlinebookingcalendar.com" target="_blank">Booking Calendar</a></div>';
+                $calendar .= '<textarea rows="3" cols="50" id="date_booking'.$my_boook_type.'" name="date_booking'.$my_boook_type.'" style="display:none;"></textarea>';   // Calendar code
+            } else {
+                $calendar = '';
+                $calendar .= '<textarea rows="3" cols="50" id="date_booking'.$my_boook_type.'" name="date_booking'.$my_boook_type.'" style="display:none;">'.$my_selected_dates_without_calendar.'</textarea>';   // Calendar code
+            }
+
+            $calendar  .= $this->get_legend();                                  // Get Legend code here
+
+
+            $form = '<div id="booking_form_div'.$my_boook_type.'" class="booking_form_div">';
+            $form .= '<form id="booking_form" class="booking_form" method="post" action="">';
+
+//            if(  $this->wpdev_bk_pro !== false  )   $form .= $this->wpdev_bk_pro->get_booking_form($my_boook_type, $my_booking_form);         // Get booking form
+//            else                                    
+            $form .= $this->get_booking_form_v2($my_boook_type);
+
+//            $form .= '</form>';
+
+            // Insert calendar into form
+            if ( strpos($form, '[calendar]') !== false )  $form = str_replace('[calendar]', $calendar ,$form);
+            else                                          $form = $calendar . $nl . $form ;
+
+//            $form = apply_bk_filter('wpdev_check_for_additional_calendars_in_form', $form, $my_boook_type );
+
+//            if ( strpos($form, '[captcha]') !== false ) {
+//                $captcha = $this->createCapthaContent($my_boook_type);
+//                $form =str_replace('[captcha]', $captcha ,$form);
+//            }
+
+//            $form = apply_filters('wpdev_booking_form_content', $form , $my_boook_type);
+
+            // Add booking type field
+            $form      .= '<input id="bk_type'.$my_boook_type.'" name="bk_type'.$my_boook_type.'" class="" type="hidden" value="'.$my_boook_type.'" /></form></div>';
+            $submitting = '<div id="submiting'.$my_boook_type.'"></div><div class="form_bk_messages" id="form_bk_messages'.$my_boook_type.'" ></div>';
+            $return_form = $form . $submitting;
+
+            return $return_form;
+        }
+
+//////////////////////////////////////////////////////////////////////////////////
 
         // Get content at client side of  C A L E N D A R
         function get__client_side_booking_content($my_boook_type = 1 , $my_booking_form = 'standard', $my_selected_dates_without_calendar = '') {
@@ -4716,6 +5082,12 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                 }
             }
 
+            if  ($this->is_field_in_table_exists('bookingdates','resource_id') == 0) {
+                $wp_queries[]  = "ALTER TABLE ".$wpdb->prefix ."bookingdates ADD resource_id bigint(20) unsigned AFTER booking_date";
+                $wp_queries[]  = "UPDATE ".$wpdb->prefix ."bookingdates SET resource_id = 1";
+                //$wpdb->query($wpdb->prepare($simple_sql));
+            }
+            
             if (count($wp_queries)>0) {
                 foreach ($wp_queries as $wp_q)
                     $wpdb->query($wpdb->prepare($wp_q));
@@ -4733,7 +5105,16 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                 }
             }
 
-
+            if ( ! $this->is_table_exists('bookingresources') ) { // Check if tables not exist yet
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingresources (
+                         resource_id bigint(20) unsigned NOT NULL auto_increment,
+                         name varchar(50) NOT NULL,
+                         capacity bigint(20) unsigned,
+                         parent_resource_id bigint(20),
+                         PRIMARY KEY (resource_id)
+                        ) $charset_collate;";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
 
             // if( $this->wpdev_bk_pro !== false )  $this->wpdev_bk_pro->pro_activate();
             make_bk_action('wpdev_booking_activation');

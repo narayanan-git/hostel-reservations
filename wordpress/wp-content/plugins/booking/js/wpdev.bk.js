@@ -398,6 +398,31 @@
 
         }
 
+        
+///////////////////////// BEGIN CUSTOM CODE ///////////////////////////
+    //<![CDATA[
+    function add_booking_allocation(submit_form , wpdev_active_locale) {
+
+            jWPDev.ajax({                                           // Start Ajax Sending
+                url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+                type:'POST',
+                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+                data:{
+                    ajax_action : 'ADD_ALLOCATION',
+                    //form: formdata,
+                    dates: document.getElementById('date_booking1').value ,
+                    num_visitors : submit_form.num_visitors.value,
+                    gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
+                    wpdev_active_locale:wpdev_active_locale
+                }
+            });
+
+    }
+    //]]>
+    
+//////////////////////// END CUSTOM CODE //////////////////////////////
+
     // Check fields at form and then send request
     function mybooking_submit( submit_form , bk_type, wpdev_active_locale){
 

@@ -45,9 +45,18 @@ function wpdev_bk_ajax_responder() {
     switch ( $action ) :
 
         case  'INSERT_INTO_TABLE':
-            wpdev_bk_insert_new_booking();
+            wpdev_bk_insert_new_booking_v2();
             die();
             break;
+
+/////////////////////// BEGIN CUSTOM CODE /////////////////////////
+        // insert allocations as part of a booking
+        case  'ADD_ALLOCATION':
+            wpdev_add_booking_allocation();
+            die();
+            break;
+            
+/////////////////////// END CUSTOM CODE ///////////////////////////
 
         case 'UPDATE_APPROVE' :
 
@@ -186,8 +195,61 @@ function wpdev_bk_ajax_responder() {
 }
 
 
+///////////////////////// BEGIN CUSTOM CODE //////////////////////////////
+function wpdev_bk_insert_new_booking_v2(){
 
+    $bktype = 1;
+    
+    // display rotating progress circle
+    ?> <script type="text/javascript">
+        document.getElementById('ajax_working').innerHTML =
+            '<div class="info_message ajax_message" id="ajax_message">\n\
+            <div style="float:left;"><?php echo __('Updating...', 'wpdev-booking'); ?></div> \n\
+            <div style="float:left;width:80px;margin-top:-3px;">\n\
+                <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
+             </div>\n\
+          </div>';
+        </script> <?php
 
+    
+
+    // stop and redirect
+    ?> <script type="text/javascript">
+           document.getElementById('ajax_message').innerHTML = '<?php echo __('Updated successfully', 'wpdev-booking'); ?><br>';
+           jWPDev('#ajax_message').fadeOut(2000);
+           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
+//           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
+       </script>
+    <?php
+}
+
+function wpdev_add_booking_allocation() {
+
+//    $bktype = 1;
+    $num_visitors = $_POST['num_visitors'];
+    $gender = $_POST['gender'];
+    $dates = $_POST['dates'];
+    // keep allocations in a datastructure saved to session
+    // { allocation_id, resource_id, gender, array[dates] }
+    // display datastructure(s) as table from min(dates) for 2 weeks afterwards
+    // editing table on screen updates datastructure in real-time
+    // on submit, start transaction, validate allocations, save and end transaction
+
+$ar = new AllocationRow('Megan-2', 'F', 'bed gamma');
+$ar->addPaymentForDate('13.03.2012', '22.22');
+$ar->addPaymentForDate('14.03.2012', '33.11');
+    ?> 
+       <script type="text/javascript">
+          document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($ar->toHtml()); ?>;
+          document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors on '.$dates; ?><br>';
+//           jWPDev('#ajax_message').fadeOut(2000);
+//           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
+//           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
+       </script>
+    <?php
+}
+
+//////////////////////////////////////////////////////////////////////////
 
 function wpdev_bk_insert_new_booking(){
 

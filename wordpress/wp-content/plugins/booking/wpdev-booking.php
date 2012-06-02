@@ -207,8 +207,8 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/js/captcha/captcha.php'))  {             // C A P T C H A
         require_once(WPDEV_BK_PLUGIN_DIR. '/js/captcha/captcha.php' );}
 
-  //  if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/wpdev-pro.php'))   {             // O t h e r
-  //      require_once(WPDEV_BK_PLUGIN_DIR. '/include/wpdev-pro.php' ); }
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_row.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_row.class.php' ); }
 
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php'))           // C L A S S    B o o k i n g
         { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php' ); }
@@ -224,5 +224,7 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-ajax.php'))  { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-ajax.php' ); }
 
     // RUN //
+    error_reporting(E_ALL);
+    session_start();
     $wpdev_bk = new wpdev_booking(); 
 ?>
