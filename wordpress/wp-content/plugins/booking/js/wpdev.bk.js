@@ -414,6 +414,7 @@
                     dates: document.getElementById('date_booking1').value ,
                     num_visitors : submit_form.num_visitors.value,
                     gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
+                    booking_resource : submit_form.booking_resource.value,
                     wpdev_active_locale:wpdev_active_locale
                 }
             });

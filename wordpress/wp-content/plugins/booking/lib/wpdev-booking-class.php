@@ -4328,7 +4328,8 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
         function get_booking_form_action($my_boook_type=1,$my_boook_count=1, $my_booking_form = 'standard',  $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
 
 //            $res = $this->add_booking_form_action($my_boook_type,$my_boook_count, 0, $my_booking_form , $my_selected_dates_without_calendar, $start_month_calendar );
-            $res = $this->add_booking_form_action;
+            //$res = $this->add_booking_form_action;
+            $res = new AddBooking().toHtml();
             return $res;
 
         }
@@ -4342,13 +4343,14 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 //            if( strpos($_SERVER['REQUEST_URI'],'wpdev-booking-reservation')) {
 //            }
 
-            if($_SERVER['REQUEST_METHOD'] == 'POST') {
-                $comment_insert = 'you just did a post';
-            } else {
-//                session_start();
-                $comment_insert = 'just a get';
-            }
+///// REMOVE PREVIOUS SESSION DATA IF SET //////////
+unset($_SESSION['ADD_ALLOCATION_TABLE']);  // set in ajax handler
+////////////////////////////////////////////////////
 
+$addbook = new AddBooking();
+ echo $addbook->toHtml();
+//return $addbook->toHtml();            
+/*
             $start_script_code = $this->get_script_for_calendar(
                 1, // $bk_type, 
                 array(), // $additional_bk_types 
@@ -4368,6 +4370,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 
             if ( $is_echo )            echo $my_result;
             else                       return $my_result;
+*/
         }
 //////////////////////// END CUSTOM CODE ////////////////////////////
         

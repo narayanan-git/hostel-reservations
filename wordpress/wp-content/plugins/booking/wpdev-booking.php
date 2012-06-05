@@ -219,6 +219,9 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/resource_dbo.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/resource_dbo.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/add_booking.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/add_booking.class.php' ); }
+
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php'))           // C L A S S    B o o k i n g
         { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php' ); }
 

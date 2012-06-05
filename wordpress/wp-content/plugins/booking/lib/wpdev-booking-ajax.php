@@ -230,6 +230,7 @@ function wpdev_add_booking_allocation() {
     $num_visitors = $_POST['num_visitors'];
     $gender = $_POST['gender'];
     $dates = $_POST['dates'];
+    $res = $_POST['booking_resource'];
     // keep allocations in a datastructure saved to session
     // { allocation_id, resource_id, gender, array[dates] }
     // display datastructure(s) as table from min(dates) for 2 weeks afterwards
@@ -246,13 +247,13 @@ if(isset($_SESSION['ADD_ALLOCATION_TABLE'])) {
     $at = new AllocationTable('Megan');
     $_SESSION['ADD_ALLOCATION_TABLE'] = $at;
 }
-$at->addAllocation($num_visitors, $gender, $dates);
+$at->addAllocation($num_visitors, $gender, $res);
 
 
     ?> 
        <script type="text/javascript">
           document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($at->toHtml()); ?>;
-          document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors on '.$dates; ?><br>';
+          document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors to '.$res.' on '.$dates; ?><br>';
 //           jWPDev('#ajax_message').fadeOut(2000);
 //           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
