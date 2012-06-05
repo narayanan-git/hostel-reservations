@@ -103,20 +103,16 @@
         <td style="font-size:10px; font-weight: bold; border-right: 0px solid #ddd; border-left: 1px solid #aaa; text-align: center;"><xsl:value-of select="id"/></td>
         <xsl:choose>
             <!-- if this is a parent resource, make it bold -->
-            <xsl:when test="parentResourceId = ''"> 
+            <xsl:when test="level = 1"> 
                 <td style="font-size: 11px;"><input id="type_name{id}" type="text" name="type_name{id}" value="{name}" style="width:210px; font-weight:bold;" maxlength="50"/></td>
             </xsl:when>
             <!-- if this *belongs* to another resource, left pad it and not bold -->
             <xsl:otherwise>
-                <td style="font-size: 11px; padding-left: 50px;"><input id="type_name{id}" type="text" name="type_name{id}" value="{name}" style="width:170px; font-size:11px;" maxlength="50"/></td>
+                <td style="font-size: 11px; padding-left: {15*level}px;"><input id="type_name{id}" type="text" name="type_name{id}" value="{name}" style="width:170px; font-size:11px;" maxlength="50"/></td>
             </xsl:otherwise>
         </xsl:choose>
         
         <xsl:choose>
-            <!-- if this is a leaf (belongs to a parent resource), capacity implied == 1 (ie. one dorm bed) -->
-            <xsl:when test="parentResourceId != ''">
-                <td/>
-            </xsl:when>
             <!-- if this resource doesn't have any children, we can edit the capacity (not implied) -->
             <xsl:when test="numberChildren = 0">
                 <td style="font-size: 11px;"><input id="type_capacity{id}" type="text" name="type_capacity{id}" value="{capacity}" style="width:50px; font-size:11px;" maxlength="2"/></td>
@@ -129,8 +125,28 @@
     </tr>
 </xsl:template>
 
+<!-- builds drill-down of resource id, name -->
 <xsl:template mode="parent_resource_selection" match="resource">
-    <option value="{id}"><xsl:value-of select="name"/></option>
+    <option value="{id}">
+        <xsl:call-template name ="indent">
+            <xsl:with-param name="i">1</xsl:with-param>
+            <xsl:with-param name="value"><xsl:value-of select="level"/></xsl:with-param>
+        </xsl:call-template>
+        <xsl:value-of select ="name"/>
+    </option>
+</xsl:template>
+
+<!-- adds non-breaking spaces -->
+<xsl:template name="indent">
+    <xsl:param name="i"/>
+    <xsl:param name="value"/>
+    <xsl:if test="$i &lt; $value">
+        &#160;&#160;&#160;&#160;
+        <xsl:call-template name ="indent">
+            <xsl:with-param name="i"><xsl:value-of select ="$i+1"/></xsl:with-param>
+            <xsl:with-param name="value"><xsl:value-of select="level"/></xsl:with-param>
+        </xsl:call-template>
+    </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>

@@ -4963,6 +4963,34 @@ unset($_SESSION['ADD_ALLOCATION_TABLE']);
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
+            if ( ! $this->is_table_exists('v_resources_sub1') ) {
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1(resource_id, name, capacity, parent_resource_id, gp_resource_id) AS
+                        SELECT br1.resource_id, br1.name, br1.capacity, br1.parent_resource_id, 
+                            (SELECT br2.parent_resource_id FROM wp_bookingresources br2 WHERE br2.resource_id = br1.parent_resource_id) AS gp_resource_id
+                        FROM wp_bookingresources br1";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_table_exists('v_resources_sub2') ) {
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix ."v_resources_sub2(resource_id, name, capacity, parent_resource_id, gp_resource_id, path) AS
+                        SELECT resource_id, name, capacity, parent_resource_id, gp_resource_id, 
+                               CAST(CONCAT(CASE WHEN gp_resource_id IS NULL THEN '' ELSE CONCAT('/', gp_resource_id) END,
+                                           CASE WHEN parent_resource_id IS NULL THEN '' ELSE CONCAT('/', parent_resource_id) END,
+                                           '/', resource_id) AS CHAR) AS path
+                          FROM ".$wpdb->prefix."v_resources_sub1";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_table_exists('v_resources_by_path') ) {
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path(resource_id, name, capacity, path, lvl, number_children) AS
+                        SELECT resource_id, name, capacity, path, 
+                               LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
+                               (SELECT COUNT(*) FROM ".$wpdb->prefix."v_resources_sub2 s2 WHERE s2.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children
+                          FROM ".$wpdb->prefix."v_resources_sub2 s
+                         ORDER BY path";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
             // if( $this->wpdev_bk_pro !== false )  $this->wpdev_bk_pro->pro_activate();
             make_bk_action('wpdev_booking_activation');
 

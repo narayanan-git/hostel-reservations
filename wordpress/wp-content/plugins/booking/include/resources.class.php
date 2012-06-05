@@ -12,20 +12,25 @@ class Resources {
      *         <id>1</id>
      *         <name>8-Bed Dorm</name>
      *         <capacity></capacity>
-     *         <parentResourceId></parentResourceId>
+     *         <path>/1</path>
+     *         <level>1</level>
      *         <numberChildren>2</numberChildren>
      *     </resource>
      *     <resource>
      *         <id>2</id>
      *         <name>Bed A</name>
      *         <capacity>1</capacity>
-     *         <parentResourceId>1</parentResourceId>
+     *         <path>/1/2</path>
+     *         <level>2</level>
+     *         <numberChildren>0</numberChildren>
      *     </resource>
      *     <resource>
      *         <id>3</id>
      *         <name>Bed B</name>
      *         <capacity>1</capacity>
-     *         <parentResourceId>1</parentResourceId>
+     *         <path>/1/3</path>
+     *         <level>2</level>
+     *         <numberChildren>0</numberChildren>
      *     </resource>
      *     ...
      * </resources>
@@ -41,7 +46,8 @@ class Resources {
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));
             $resourceRow->appendChild($domtree->createElement('capacity', $res->capacity));
-            $resourceRow->appendChild($domtree->createElement('parentResourceId', $res->parent_resource_id));
+            $resourceRow->appendChild($domtree->createElement('path', $res->path));
+            $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
             $resourceRow->appendChild($domtree->createElement('numberChildren', $res->number_children));
             $xmlRoot->appendChild($resourceRow);
         }

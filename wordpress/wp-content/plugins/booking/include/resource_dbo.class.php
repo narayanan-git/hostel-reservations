@@ -10,7 +10,8 @@ class ResourceDBO {
      * resource_id : id of resource
      * name : resource name
      * capacity : capacity of resource
-     * parent_resource_id : id of parent resource (if applicable)
+     * lvl : depth of tree (starting at 1)
+     * path : tree path by resource id
      * number_children : number of children (0 for leaf nodes)
      */
     static function getAllResources() {
@@ -18,10 +19,9 @@ class ResourceDBO {
 
         // query all our resources (in order)
         return $wpdb->get_results($wpdb->prepare(
-            "SELECT br.resource_id, br.name, br.capacity, br.parent_resource_id, 
-                    (SELECT COUNT(*) FROM ".$wpdb->prefix ."bookingresources WHERE parent_resource_id = br.resource_id) AS number_children 
-               FROM ".$wpdb->prefix ."bookingresources br
-              ORDER BY COALESCE(parent_resource_id, resource_id), resource_id"));
+            "SELECT resource_id, name, capacity, lvl, path, number_children 
+               FROM ".$wpdb->prefix."v_resources_by_path
+              ORDER BY path"));
     }
 
     /**
@@ -47,17 +47,11 @@ class ResourceDBO {
         // for clarity, set parent resource capacity to NULL if there is at least one child resource
         $wpdb->query($wpdb->prepare(
             "UPDATE ".$wpdb->prefix ."bookingresources br_p
-              INNER JOIN ".$wpdb->prefix ."bookingresources br_c
-                 ON br_c.parent_resource_id = br_p.resource_id
+              INNER JOIN ".$wpdb->prefix."v_resources_by_path br_c
+                 ON br_c.resource_id = br_p.resource_id
                 SET br_p.capacity = NULL 
-              WHERE br_p.parent_resource_id IS NULL"));
+              WHERE br_c.number_children > 0"));
         
-        // likewise, leaf nodes (dorm beds) should have an implied capacity of 1
-        $wpdb->query($wpdb->prepare(
-            "UPDATE ".$wpdb->prefix ."bookingresources
-                SET capacity = 1
-              WHERE parent_resource_id IS NOT NULL"));
-              
         // https://core.trac.wordpress.org/ticket/15158   null's aren't being set properly
         $wpdb->query($wpdb->prepare(
             "UPDATE ".$wpdb->prefix ."bookingresources 
@@ -76,7 +70,7 @@ class ResourceDBO {
         global $wpdb;
         // only one level of descendants are allowed
         $parents = $wpdb->get_results($wpdb->prepare(
-            "SELECT resource_id, name FROM ".$wpdb->prefix ."bookingresources 
+            "SELECT resource_id, name FROM ".$wpdb->prefix."bookingresources 
               WHERE parent_resource_id IS NULL
               ORDER BY resource_id"));
     }
