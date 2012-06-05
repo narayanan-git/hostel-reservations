@@ -2296,169 +2296,12 @@ if (!class_exists('wpdev_booking')) {
         //content of resources management page
         function content_of_resource_page(){
 
-            global $wpdb;
-            
             // if the user has just submitted an "Add new resource" request
             if ( isset($_POST['type_name_new'])) {
-                $wpdb->insert($wpdb->prefix ."bookingresources", 
-                     array( 'name' => $_POST['type_name_new'], 
-                            'capacity' => $_POST['type_capacity_new'], 
-                            'parent_resource_id' => $_POST['type_parent_new']));
-
-                // for clarity, set parent resource capacity to NULL if there is at least one child resource
-                $wpdb->query($wpdb->prepare(
-                    "UPDATE ".$wpdb->prefix ."bookingresources br_p
-                      INNER JOIN ".$wpdb->prefix ."bookingresources br_c
-                         ON br_c.parent_resource_id = br_p.resource_id
-                        SET br_p.capacity = NULL 
-                      WHERE br_p.parent_resource_id IS NULL"));
-                
-                // likewise, leaf nodes (dorm beds) should have an implied capacity of 1
-                $wpdb->query($wpdb->prepare(
-                    "UPDATE ".$wpdb->prefix ."bookingresources
-                        SET capacity = 1
-                      WHERE parent_resource_id IS NOT NULL"));
-                      
-                // https://core.trac.wordpress.org/ticket/15158   null's aren't being set properly
-                $wpdb->query($wpdb->prepare(
-                    "UPDATE ".$wpdb->prefix ."bookingresources 
-                        SET parent_resource_id = NULL 
-                      WHERE parent_resource_id = 0"));
+                ResourceDBO::insertResource($_POST['type_name_new'], $_POST['type_capacity_new'], $_POST['type_parent_new']);
             }
 
-            // this is where we query all our resources (in order)
-            $all_resources = $wpdb->get_results($wpdb->prepare(
-                "SELECT br.resource_id, br.name, br.capacity, br.parent_resource_id, 
-                        (SELECT COUNT(*) FROM ".$wpdb->prefix ."bookingresources WHERE parent_resource_id = br.resource_id) AS number_children 
-                   FROM ".$wpdb->prefix ."bookingresources br
-                  ORDER BY COALESCE(parent_resource_id, resource_id), resource_id"));
-
-            ?> <div style="margin-top:10px;height:1px;clear:both;border-top:1px solid #bbc;"></div>  <?php
-            ?> <div id="ajax_respond"></div>
-            <div class="clear" ></div>
-            <div id="ajax_working"></div>
-            <div id="poststuff" class="metabox-holder" style="margin-top:0px;">
-                <div style="float:left;">
-                    <table class="resource_table0 booking_table" cellspacing="0" cellpadding="0" style="width:99%;">
-                        <tbody>
-                            <tr>
-                                <th style="width:15px;"><input id="resources_items_all" class="resources_items" type="checkbox" name="resources_items_all" onclick="javascript:jWPDev('.resources_items').attr('checked', this.checked);"></th>
-                                <th style="width:10px; height:35px; border-left: 1px solid #BBBBBB;">ID</th>
-                                <th style="height:35px;">Resource Name</th>
-                                <th class="tipcy" title="Max number of occupants" style="width:50px;">Capacity</th>
-                            </tr>
-            <?php
-                foreach ($all_resources as $res) {
-            ?>
-                            <tr>
-                                <th><input id="resources_items_<?php echo $res->resource_id; ?>" class="resources_items" type="checkbox" name="resources_items_<?php echo $res->resource_id; ?>"></th>
-                                <td style="font-size:10px; font-weight: bold; border-right: 0px solid #ddd; border-left: 1px solid #aaa; text-align: center;"><?php echo $res->resource_id; ?></td>
-            <?php
-                    if($res->parent_resource_id == null) { // if this is a parent resource, make it bold
-            ?>
-                                <td style="font-size: 11px;"><input id="type_name<?php echo $res->resource_id; ?>" type="text" name="type_name<?php echo $res->resource_id; ?>" value="<?php echo $res->name; ?>" style="width:210px; font-weight:bold;" maxlength="50"></td>
-            <?php
-                    } else { // if this *belongs* to another resource, left pad it and not bold
-            ?>
-                                <td style="font-size: 11px; padding-left: 50px;"><input id="type_name<?php echo $res->resource_id; ?>" type="text" name="type_name<?php echo $res->resource_id; ?>" value="<?php echo $res->name; ?>" style="width:170px; font-size:11px;" maxlength="50"></td>
-            <?php
-                    }
-                    
-                    if($res->parent_resource_id != null) {  // if this is a leaf (belongs to a parent resource), capacity implied == 1 (ie. one dorm bed)
-            ?>
-                                <td/>
-            <?php
-                    } else if($res->number_children == 0) {  // if this resource doesn't have any children, we can edit the capacity (not implied)
-            ?>
-                                <td style="font-size: 11px;"><input id="type_capacity<?php echo $res->resource_id; ?>" type="text" name="type_capacity<?php echo $res->resource_id; ?>" value="<?php echo $res->capacity; ?>" style="width:50px; font-size:11px;" maxlength="2"></td>
-            <?php
-                    } else { // this resource has children, so the capacity is the total number of children
-            ?>
-                                <td style="text-align:center; font-weight:bold;"><?php echo $res->number_children; ?></td>
-            <?php
-                    }
-            ?>
-                            </tr>
-            <?php
-                }
-            ?>
-                        </tbody>
-                    </table>
-                    <div class="clear" style="height:10px;"></div>
-                    <input class="button-primary" type="submit" name="submit_resources" value="Save" style="float:left;">
-                    <div class="clear" style="height:10px;"></div>
-                </div>
-                <div style="width:320px; float:right;">
-                    <form id="post_option_add_resources" method="post" action="" name="post_option_add_resources">
-                        <table class="resource_table0 booking_table" cellspacing="0" cellpadding="0" style="width:99%;">
-                            <tbody>
-                                <tr><th style="height:30px;">Add New Resource(s)</th></tr>
-                                <tr><td class="alternative_color" style="height:40px;">
-                                    <table style="width:100%; padding:0px;">
-                                        <tbody>
-                                            <tr>
-                                                <td style="padding:0px; height:32px; font-weight:bold;">Name:</td>
-                                                <td style="padding:0px;"><input id="type_name_new" type="text" name="type_name_new" value="" maxlength="50" style="float:left; width:100%;"></td>
-                                            </tr>
-                                            <tr>
-                                                <td colspan="2" style="height:1px; padding:0px; border-top: 1px solid #ccc;"></td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding:0px; height:32px;">Parent:</td>
-                                                <td style="padding:0px;">
-                                                    <select id="type_parent_new" name="type_parent_new" style="float:left; width:100%;">
-                                                        <option value="0"> - </option>
-            <?php
-                // only one level of descendants are allowed
-                $parents = $wpdb->get_results($wpdb->prepare(
-                    "SELECT resource_id, name FROM ".$wpdb->prefix ."bookingresources 
-                      WHERE parent_resource_id IS NULL
-                      ORDER BY resource_id"));
-                foreach ($parents as $p_rec) {
-                    echo '<option value="' . $p_rec->resource_id . '">' . $p_rec->name . '</option>';
-                }
-            ?>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <td style="padding:0px; height:32px;">Capacity:</td>
-                                                <td style="padding:0px;">
-                                                    <select id="type_capacity_new" name="type_capacity_new" style="float:left; width:50px;">
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                        <option value="3">3</option>
-                                                        <option value="4">4</option>
-                                                        <option value="5">5</option>
-                                                        <option value="6">6</option>
-                                                        <option value="7">7</option>
-                                                        <option value="8">8</option>
-                                                        <option value="9">9</option>
-                                                        <option value="10">10</option>
-                                                        <option value="11">11</option>
-                                                        <option value="12">12</option>
-                                                        <option value="13">13</option>
-                                                        <option value="14">14</option>
-                                                        <option value="15">15</option>
-                                                        <option value="16">16</option>
-                                                    </select>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </td></tr>
-                                <tr>
-                                    <td style="height:35px; border-top:1px solid #ccc;">
-                                        <input class="button-secondary" type="submit" name="submit_add_resources" value="+ Add new resource(s)" style="float:left;">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <div class="clear" style="height:40px;"></div>
-                    </form>
-            <?php /*make_bk_action('wpdev_booking_resources_show_content');*/ ?>
-            <?php // if( $this->wpdev_bk_pro === false )  $this->show_help('pro','resource_management'); ?>
-            </div> <?php
+            echo Resources::toHtml();
 
         }
         // </editor-fold>
@@ -4621,6 +4464,10 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 
         // Get content at client side of  C A L E N D A R
         function get__client_side_booking_content_v2($my_boook_type = 1 , $my_booking_form = 'standard', $my_selected_dates_without_calendar = '') {
+        
+///// REMOVE PREVIOUS SESSION DATA IF SET //////////
+unset($_SESSION['ADD_ALLOCATION_TABLE']);
+////////////////////////////////////////////////////
 
             $nl = '<div style="clear:both;height:10px;"></div>';                                                            // New line
             if ($my_selected_dates_without_calendar=='') {

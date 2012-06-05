@@ -30,6 +30,7 @@ if ( ( isset( $_GET['payed_booking'] ) )  || (  isset( $_GET['merchant_return_li
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function wpdev_bk_ajax_responder() {
 
+    session_start();  // continue current session
     global $wpdb;
     $action = $_POST['ajax_action'];
 
@@ -235,12 +236,22 @@ function wpdev_add_booking_allocation() {
     // editing table on screen updates datastructure in real-time
     // on submit, start transaction, validate allocations, save and end transaction
 
-$ar = new AllocationRow('Megan-2', 'F', 'bed gamma');
-$ar->addPaymentForDate('13.03.2012', '22.22');
-$ar->addPaymentForDate('14.03.2012', '33.11');
+//$ar = new AllocationRow('Megan-2', 'F', 'bed gamma');
+//$ar->addPaymentForDate('13.03.2012', '22.22');
+//$ar->addPaymentForDate('14.03.2012', '33.11');
+
+if(isset($_SESSION['ADD_ALLOCATION_TABLE'])) {
+    $at = $_SESSION['ADD_ALLOCATION_TABLE'];
+} else {
+    $at = new AllocationTable('Megan');
+    $_SESSION['ADD_ALLOCATION_TABLE'] = $at;
+}
+$at->addAllocation($num_visitors, $gender, $dates);
+
+
     ?> 
        <script type="text/javascript">
-          document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($ar->toHtml()); ?>;
+          document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($at->toHtml()); ?>;
           document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors on '.$dates; ?><br>';
 //           jWPDev('#ajax_message').fadeOut(2000);
 //           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
