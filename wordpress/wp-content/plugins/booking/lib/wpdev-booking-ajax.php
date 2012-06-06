@@ -247,8 +247,8 @@ if(isset($_SESSION['ADD_ALLOCATION_TABLE'])) {
     $at = new AllocationTable('Megan');
     $_SESSION['ADD_ALLOCATION_TABLE'] = $at;
 }
-$at->addAllocation($num_visitors, $gender, $res);
-
+$at->addAllocation($num_visitors, $gender, $res, $dates);
+$at->setDefaultMinMaxDates();
 
     ?> 
        <script type="text/javascript">

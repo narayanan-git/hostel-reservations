@@ -266,4 +266,22 @@ font-weight:normal;
 .datepick  .date_cleaning  { color:#79c  !important; background-color: #66cc00 !important;   color:#fff !important; }
 .block_time.date_cleaning  { color:#79c  !important; background-color: #66cc00 !important;   color:#fff !important; }/**/
 
-  
+.availability th {
+    text-align:center;
+    border-right:1px dotted rgb(204,204,204);
+    color:rgb(31,74,146);
+    border-bottom:1px solid rgb(223,223,223);
+    border-top:1px solid rgb(223,223,223);
+    font:12px/1.5 Arial,Helvetica,sans-serif;
+    font-weight:700;
+    vertical-align:baseline;
+}
+
+.availability th span {
+    font-size:11;
+    line-height:11px;
+    color:rgb(153,153,153);
+    margin:0pt;
+    padding:0pt;
+    display:block;
+}
