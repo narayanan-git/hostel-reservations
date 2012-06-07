@@ -8,15 +8,17 @@ class AllocationTable {
     var $showMinDate;   // minimum date to show on the table
     var $showMaxDate;   // maximum date to show on the table
     private $allocationRows = array();  // array of AllocationRow
+    private $resourceMap;  // array of resource_id -> resource_name
     
     function AllocationTable($bookingName) {
         $this->bookingName = $bookingName;
+        $this->resourceMap = ResourceDBO::getResourceMap();
     }
 
     function addAllocation($numVisitors, $gender, $resourceId, $dates) {
         $datearr = explode(",", $dates);
         for($i = 0; $i < $numVisitors; $i++) {
-            $allocationRow = new AllocationRow($this->bookingName.'-'.(sizeof($this->allocationRows)+1), $gender, $resourceId);
+            $allocationRow = new AllocationRow($this->bookingName.'-'.(sizeof($this->allocationRows)+1), $gender, $this->resourceMap[$resourceId]);
             foreach ($datearr as $dt) {
                 $allocationRow->addPaymentForDate(trim($dt), 15); // FIXME: price fixed at 15
             }

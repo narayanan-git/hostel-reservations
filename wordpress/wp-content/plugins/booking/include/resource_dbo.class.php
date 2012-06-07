@@ -23,6 +23,18 @@ class ResourceDBO {
                FROM ".$wpdb->prefix."v_resources_by_path
               ORDER BY path"));
     }
+    
+    /**
+     * Returns all resources mapped by ID.
+     * Returns (array of) id -> resource name
+     */
+    static function getResourceMap() {
+        $result = array();
+        foreach (ResourceDBO::getAllResources() as $res) {
+            $result[$res->resource_id] = $res->name;
+        }
+        return $result;
+    }
 
     /**
      * Inserts a new resource.
