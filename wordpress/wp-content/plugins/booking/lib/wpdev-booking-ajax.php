@@ -57,6 +57,12 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
             
+        // toggle the state of a booking date in the availability table
+        case  'TOGGLE_BOOKING_DATE':
+            wpdev_toggle_booking_date();
+            die();
+            break;
+            
 /////////////////////// END CUSTOM CODE ///////////////////////////
 
         case 'UPDATE_APPROVE' :
@@ -253,12 +259,27 @@ $at->setDefaultMinMaxDates();
     ?> 
        <script type="text/javascript">
           document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($at->toHtml()); ?>;
-          document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors to '.$res.' on '.$dates; ?><br>';
+//          document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors to '.$res.' on '.$dates; ?><br>';
 //           jWPDev('#ajax_message').fadeOut(2000);
 //           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
     <?php
+}
+
+function wpdev_toggle_booking_date() {
+    $rowid = $_POST['rowid'];
+    $dt = $_POST['booking_date'];
+    $element_response_id = $_POST['element_response_id'];
+    if(isset($_SESSION['ADD_ALLOCATION_TABLE'])) {
+        $at = $_SESSION['ADD_ALLOCATION_TABLE'];
+        $bookingState = $at->toggleBookingStateAt($rowid, $dt);
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('<?php echo $element_response_id;?>').className = "avail_date_attrib date_status_<?php echo $bookingState; ?>";
+        </script>
+        <?php
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////

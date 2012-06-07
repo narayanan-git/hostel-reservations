@@ -271,6 +271,14 @@ font-weight:normal;
     width: 800px;
 }
 
+.availability_header {
+    text-align:center;
+    color:rgb(36,85,167);
+    font-size:14px;
+    font-weight:bold;
+    margin-bottom:5px;
+}
+
 .availability th {
     text-align:center;
     border-right:1px dotted rgb(204,204,204);
@@ -307,14 +315,25 @@ font-weight:normal;
     border-left:1px solid rgb(223,223,223);
 }
 
-.date_attrib_pending {
+.date_status_pending {
     background:none repeat scroll 0% 0% rgb(223,154,0);
 }
 
-.date_attrib_pending a {
+.date_status_pending a {
     font-size:1em;
     font-weight:bold;
     text-decoration:none;
     color:#fff;
+}
+
+.date_status_available {
+    background:none repeat scroll 0% 0% rgb(249,247,247);
+}
+
+.date_status_available a {
+    font-size:1em;
+    font-weight:normal;
+    text-decoration:none;
+    color:#000;
 }
 

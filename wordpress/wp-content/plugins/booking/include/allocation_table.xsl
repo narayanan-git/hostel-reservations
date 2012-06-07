@@ -13,7 +13,11 @@
 
     <tbody>
         <tr valign="top">
-            <td width="870" valign="top">
+            <td width="240"></td>
+            <td class="availability_header"><xsl:value-of select="dateheaders/header"/></td>
+        </tr>
+        <tr valign="top">
+            <td colspan="2" width="870" valign="top">
                 <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
                     <!--caption><xsl:value-of select="dateheaders/header"/></caption-->
                     <thead>
@@ -63,16 +67,11 @@
 
 <!-- adds table entries for each allocation in the availability table -->
 <xsl:template mode="allocation_date" match="date">
-    <td><xsl:attribute name="class">
-            <xsl:choose>
-                <xsl:when test="@state = 'inactive'">avail_date_attrib inactive</xsl:when>
-                <xsl:when test="@state = 'pending'">avail_date_attrib date_attrib_pending</xsl:when>
-                <xsl:otherwise>avail_date_attrib <xsl:value-of select="@state"/></xsl:otherwise>
-            </xsl:choose>
-        </xsl:attribute>
+    <td id="cell_{../../rowid}_{.}">
+        <xsl:attribute name="class">avail_date_attrib date_status_<xsl:value-of select="@state"/></xsl:attribute>
         <xsl:choose>
             <xsl:when test="@state != 'inactive'">
-                <a href="#"><xsl:value-of select="@payment"/></a>
+                <a href="javascript:toggle_booking_date({../../rowid}, '{.}', 'cell_{../../rowid}_{.}');"><xsl:value-of select="@payment"/></a>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="@payment"/>

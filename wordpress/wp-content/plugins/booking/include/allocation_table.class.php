@@ -15,6 +15,13 @@ class AllocationTable {
         $this->resourceMap = ResourceDBO::getResourceMap();
     }
 
+    /**
+     * Adds a number of allocations with the specified attributes.
+     * numVisitors : number of guests to add
+     * gender : Male/Female
+     * resourceId : id of resource to allocate to
+     * dates : comma-delimited list of dates in format dd.MM.yyyy
+     */
     function addAllocation($numVisitors, $gender, $resourceId, $dates) {
         $datearr = explode(",", $dates);
         for($i = 0; $i < $numVisitors; $i++) {
@@ -23,6 +30,7 @@ class AllocationTable {
                 $allocationRow->addPaymentForDate(trim($dt), 15); // FIXME: price fixed at 15
             }
             $this->allocationRows[] = $allocationRow;
+            $allocationRow->rowid = array_search($allocationRow, $this->allocationRows);
         }
     }
     
@@ -60,6 +68,28 @@ class AllocationTable {
             $result += $allocation->getTotalPayment();
         }
         return $result;
+    }
+    
+    /**
+     * This will update the state of a booking allocation.
+     * Rules:
+     *    if date is in the future, this will add/remove the current allocation at this date
+     *    if date is today, this will toggle state between checkedin, checkedout, noshow
+     *    if date is in the past, this will do nothing
+     * Returns: state of current allocation on this date (one of 'pending', 'available', 'checkedin', 'checkedout', 'noshow')
+     */
+    function toggleBookingStateAt($rowid, $dt) {
+        $ar = $this->allocationRows[$rowid];
+        // do we need a null check?
+        // TODO: toggle status on current date
+        if($ar != null && $ar->isExistsBooking($dt)) {
+            $ar->removePaymentForDate($dt);
+            return 'available';
+        } else {
+            // if it doesn't exist, then add it
+            $ar->addPaymentForDate($dt, 15); // FIXME: price fixed at 15
+            return 'pending';
+        }
     }
     
     /** 

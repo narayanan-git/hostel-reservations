@@ -403,22 +403,42 @@
     //<![CDATA[
     function add_booking_allocation(submit_form , wpdev_active_locale) {
 
-            jWPDev.ajax({                                           // Start Ajax Sending
-                url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
-                type:'POST',
-                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
-                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
-                data:{
-                    ajax_action : 'ADD_ALLOCATION',
-                    //form: formdata,
-                    dates: document.getElementById('date_booking1').value ,
-                    num_visitors : submit_form.num_visitors.value,
-                    gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
-                    booking_resource : submit_form.booking_resource.value,
-                    wpdev_active_locale:wpdev_active_locale
-                }
-            });
+        jWPDev.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'ADD_ALLOCATION',
+                //form: formdata,
+                dates: document.getElementById('date_booking1').value ,
+                num_visitors : submit_form.num_visitors.value,
+                gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
+                booking_resource : submit_form.booking_resource.value,
+                wpdev_active_locale:wpdev_active_locale
+            }
+        });
+    }
 
+    // this will toggle the status of a booking date from pending/available
+    // or pending/checked out/checked in/no show if on current day
+    // rowid : row id in allocation table
+    // booking_date : date in format dd.MM.yyyy
+    // cell_id : element id of cell to update
+    function toggle_booking_date(rowid, booking_date, cell_id) {
+
+        jWPDev.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'TOGGLE_BOOKING_DATE',
+                rowid : rowid,
+                booking_date : booking_date,
+                element_response_id : cell_id
+            }
+        });
     }
     //]]>
     

@@ -5,6 +5,7 @@
  * and renders it.
  */
 class AllocationRow {
+    var $rowid;
     var $name;
     var $gender;
     var $resource;
@@ -25,6 +26,23 @@ class AllocationRow {
      */
     function addPaymentForDate($dt, $payment) {
         $this->bookingDatePayment[$dt] = $payment;
+    }
+
+    /**
+     * Removes the booking for a date.
+     * $dt  date string in format dd.MM.yyyy
+     */
+    function removePaymentForDate($dt) {
+        // if payment doesn't exist, the booking doesn't exist
+        unset($this->bookingDatePayment[$dt]);
+    }
+    
+    /**
+     * Checks whether a booking exists on a particular date.
+     * $dt  date string in format dd.MM.yyyy
+     */
+    function isExistsBooking($dt) {
+        return isset($this->bookingDatePayment[$dt]);
     }
     
     /**
@@ -64,6 +82,7 @@ class AllocationRow {
         $xmlRoot = $domtree->createElement('allocation');
         $xmlRoot = $parentElement->appendChild($xmlRoot);
     
+        $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
         $xmlRoot->appendChild($domtree->createElement('resource', $this->resource));
@@ -98,7 +117,7 @@ class AllocationRow {
                     $dateElem->appendChild($attrPayment);
                     
                     $attrState = $domtree->createAttribute('state');
-                    $attrState->value = 'inactive';
+                    $attrState->value = 'available';
                     $dateElem->appendChild($attrState);
                 }
                 $dt->add(new DateInterval('P1D'));  // increment by day
