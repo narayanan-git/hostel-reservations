@@ -7,9 +7,67 @@ class AddBooking {
 
     // contains a comma-delimited list of currently selected dates?? may be useful later for edit booking
     var $my_selected_dates_without_calendar;
+    
+    var $firstname;
+    var $lastname;
+    var $details;
+    
+    // all allocations for this booking (type AllocationTable)
+    private $allocationTable;
 
     function AddBooking($my_selected_dates_without_calendar = '') {
         $this->my_selected_dates_without_calendar = $my_selected_dates_without_calendar;
+        $this->allocationTable = new AllocationTable();
+    }
+    
+    /**
+     * Adds a number of allocations with the specified attributes.
+     * numVisitors : number of guests to add
+     * gender : Male/Female
+     * resourceId : id of resource to allocate to
+     * dates : comma-delimited list of dates in format dd.MM.yyyy
+     */
+    function addAllocation($numVisitors, $gender, $resourceId, $dates) {
+        $this->allocationTable->addAllocation($this->firstname, $numVisitors, $gender, $resourceId, $dates);
+        
+        if($this->allocationTable->showMinDate == null || $this->allocationTable->showMaxDate == null) {
+            $this->allocationTable->setDefaultMinMaxDates();
+        }
+    }
+    
+    /**
+     * Returns the html for the current allocation table
+     */
+    function getAllocationTableHtml() {
+        return $this->allocationTable->toHtml();
+    }
+    
+    /**
+     * Validates the stuff on this controller.
+     * Returns an error of string values, one for each error message.
+     * An empty array obviously means no errors.
+     */
+    function doValidate() {
+        $errors = array();
+        if (trim($this->firstname) == '') {
+            $errors[] = 'First name cannot be blank';
+        }
+        foreach ($this->allocationTable->doValidate() as $atError) {
+            $errors[] = $atError;
+        }
+        return $errors;
+    }
+    
+    /**
+     * This will update the state of a booking allocation.
+     * Rules:
+     *    if date is in the future, this will add/remove the current allocation at this date
+     *    if date is today, this will toggle state between checkedin, checkedout, noshow
+     *    if date is in the past, this will do nothing
+     * Returns: state of current allocation on this date (one of 'pending', 'available', 'checkedin', 'checkedout', 'noshow')
+     */
+    function toggleBookingStateAt($rowid, $dt) {
+        return $this->allocationTable->toggleBookingStateAt($rowid, $dt);
     }
 
     /** 

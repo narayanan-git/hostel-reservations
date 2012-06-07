@@ -1,4 +1,5 @@
-﻿<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
 <!--
 //*****************************************************************************
@@ -34,10 +35,11 @@
     
     <div id="booking_form_div1" class="booking_form_div">
         <form id="booking_form" class="booking_form" method="post" action="">
+            <div id="ajax_respond_insert"><xsl:comment/><!-- record inserted success message --></div>
             <div style="text-align:left;">
-                <p>First Name (required):<br />  <span class="wpdev-form-control-wrap name1"><input type="text" name="name1" value="" class="wpdev-validates-as-required" size="40" /></span> </p>
-                <p>Last Name (required)':<br />  <span class="wpdev-form-control-wrap secondname1"><input type="text" name="secondname1" value="" class="wpdev-validates-as-required" size="40" /></span> </p>
-                <p>Add <input type="text" name="num_visitors" value="" class="wpdev-validates-as-required" size="5" /> 
+                <p>First Name (required):<br />  <span class="wpdev-form-control-wrap firstname"><input type="text" name="firstname" value="" class="wpdev-validates-as-required" size="40" /></span> </p>
+                <p>Last Name:<br />  <span class="wpdev-form-control-wrap lastname"><input type="text" name="lastname" value="" size="40" /></span> </p>
+                <p>Add <input type="text" name="num_visitors" value="" size="5" /> 
                     <input type="radio" name="gender" value="Male" checked="checked" />Male
                     <input type="radio" name="gender" value="Female" />Female visitors to Resource 
                     <select id="booking_resource" name="booking_resource">
@@ -48,15 +50,14 @@
                 </p>
                 <p><div id="booking_allocations"><xsl:comment/><!-- dorm allocations get inserted here via ajax--></div></p>
                 <p><div id="ajax_respond"><xsl:comment/><!-- ajax response here--></div></p>
-                <p>Details:<br /><span class="wpdev-form-control-wrap details1"><textarea name="details1" cols="40" rows="10"><xsl:comment/></textarea></span> </p>
-                <p><input type="button" value="Send" onclick="mybooking_submit(this.form,1,'en_US');" /></p>
+                <p>Details:<br /><span class="wpdev-form-control-wrap details1"><textarea name="details" cols="40" rows="10"><xsl:comment/></textarea></span> </p>
+                <p><input type="button" value="Send" onclick="mybooking_submit_v2(this.form);" /></p>
             </div>
             
-            <input id="bk_type1" name="bk_type1" class="" type="hidden" value="1" />
         </form>
     </div>
     
-    <div id="submiting1"><xsl:comment/></div>
+    <div id="submitting"><xsl:comment/></div>
     <div class="form_bk_messages" id="form_bk_messages1"><xsl:comment/></div>
 
     <script type='text/javascript'>

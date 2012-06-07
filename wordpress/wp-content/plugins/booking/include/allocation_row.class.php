@@ -39,9 +39,13 @@ class AllocationRow {
     
     /**
      * Checks whether a booking exists on a particular date.
-     * $dt  date string in format dd.MM.yyyy
+     * If no date is specified, checks whether a booking exists on *any* date.
+     * $dt  date string in format dd.MM.yyyy  (optional)
      */
-    function isExistsBooking($dt) {
+    function isExistsBooking($dt = '') {
+        if($dt == '') {
+            return sizeof($this->bookingDatePayment) > 0;
+        }
         return isset($this->bookingDatePayment[$dt]);
     }
     

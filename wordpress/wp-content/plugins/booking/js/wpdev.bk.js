@@ -410,8 +410,8 @@
             error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
             data:{
                 ajax_action : 'ADD_ALLOCATION',
-                //form: formdata,
-                dates: document.getElementById('date_booking1').value ,
+                dates: document.getElementById('date_booking1').value,
+                firstname: submit_form.firstname.value,
                 num_visitors : submit_form.num_visitors.value,
                 gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
                 booking_resource : submit_form.booking_resource.value,
@@ -440,6 +440,47 @@
             }
         });
     }
+    
+    // Check fields at form and then send request
+    function mybooking_submit_v2( submit_form ){
+
+        // Simple form validation here
+        for (i=0; i<submit_form.elements.length; i++)   {
+            var element = submit_form.elements[i];
+            
+            if ( (element.type !=='button') && (element.type !=='hidden') && ( element.name !== ('date_booking1') )   ) {           // Skip buttons and hidden element - type
+
+                // Validation Check --- Requred fields
+                if ( element.className.indexOf('wpdev-validates-as-required') !== -1 ){             
+                    if  ( element.value === '')   {showErrorMessage( element , message_verif_requred);return;}
+                }
+
+            }
+
+        }  // End Fields Loop
+
+        //Show message if no selected days
+        // TODO: server side check
+//        if (document.getElementById('date_booking1').value == '')  {
+//            alert(message_verif_selectdts);
+//        }
+
+        document.getElementById('submitting').innerHTML = '<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>';
+
+        jWPDev.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond_insert').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'INSERT_INTO_TABLE',
+                firstname: submit_form.firstname.value,
+                lastname: submit_form.lastname.value,
+                details: submit_form.details.value
+            }
+        });
+    }
+    
     //]]>
     
 //////////////////////// END CUSTOM CODE //////////////////////////////

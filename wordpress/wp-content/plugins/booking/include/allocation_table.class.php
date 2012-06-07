@@ -4,28 +4,28 @@
  * Encapsulates and renders a table containing all allocations for a booking.
  */
 class AllocationTable {
-    var $bookingName;   // person who made the booking
     var $showMinDate;   // minimum date to show on the table
     var $showMaxDate;   // maximum date to show on the table
     private $allocationRows = array();  // array of AllocationRow
     private $resourceMap;  // array of resource_id -> resource_name
     
-    function AllocationTable($bookingName) {
-        $this->bookingName = $bookingName;
+    function AllocationTable() {
         $this->resourceMap = ResourceDBO::getResourceMap();
     }
 
     /**
      * Adds a number of allocations with the specified attributes.
      * numVisitors : number of guests to add
+     * bookingName : name booking is under
      * gender : Male/Female
      * resourceId : id of resource to allocate to
      * dates : comma-delimited list of dates in format dd.MM.yyyy
      */
-    function addAllocation($numVisitors, $gender, $resourceId, $dates) {
+    function addAllocation($bookingName, $numVisitors, $gender, $resourceId, $dates) {
         $datearr = explode(",", $dates);
+        $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
         for($i = 0; $i < $numVisitors; $i++) {
-            $allocationRow = new AllocationRow($this->bookingName.'-'.(sizeof($this->allocationRows)+1), $gender, $this->resourceMap[$resourceId]);
+            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows)+1), $gender, $this->resourceMap[$resourceId]);
             foreach ($datearr as $dt) {
                 $allocationRow->addPaymentForDate(trim($dt), 15); // FIXME: price fixed at 15
             }
@@ -92,6 +92,25 @@ class AllocationTable {
         }
     }
     
+    /**
+     * Validates the stuff in this table.
+     * Returns an error of string values, one for each error message.
+     * An empty array obviously means no errors.
+     */
+    function doValidate() {
+        $errors = array();
+        if(sizeof($this->allocationRows) == 0) {
+            $errors[] = 'No allocations have been added';
+        }
+        foreach ($this->allocationRows as $row) {
+            if(! $row->isExistsBooking()) {
+                $errors[] = $row->name . ' does not have any dates selected';
+            }
+        }
+        return $errors;
+    }
+
+    
     /** 
       Generates the following xml:
         <allocations total="49.50">
@@ -122,7 +141,6 @@ class AllocationTable {
         $xmlRoot = $domtree->createElement('allocations');
         $xmlRoot = $domtree->appendChild($xmlRoot);
     
-        $xmlRoot->appendChild($domtree->createElement('bookingName', $this->bookingName));
         if($this->showMinDate != null) {
             $xmlRoot->appendChild($domtree->createElement('showMinDate', $this->showMinDate->format('d.m.Y')));
         }

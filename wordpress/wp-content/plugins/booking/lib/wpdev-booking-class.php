@@ -2268,9 +2268,9 @@ if (!class_exists('wpdev_booking')) {
             echo '<div style="width:450px">';
             do_action('wpdev_bk_add_form',$bk_type, get_bk_option( 'booking_client_cal_count'));
             ?>
-            <div style="float:left;border:none;margin:0px 0 10px 1px; font-size: 11px;color:#777;font-style: italic;">
+            <!--div style="float:left;border:none;margin:0px 0 10px 1px; font-size: 11px;color:#777;font-style: italic;">
                 <input type="checkbox" checked="CHECKED" id="is_send_email_for_new_booking"> <label><?php _e('Send email notification to customer about this operation','wpdev-booking') ?></label>
-            </div>
+            </div-->
             <?php
             echo '</div>';
         }
@@ -4344,11 +4344,11 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 //            }
 
 ///// REMOVE PREVIOUS SESSION DATA IF SET //////////
-unset($_SESSION['ADD_ALLOCATION_TABLE']);  // set in ajax handler
+unset($_SESSION['ADD_BOOKING_CONTROLLER']); 
 ////////////////////////////////////////////////////
 
-$addbook = new AddBooking();
- echo $addbook->toHtml();
+$_SESSION['ADD_BOOKING_CONTROLLER'] = new AddBooking();
+echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
 //return $addbook->toHtml();            
 /*
             $start_script_code = $this->get_script_for_calendar(
@@ -4462,63 +4462,6 @@ $addbook = new AddBooking();
 
 
         }
-
-////////////////////////// BEGIN CUSTOM CODE /////////////////////////////////////
-
-        // Get content at client side of  C A L E N D A R
-        function get__client_side_booking_content_v2($my_boook_type = 1 , $my_booking_form = 'standard', $my_selected_dates_without_calendar = '') {
-        
-///// REMOVE PREVIOUS SESSION DATA IF SET //////////
-unset($_SESSION['ADD_ALLOCATION_TABLE']);
-////////////////////////////////////////////////////
-
-            $nl = '<div style="clear:both;height:10px;"></div>';                                                            // New line
-            if ($my_selected_dates_without_calendar=='') {
-                $calendar  = '<div id="calendar_booking'.$my_boook_type.'">&nbsp;</div>';
-//                $booking_is_show_powered_by_notice = get_bk_option( 'booking_is_show_powered_by_notice' );             // check
-//                if(  $this->wpdev_bk_pro == false  )   
-//                        if ($booking_is_show_powered_by_notice == 'On')
-//                            $calendar .= '<div style="font-size:9px;text-align:left;">Powered by <a href="http://onlinebookingcalendar.com" target="_blank">Booking Calendar</a></div>';
-                $calendar .= '<textarea rows="3" cols="50" id="date_booking'.$my_boook_type.'" name="date_booking'.$my_boook_type.'" style="display:none;"></textarea>';   // Calendar code
-            } else {
-                $calendar = '';
-                $calendar .= '<textarea rows="3" cols="50" id="date_booking'.$my_boook_type.'" name="date_booking'.$my_boook_type.'" style="display:none;">'.$my_selected_dates_without_calendar.'</textarea>';   // Calendar code
-            }
-
-            $calendar  .= $this->get_legend();                                  // Get Legend code here
-
-
-            $form = '<div id="booking_form_div'.$my_boook_type.'" class="booking_form_div">';
-            $form .= '<form id="booking_form" class="booking_form" method="post" action="">';
-
-//            if(  $this->wpdev_bk_pro !== false  )   $form .= $this->wpdev_bk_pro->get_booking_form($my_boook_type, $my_booking_form);         // Get booking form
-//            else                                    
-            $form .= $this->get_booking_form_v2($my_boook_type);
-
-//            $form .= '</form>';
-
-            // Insert calendar into form
-            if ( strpos($form, '[calendar]') !== false )  $form = str_replace('[calendar]', $calendar ,$form);
-            else                                          $form = $calendar . $nl . $form ;
-
-//            $form = apply_bk_filter('wpdev_check_for_additional_calendars_in_form', $form, $my_boook_type );
-
-//            if ( strpos($form, '[captcha]') !== false ) {
-//                $captcha = $this->createCapthaContent($my_boook_type);
-//                $form =str_replace('[captcha]', $captcha ,$form);
-//            }
-
-//            $form = apply_filters('wpdev_booking_form_content', $form , $my_boook_type);
-
-            // Add booking type field
-            $form      .= '<input id="bk_type'.$my_boook_type.'" name="bk_type'.$my_boook_type.'" class="" type="hidden" value="'.$my_boook_type.'" /></form></div>';
-            $submitting = '<div id="submiting'.$my_boook_type.'"></div><div class="form_bk_messages" id="form_bk_messages'.$my_boook_type.'" ></div>';
-            $return_form = $form . $submitting;
-
-            return $return_form;
-        }
-
-//////////////////////////////////////////////////////////////////////////////////
 
         // Get content at client side of  C A L E N D A R
         function get__client_side_booking_content($my_boook_type = 1 , $my_booking_form = 'standard', $my_selected_dates_without_calendar = '') {

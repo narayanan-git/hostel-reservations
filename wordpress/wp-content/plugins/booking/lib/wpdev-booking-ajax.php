@@ -205,8 +205,6 @@ function wpdev_bk_ajax_responder() {
 ///////////////////////// BEGIN CUSTOM CODE //////////////////////////////
 function wpdev_bk_insert_new_booking_v2(){
 
-    $bktype = 1;
-    
     // display rotating progress circle
     ?> <script type="text/javascript">
         document.getElementById('ajax_working').innerHTML =
@@ -218,21 +216,51 @@ function wpdev_bk_insert_new_booking_v2(){
           </div>';
         </script> <?php
 
-    
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $booking->firstname = $_POST['firstname'];
+        $booking->lastname = $_POST['lastname'];
+        $booking->details = $_POST['details'];
+    } else {
+        ?> <script type="text/javascript">
+            document.getElementById('ajax_working').innerHTML = '<?php echo "Please correct errors before continuing..."; ?><br>';
+            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Add some allocations first!"; ?></div>';
+        </script>
+        <?php
+        return;
+    }
 
+    // validate form
+    $errors = $booking->doValidate();
+    if(sizeof($errors) > 0) {
+        // FIXME : can we highlight the row(s) in question?
+        $error_text = '';
+        foreach ($errors as $error) {
+            $error_text .= $error . '<br>';
+        }
+        
+        ?> <script type="text/javascript">
+            document.getElementById('ajax_working').innerHTML = '<?php echo $error_text; ?>';
+            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Please correct errors before continuing..."; ?></div>';
+        </script>
+        <?php
+        return;
+    }
+    
     // stop and redirect
     ?> <script type="text/javascript">
-           document.getElementById('ajax_message').innerHTML = '<?php echo __('Updated successfully', 'wpdev-booking'); ?><br>';
-           jWPDev('#ajax_message').fadeOut(2000);
-           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
-//           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
+           document.getElementById('ajax_working').innerHTML = 'Updated successfully<br>';
+           jWPDev('#ajax_working').fadeOut(5000);
+           document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>Updated successfully</div>';
+           jWPDev('#submitting').fadeOut(5000);
+//           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
     <?php
 }
 
 function wpdev_add_booking_allocation() {
 
-//    $bktype = 1;
+    $firstname = $_POST['firstname'];
     $num_visitors = $_POST['num_visitors'];
     $gender = $_POST['gender'];
     $dates = $_POST['dates'];
@@ -247,22 +275,23 @@ function wpdev_add_booking_allocation() {
 //$ar->addPaymentForDate('13.03.2012', '22.22');
 //$ar->addPaymentForDate('14.03.2012', '33.11');
 
-if(isset($_SESSION['ADD_ALLOCATION_TABLE'])) {
-    $at = $_SESSION['ADD_ALLOCATION_TABLE'];
-} else {
-    $at = new AllocationTable('Megan');
-    $_SESSION['ADD_ALLOCATION_TABLE'] = $at;
-}
-$at->addAllocation($num_visitors, $gender, $res, $dates);
-$at->setDefaultMinMaxDates();
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $booking->firstname = $firstname;
+        $booking->addAllocation($num_visitors, $gender, $res, $dates);
+    } else {
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('ajax_message').innerHTML = '<?php echo "Session has expired. Please reload the page to continue."; ?><br>';
+            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Session has expired. Please reload the page to continue."; ?></div>';
+        </script>
+        <?php
+        return;
+    }
 
     ?> 
        <script type="text/javascript">
-          document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($at->toHtml()); ?>;
-//          document.getElementById('ajax_respond').innerHTML = '<?php echo 'Adding '.$num_visitors.' '.$gender.' visitors to '.$res.' on '.$dates; ?><br>';
-//           jWPDev('#ajax_message').fadeOut(2000);
-//           document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
-//           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
+          document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
        </script>
     <?php
 }
@@ -271,9 +300,9 @@ function wpdev_toggle_booking_date() {
     $rowid = $_POST['rowid'];
     $dt = $_POST['booking_date'];
     $element_response_id = $_POST['element_response_id'];
-    if(isset($_SESSION['ADD_ALLOCATION_TABLE'])) {
-        $at = $_SESSION['ADD_ALLOCATION_TABLE'];
-        $bookingState = $at->toggleBookingStateAt($rowid, $dt);
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $bookingState = $booking->toggleBookingStateAt($rowid, $dt);
         ?> 
         <script type="text/javascript">
             document.getElementById('<?php echo $element_response_id;?>').className = "avail_date_attrib date_status_<?php echo $bookingState; ?>";
