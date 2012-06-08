@@ -19,13 +19,14 @@
         <tr valign="top">
             <td colspan="2" width="870" valign="top">
                 <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
-                    <!--caption><xsl:value-of select="dateheaders/header"/></caption-->
                     <thead>
                         <tr>
                             <th class="avail_attrib">Name</th>
                             <th class="avail_attrib">Gender</th>
                             <th class="avail_attrib">Room Type</th>
+                            <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
                             <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
+                            <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -61,7 +62,9 @@
         <td class="avail_attrib"><xsl:value-of select="name"/></td>
         <td class="avail_attrib"><xsl:value-of select="gender"/></td>
         <td class="avail_attrib"><xsl:value-of select="resource"/></td>
+        <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
         <xsl:apply-templates select="dates/date" mode="allocation_date"/>
+        <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate > 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
     </tr>
 </xsl:template>
 

@@ -69,6 +69,24 @@ class AddBooking {
     function toggleBookingStateAt($rowid, $dt) {
         return $this->allocationTable->toggleBookingStateAt($rowid, $dt);
     }
+    
+    /**
+     * Moves the reference dates to the right
+     */
+    function shiftCalendarRight() {
+        // default is by 13 days (2 columns in previous table are now on the far left)
+        $this->allocationTable->showMinDate->add(new DateInterval('P13D'));
+        $this->allocationTable->showMaxDate->add(new DateInterval('P13D'));
+    }
+
+    /**
+     * Moves the reference dates to the left
+     */
+    function shiftCalendarLeft() {
+        // default is by 13 days (2 columns in previous table are now on the far left)
+        $this->allocationTable->showMinDate->sub(new DateInterval('P13D'));
+        $this->allocationTable->showMaxDate->sub(new DateInterval('P13D'));
+    }
 
     /** 
       Generates the following xml:

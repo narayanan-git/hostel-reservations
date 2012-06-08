@@ -76,6 +76,38 @@ class AllocationRow {
     }
 
     /**
+     * Returns the number of bookings for this allocation before showMinDate.
+     */
+    function getNumBookingsBeforeMinDate() {
+        $result = 0;
+        if($this->showMinDate != null) {
+            foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+                $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
+                if($bd < $this->showMinDate) {
+                    $result++;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the number of bookings for this allocation after showMaxDate.
+     */
+    function getNumBookingsAfterMaxDate() {
+        $result = 0;
+        if($this->showMaxDate != null) {
+            foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+                $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
+                if($bd > $this->showMaxDate) {
+                    $result++;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Adds this allocation row to the DOMDocument/XMLElement specified.
      * See toXml() for details.
      * $domtree : DOM document root
@@ -97,6 +129,8 @@ class AllocationRow {
         $dateRow->appendChild($attrTotal);
         
         if($this->showMinDate != null && $this->showMaxDate != null) {
+            $xmlRoot->appendChild($domtree->createElement('bookingsBeforeMinDate', $this->getNumBookingsBeforeMinDate()));
+            $xmlRoot->appendChild($domtree->createElement('bookingsAfterMaxDate', $this->getNumBookingsAfterMaxDate()));
         
             // loop from showMinDate to showMaxDate creating a date element for every day in between
             // set the appropriate state if a booking exists for that date
@@ -136,6 +170,8 @@ class AllocationRow {
             <name>Megan-1</name>
             <gender>Female</gender>
             <resource>Bed A</resource>
+            <bookingsBeforeMinDate>0</bookingsBeforeMinDate>
+            <bookingsAfterMaxDate>3</bookingsAfterMaxDate>
             <dates total="24.90">
                 <date payment="12.95" state="checkedin">15.08.2012</date>
                 <date payment="12.95" state="pending">16.08.2012</date>

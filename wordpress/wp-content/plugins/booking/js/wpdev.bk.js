@@ -440,6 +440,24 @@
             }
         });
     }
+
+    /**
+     * This will shift the dates on the calendar.
+     * direction : one of 'left' or 'right'
+     */
+    function shift_availability_calendar(direction) {
+
+        jWPDev.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'PAGE_AVAILABILITY_TABLE_LEFT_RIGHT',
+                direction : direction
+            }
+        });
+    }
     
     // Check fields at form and then send request
     function mybooking_submit_v2( submit_form ){

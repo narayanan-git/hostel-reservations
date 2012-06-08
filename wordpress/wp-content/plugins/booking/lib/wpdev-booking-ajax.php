@@ -63,6 +63,11 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
             
+        case  'PAGE_AVAILABILITY_TABLE_LEFT_RIGHT':
+            wpdev_page_availability_table_left_right();
+            die();
+            break;
+            
 /////////////////////// END CUSTOM CODE ///////////////////////////
 
         case 'UPDATE_APPROVE' :
@@ -306,6 +311,23 @@ function wpdev_toggle_booking_date() {
         ?> 
         <script type="text/javascript">
             document.getElementById('<?php echo $element_response_id;?>').className = "avail_date_attrib date_status_<?php echo $bookingState; ?>";
+        </script>
+        <?php
+    }
+}
+
+function wpdev_page_availability_table_left_right() {
+    $direction = $_POST['direction'];
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        if ($direction == "right") {
+            $booking->shiftCalendarRight();
+        } else {
+            $booking->shiftCalendarLeft();
+        }
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
         </script>
         <?php
     }
