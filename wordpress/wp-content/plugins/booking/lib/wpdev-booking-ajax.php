@@ -283,12 +283,20 @@ function wpdev_add_booking_allocation() {
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
         $booking->firstname = $firstname;
-        $booking->addAllocation($num_visitors, $gender, $res, $dates);
+        try {
+            $booking->addAllocation($num_visitors, $gender, $res, $dates);
+
+        } catch (AllocationException $ae) {
+            ?> 
+            <script type="text/javascript">
+                document.getElementById('ajax_respond').innerHTML = "There is not enough availability for the room (type) and dates chosen.";
+            </script>
+            <?php
+        }
     } else {
         ?> 
         <script type="text/javascript">
-            document.getElementById('ajax_message').innerHTML = '<?php echo "Session has expired. Please reload the page to continue."; ?><br>';
-            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Session has expired. Please reload the page to continue."; ?></div>';
+            document.getElementById('ajax_respond').innerHTML = '<?php echo "Session has expired. Please reload the page to continue."; ?><br>';
         </script>
         <?php
         return;

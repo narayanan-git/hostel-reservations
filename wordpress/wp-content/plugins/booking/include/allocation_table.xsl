@@ -9,35 +9,37 @@
 
 <xsl:template match="/allocations">
 
-<table width="100%" cellspacing="0" cellpadding="0" border="0">
-
-    <tbody>
-        <tr valign="top">
-            <td width="240"></td>
-            <td class="availability_header"><xsl:value-of select="dateheaders/header"/></td>
-        </tr>
-        <tr valign="top">
-            <td colspan="2" width="870" valign="top">
-                <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
-                    <thead>
-                        <tr>
-                            <th class="avail_attrib">Name</th>
-                            <th class="avail_attrib">Gender</th>
-                            <th class="avail_attrib">Room Type</th>
-                            <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
-                            <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
-                            <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <xsl:apply-templates select="allocation" mode="allocation_dates"/>
-                    </tbody>
-                </table>
-            </td>
-        </tr>
-    </tbody>
-</table>
-  
+<!-- table visible only if we have at least one -->
+<xsl:if test="allocation"> 
+    <table width="100%" cellspacing="0" cellpadding="0" border="0">
+    
+        <tbody>
+            <tr valign="top">
+                <td width="240"></td>
+                <td class="availability_header"><xsl:value-of select="dateheaders/header"/></td>
+            </tr>
+            <tr valign="top">
+                <td colspan="2" width="870" valign="top">
+                    <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
+                        <thead>
+                            <tr>
+                                <th class="avail_attrib">Name</th>
+                                <th class="avail_attrib">Gender</th>
+                                <th class="avail_attrib">Room Type</th>
+                                <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
+                                <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
+                                <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <xsl:apply-templates select="allocation" mode="allocation_dates"/>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</xsl:if>  
 </xsl:template>
 
 <!-- adds "class" attribute to a table row depending on position -->

@@ -7,10 +7,10 @@ class AllocationTable {
     var $showMinDate;   // minimum date to show on the table
     var $showMaxDate;   // maximum date to show on the table
     private $allocationRows = array();  // array of AllocationRow
-    private $resourceMap;  // array of resource_id -> resource_name
+    private $allocationStrategy;
     
     function AllocationTable() {
-        $this->resourceMap = ResourceDBO::getResourceMap();
+        $this->allocationStrategy = new AllocationStrategy();
     }
 
     /**
@@ -20,17 +20,36 @@ class AllocationTable {
      * gender : Male/Female
      * resourceId : id of resource to allocate to
      * dates : comma-delimited list of dates in format dd.MM.yyyy
+     * Throws AllocationException if there aren't enough "leaf" resources to add the given
+     *        number of allocations.
      */
     function addAllocation($bookingName, $numVisitors, $gender, $resourceId, $dates) {
         $datearr = explode(",", $dates);
         $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
+        $newAllocationRows = array();  // the new allocations we will be adding
         for($i = 0; $i < $numVisitors; $i++) {
-            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows)+1), $gender, $this->resourceMap[$resourceId]);
+            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId);
             foreach ($datearr as $dt) {
                 $allocationRow->addPaymentForDate(trim($dt), 15); // FIXME: price fixed at 15
             }
-            $this->allocationRows[] = $allocationRow;
-            $allocationRow->rowid = array_search($allocationRow, $this->allocationRows);
+            $newAllocationRows[] = $allocationRow;
+        }
+        // this will perform the individual assignments to beds if a parent resource id is specified
+        $this->allocationStrategy->assignResourcesForAllocations($newAllocationRows, $this->allocationRows);
+        
+        // check that all of the ones we just added have been assigned "leaf" resources (beds)
+        foreach ($newAllocationRows as $newAlloc) {
+            if (false == $newAlloc->isAvailable) {
+error_log("AllocationTable::addAllocation throws ex");
+                throw new AllocationException("Insufficient resources to allocate $bookingName.");
+            }
+        }
+error_log("Allocating ".sizeof($newAllocationRows));
+        // allocation successful; add them to the existing ones we have for this booking
+        foreach ($newAllocationRows as $newAlloc) {
+            $this->allocationRows[] = $newAlloc;
+            // keep the unique id for the row so we can reference it later when updating via ajax
+            $allocationRow->rowid = array_search($newAlloc, $this->allocationRows);
         }
     }
     

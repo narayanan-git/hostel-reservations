@@ -6,7 +6,8 @@
 class ResourceDBO {
 
     /**
-     * Returns all resources. Each object in the collection returned has the following properties:
+     * Returns all resources indexed by resource_id. 
+     * Each object in the collection returned has the following properties:
      * resource_id : id of resource
      * name : resource name
      * capacity : capacity of resource
@@ -18,10 +19,16 @@ class ResourceDBO {
         global $wpdb;
 
         // query all our resources (in order)
-        return $wpdb->get_results($wpdb->prepare(
+        $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT resource_id, name, capacity, lvl, path, number_children 
                FROM ".$wpdb->prefix."v_resources_by_path
               ORDER BY path"));
+        
+        $result = array();
+        foreach ($resultset as $res) {
+            $result[$res->resource_id] = $res;
+        }
+        return $result;
     }
     
     /**
@@ -35,7 +42,7 @@ class ResourceDBO {
         }
         return $result;
     }
-
+    
     /**
      * Inserts a new resource.
      * $name : name of new resource

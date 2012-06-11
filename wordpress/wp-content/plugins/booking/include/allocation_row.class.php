@@ -8,15 +8,18 @@ class AllocationRow {
     var $rowid;
     var $name;
     var $gender;
-    var $resource;
+    var $resourceId;
     var $showMinDate;   // minimum date to show on the table
     var $showMaxDate;   // maximum date to show on the table
+    var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
     private $bookingDatePayment = array();  // key = booking date, value = payment amount
+    private $resourceMap;  // array of resource_id -> resource_name
 
-    function AllocationRow($name, $gender, $resource) {
+    function AllocationRow($name, $gender, $resourceId) {
         $this->name = $name;
         $this->gender = $gender;
-        $this->resource = $resource;
+        $this->resourceId = $resourceId;
+        $this->resourceMap = ResourceDBO::getResourceMap();
     }
     
     /**
@@ -50,6 +53,20 @@ class AllocationRow {
     }
     
     /**
+     * Checks whether a booking exists on any of the given dates.
+     * $bookingDates : array of date string in format dd.MM.yyyy
+     * Returns true if booking exists on any of the specified dates, false otherwise.
+     */
+    function isExistsBookingForAnyDate($bookingDates) {
+        foreach ($bookingDates as $dt) {
+            if($this->isExistsBooking($dt)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
      * Returns the minimum date (DateTime) for this allocation.
      */
     function getMinDate() {
@@ -61,6 +78,13 @@ class AllocationRow {
             }
         }
         return $result;
+    }
+    
+    /**
+     * Returns array of booking dates (string) for this AllocationRow.
+     */
+    function getBookingDates() {
+        return array_keys($this->bookingDatePayment);
     }
     
     /**
@@ -121,7 +145,7 @@ class AllocationRow {
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
-        $xmlRoot->appendChild($domtree->createElement('resource', $this->resource));
+        $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]));
 
         $dateRow = $domtree->createElement('dates');
         $attrTotal = $domtree->createAttribute('total');
