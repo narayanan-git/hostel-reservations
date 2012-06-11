@@ -4836,83 +4836,61 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
                 if ( ! empty($wpdb->collate) ) $charset_collate .= " COLLATE $wpdb->collate";
             //}
 
-            $wp_queries = array();
-            if ( ! $this->is_table_exists('booking') ) { // Cehck if tables not exist yet
-
+            if ( ! $this->is_table_exists('booking') ) { 
                 $simple_sql = "CREATE TABLE ".$wpdb->prefix ."booking (
-                         booking_id bigint(20) unsigned NOT NULL auto_increment,
-                         form text ,
-                         booking_type bigint(10) NOT NULL default 1,
-                         PRIMARY KEY  (booking_id)
+                            booking_id bigint(20) unsigned NOT NULL auto_increment,
+                            firstname varchar(50) NOT NULL,
+                            lastname varchar(50),
+                            referrer varchar(50),
+                            created_by varchar(20) NOT NULL,
+                            created_date datetime NOT NULL,
+                            PRIMARY KEY (booking_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
-            } elseif  ($this->is_field_in_table_exists('booking','form') == 0) {
-                $wp_queries[]  = "ALTER TABLE ".$wpdb->prefix ."booking ADD form TEXT AFTER booking_id";
-                //$wpdb->query($wpdb->prepare($simple_sql));
             }
 
-            if  ($this->is_field_in_table_exists('booking','modification_date') == 0) {
-                $wp_queries[]  = "ALTER TABLE ".$wpdb->prefix ."booking ADD modification_date datetime AFTER booking_id";
-                //$wpdb->query($wpdb->prepare($simple_sql));
-            }
-
-            if  ($this->is_field_in_table_exists('booking','is_new') == 0) {
-                $wp_queries[]  = "ALTER TABLE ".$wpdb->prefix ."booking ADD is_new bigint(10) NOT NULL default 1 AFTER booking_id";
-                //$wpdb->query($wpdb->prepare($simple_sql));
-            }
-
-            if ( ! $this->is_table_exists('bookingdates') ) { // Cehck if tables not exist yet
-                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingdates (
-                         booking_id bigint(20) unsigned NOT NULL,
-                         booking_date datetime NOT NULL default '0000-00-00 00:00:00',
-                         approved bigint(20) unsigned NOT NULL default 0
+            if ( ! $this->is_table_exists('bookingresources') ) { 
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingresources (
+                            resource_id bigint(20) unsigned NOT NULL auto_increment,
+                            name varchar(50) NOT NULL,
+                            capacity bigint(20) unsigned,
+                            parent_resource_id bigint(20) unsigned,
+                            PRIMARY KEY (resource_id),
+                            FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
-
-                if( $this->wpdev_bk_pro == false ) {
-                    $wp_queries[] = "INSERT INTO ".$wpdb->prefix ."booking ( form, modification_date ) VALUES (
-                         'text^name1^Jony~text^secondname1^Smith~text^email1^example-free@wpdevelop.com~text^phone1^8(038)458-77-77~textarea^details1^Reserve a room with sea view', NOW() );";
-                }
-            }
-
-            if  ($this->is_field_in_table_exists('bookingdates','resource_id') == 0) {
-                $wp_queries[]  = "ALTER TABLE ".$wpdb->prefix ."bookingdates ADD resource_id bigint(20) unsigned AFTER booking_date";
-                $wp_queries[]  = "UPDATE ".$wpdb->prefix ."bookingdates SET resource_id = 1";
-                //$wpdb->query($wpdb->prepare($simple_sql));
             }
             
-            if (count($wp_queries)>0) {
-                foreach ($wp_queries as $wp_q)
-                    $wpdb->query($wpdb->prepare($wp_q));
-
-                if( $this->wpdev_bk_pro == false ) {
-                    $temp_id = $wpdb->insert_id;
-                    $wp_queries_sub = "INSERT INTO ".$wpdb->prefix ."bookingdates (
-                             booking_id,
-                             booking_date
-                            ) VALUES
-                            ( ". $temp_id .", CURDATE()+ INTERVAL 2 day ),
-                            ( ". $temp_id .", CURDATE()+ INTERVAL 3 day ),
-                            ( ". $temp_id .", CURDATE()+ INTERVAL 4 day );";
-                    $wpdb->query($wpdb->prepare($wp_queries_sub));
-                }
-            }
-
-            if ( ! $this->is_table_exists('bookingresources') ) { // Check if tables not exist yet
-                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingresources (
-                         resource_id bigint(20) unsigned NOT NULL auto_increment,
-                         name varchar(50) NOT NULL,
-                         capacity bigint(20) unsigned,
-                         parent_resource_id bigint(20),
-                         PRIMARY KEY (resource_id)
+            if ( ! $this->is_table_exists('allocation') ) {
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."allocation (
+                            allocation_id bigint(20) unsigned NOT NULL auto_increment,
+                            booking_id bigint(20) unsigned NOT NULL,
+                            resource_id bigint(20) unsigned NOT NULL,
+                            guest_name varchar(50) NOT NULL,
+                            status varchar(10) NOT NULL,
+                            gender varchar(1) NOT NULL,
+                            created_by varchar(20) NOT NULL,
+                            created_date datetime NOT NULL,
+                            PRIMARY KEY (allocation_id),
+                            FOREIGN KEY (booking_id) REFERENCES ".$wpdb->prefix ."booking(booking_id),
+                            FOREIGN KEY (resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id) 
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
+            if ( ! $this->is_table_exists('bookingdates') ) {
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingdates (
+                            allocation_id bigint(20) unsigned NOT NULL,
+                            booking_date date NOT NULL,
+                            FOREIGN KEY (allocation_id) REFERENCES ".$wpdb->prefix ."allocation(allocation_id)
+                        ) $charset_collate;";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+            
             if ( ! $this->is_table_exists('v_resources_sub1') ) {
                 $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1(resource_id, name, capacity, parent_resource_id, gp_resource_id) AS
                         SELECT br1.resource_id, br1.name, br1.capacity, br1.parent_resource_id, 
-                            (SELECT br2.parent_resource_id FROM wp_bookingresources br2 WHERE br2.resource_id = br1.parent_resource_id) AS gp_resource_id
+                            (SELECT br2.parent_resource_id FROM ".$wpdb->prefix ."bookingresources br2 WHERE br2.resource_id = br1.parent_resource_id) AS gp_resource_id
                         FROM wp_bookingresources br1";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
