@@ -21,7 +21,6 @@ class DbTransaction {
         
         // cancel auto commit option in the database
         $this->mysqli->autocommit(FALSE);
-error_log("finished constructing dbtransaction");
     }
 }
 
