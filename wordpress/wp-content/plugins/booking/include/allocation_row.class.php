@@ -144,27 +144,18 @@ class AllocationRow {
         global $wpdb;
         
         // create the allocation
-        $stmt = $mysqli->prepare(
-            "INSERT INTO ".$wpdb->prefix."allocation (booking_id, resource_id, guest_name, status, gender, created_by, created_date)
-             VALUES (?, ?, ?, ?, ?, ?, STR_TO_DATE(?, '%d.%m.%Y'))");
-             
-        $now = new DateTime();
-        $stmt->bind_param('iisssss', $bookingId, $this->resourceId, $this->name, $this->status, substr($this->gender, 0, 1),  wp_get_current_user()->user_login, $now->format('d.m.Y'));
-        
-        if(FALSE === $stmt->execute()) {
-            throw new DatabaseException("Error during INSERT: " . $mysqli->error);
-        }
-        $stmt->close();
-        $allocationId = $mysqli->insert_id;
-        
+        $allocationId = AllocationDBO::insertAllocation(
+            $mysqli, $bookingId, $this->resourceId, $this->name, $this->status, substr($this->gender, 0, 1));
+error_log("inserted allocation $allocationId");
         // then create the booking dates for the allocation
+        $this->isAvailable = true;
         foreach (array_keys($this->bookingDatePayment) as $bookingDate) {
-            $stmt = $mysqli->prepare("INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date) VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'))");
-            $stmt->bind_param('is', $allocationId, $bookingDate);
-            if(FALSE === $stmt->execute()) {
-                throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+error_log("to insert $bookingDate");
+            // any booking date that breaks availability will flag it up at the row level
+            // TODO: should move this onto the booking date field
+            if( ! AllocationDBO::insertBookingDate($mysqli, $this->resourceId, $allocationId, $bookingDate)) {
+                $this->isAvailable = false;
             }
-            $stmt->close();
         }
 
         return $allocationId;

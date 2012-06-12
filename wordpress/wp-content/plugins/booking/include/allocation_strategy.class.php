@@ -36,7 +36,7 @@ error_log("assignResourcesForAllocations ".sizeof($allocationRows));
 error_log("number of children : ".$RESOURCE_MAP[$alloc->resourceId]->number_children);
             // collect all dates for all allocations sharing this resourceId
             // (we should only need to check one as they *should* all be the same but just in case)
-error_log("found parent resource $alloc->resourceId");
+error_log("found resource $alloc->resourceId");
 
             $bookingDates = array();
             $numberOfAllocationsSharingThisParent = $this->collectDatesWithResourceId($allocationRows, $alloc->resourceId, $bookingDates);
@@ -60,7 +60,7 @@ error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
             }
             
             // assign all allocations for this parent and continue
-            $this->doAssignAllocations($allocationRows, $resourceIds);
+            $this->doAssignAllocations($allocationRows, $alloc->resourceId, $resourceIds);
         }
     }
     
@@ -116,18 +116,24 @@ error_log("returning bookingDates ".sizeof($bookingDates)." and number allocatio
      * Update the resourceIds for the allocationRows provided with 
      * the given resourceIds in order. Sets the isAvailable flag to true/false
      * depending on whether we run out of resource ids or not.
+     * $allocationRows : array() of AllocationRow to assign
+     * $parentResourceId : resource id to assign child resource id to
+     * $resourceIds : resource ids to assign from
      */
-    function doAssignAllocations($allocationRows, $resourceIds) {
+    function doAssignAllocations($allocationRows, $parentResourceId, $resourceIds) {
 error_log("doAssignAllocations");
         foreach ($allocationRows as $alloc) {
-            $alloc->isAvailable = false;
-            foreach ($resourceIds as $resourceId => $capacity) {
-                if($capacity > 0) {
+            if ($alloc->resourceId == $parentResourceId) {
+                $alloc->isAvailable = false;
+                foreach ($resourceIds as $resourceId => $capacity) {
+error_log("assigning ".$alloc->name." to resource $resourceId with capacity $capacity");
+                    if($capacity > 0) {
 error_log("assigning resource $resourceId to $alloc->name");
-                    $resourceIds[$resourceId]--;
-                    $alloc->isAvailable = true;
-                    $alloc->resourceId = $resourceId;
-                    break;
+                        $resourceIds[$resourceId]--;
+                        $alloc->isAvailable = true;
+                        $alloc->resourceId = $resourceId;
+                        break;
+                    }
                 }
             }
         }

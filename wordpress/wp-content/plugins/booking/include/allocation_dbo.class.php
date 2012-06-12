@@ -17,7 +17,7 @@ class AllocationDBO {
         global $wpdb;
 error_log("fetch availability resource id : $resourceId booking dates : " . sizeof($bookingDates));
         foreach ($bookingDates as $bd) {
-            $bookingDatesString .= "'".str_replace('.', '-', $bd). "',";
+            $bookingDatesString .= "STR_TO_DATE('$bd', '%%d.%%m.%%Y'),";
         }
         $bookingDatesString = rtrim($bookingDatesString, ',');
 error_log("fetch availability $bookingDatesString");
@@ -26,19 +26,16 @@ error_log("fetch availability $bookingDatesString");
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT resource_id, capacity 
                FROM ".$wpdb->prefix."v_resources_by_path vp
-              WHERE ((path LIKE %s AND number_children = 0)
-                 OR (path LIKE %s AND number_children = 0))
+              WHERE ((path LIKE '%%/$resourceId' AND number_children = 0)
+                 OR (path LIKE '%%/$resourceId/%%' AND number_children = 0))
              -- each resource must have available capacity for all days!
              -- this count should be 0 (valid for double rooms, quads as well... as they can't be shared)
-                AND 0 = (SELECT COUNT(*)   
+                 AND 0 = (SELECT COUNT(*)   
                            FROM ".$wpdb->prefix."bookingdates bd
                            JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
                           WHERE alloc.resource_id = $resourceId -- parent resource id
-                            AND bd.booking_date IN ($bookingDatesString))",
-            "%/$resourceId",
-            "%/$resourceId/%"));
+                            AND bd.booking_date IN ($bookingDatesString))"));
 
-error_log("result set ".sizeof($resultset));        
         $result = array();
         foreach ($resultset as $res) {
             $result[$res->resource_id] = $res->capacity;
@@ -84,6 +81,75 @@ error_log("fetchResourcesUnderOneParentResource ".implode(',', $resourceIds)." a
         }
 error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         return $result;
+    }
+
+    /**
+     * Inserts a new allocation record.
+     * $mysqli : database link (to enforce manual transaction handling)
+     * $bookingId : id of parent booking record
+     * $resourceId : id of resource to assign this allocation
+     * $name : name of guest
+     * $status : status of allocation (e.g. checkedin, pending, etc.)
+     * $gender : M/F
+     * Returns unique id of newly created allocation
+     */
+    static function insertAllocation($mysqli, $bookingId, $resourceId, $name, $status, $gender) {
+        global $wpdb;
+        
+        // create the allocation
+        $stmt = $mysqli->prepare(
+            "INSERT INTO ".$wpdb->prefix."allocation (booking_id, resource_id, guest_name, status, gender, created_by, created_date)
+            VALUES (?, ?, ?, ?, ?, ?, NOW())");
+            
+        $stmt->bind_param('iissss', $bookingId, $resourceId, $name, $status, $gender, wp_get_current_user()->user_login);
+        
+        if(FALSE === $stmt->execute()) {
+            throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+        }
+        $stmt->close();
+        return $mysqli->insert_id;
+    }
+    
+    /**
+     * Inserts a booking date for the specified allocation and resource
+     * only when availability exists.
+     * $mysqli : database link (to enforce manual transaction handling)
+     * $resourceId : id of resource for allocation (should already be defined for this allocation)
+     * $allocationId : id of parent allocation record
+     * $bookingDate : date to add booking (format d.m.Y)
+     * Returns true if the insert complies with current availability, false otherwise.
+     * Note: the record is *always* inserted regardless of whether it breaks the current
+     * availability rules or not. A manual rollback is required outwith this method if needed.
+     */
+    static function insertBookingDate($mysqli, $resourceId, $allocationId, $bookingDate) {
+        global $wpdb;
+    
+        // insert the record
+        $stmt = $mysqli->prepare("INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date) VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'))");
+        $stmt->bind_param('is', $allocationId, $bookingDate);
+        if(FALSE === $stmt->execute()) {
+            throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+        }
+        $stmt->close();
+        
+        // check that the record does not break availability rules
+        $stmt = $mysqli->prepare(
+            "SELECT avail_capacity
+               FROM ".$wpdb->prefix."v_resource_availability ra
+              WHERE ra.booking_date = STR_TO_DATE(?, '%d.%m.%Y')
+                AND ra.resource_id = ?");
+        $stmt->bind_param('si', $bookingDate, $resourceId);
+        
+        if(FALSE === $stmt->execute()) {
+            throw new DatabaseException("Error during SELECT: " . $mysqli->error);
+        }
+        
+        $stmt->bind_result($availCapacity);
+        $compliesWithAvailability = (! $stmt->fetch()) || $availCapacity >= 0;
+error_log("availCapacity $availCapacity");
+        $stmt->close();
+error_log("allocation $allocationId on $bookingDate complies with avaiability: $compliesWithAvailability");       
+        return $compliesWithAvailability;
     }
 }
 

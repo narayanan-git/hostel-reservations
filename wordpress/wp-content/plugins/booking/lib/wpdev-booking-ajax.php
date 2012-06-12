@@ -249,6 +249,8 @@ function wpdev_bk_insert_new_booking_v2(){
         $msg = "Updated successfully";
     } catch(DatabaseException $ex) {
         $msg = $ex->getMessage();
+    } catch(AllocationException $ex) {
+        $msg = $ex->getMessage();
     }
 error_log("db save: $msg"); 
 

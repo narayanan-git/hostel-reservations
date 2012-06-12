@@ -19,10 +19,10 @@ class BookingDBO {
         global $wpdb;
         $stmt = $mysqli->prepare(
             "INSERT INTO ".$wpdb->prefix."booking(firstname, lastname, referrer, created_by, created_date)
-             VALUES(?, ?, ?, ?, STR_TO_DATE(?, '%m.%d.%Y'))");
+             VALUES(?, ?, ?, ?, NOW())");
              
         $now = new DateTime();
-        $stmt->bind_param('sssss', $firstname, $lastname, $referrer, $createdBy, $now->format('m.d.Y'));
+        $stmt->bind_param('ssss', $firstname, $lastname, $referrer, $createdBy);
         
         if(FALSE === $stmt->execute()) {
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);

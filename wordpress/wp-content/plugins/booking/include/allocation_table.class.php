@@ -135,15 +135,23 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
      * Saves all allocations to the db.
      * $mysqli : manual db connection (for transaction handling)
      * $bookingId : booking id for this allocation
+     * Throws AllocationException if one or more allocations failed due to lack of availability
      */
     function save($mysqli, $bookingId) {
     
+        $failedAllocation = false;
         foreach ($this->allocationRows as $alloc) {
             $alloc_id = $alloc->save($mysqli, $bookingId);
-error_log("inserting record $alloc_id");
-//            $wpdb->query($wpdb->prepare(
-//                "CALL insert_allocation(%d, %d, %s, %s, %s, %s)",
-//                $bookingId, $alloc->resourceId, $alloc->name, $alloc->status, $alloc->gender, $alloc->getBookingDates(), 'admin'));
+
+            if( ! $alloc->isAvailable) {
+                $failedAllocation = true;
+            }
+        }
+        
+        // report business error if demand > supply
+        // TODO: move this down to bookingdates level
+        if ($failedAllocation) {
+            throw new AllocationException("One or more allocations did not have sufficient availability");
         }
 
     }

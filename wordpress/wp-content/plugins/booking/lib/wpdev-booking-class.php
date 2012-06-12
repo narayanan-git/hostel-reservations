@@ -4915,6 +4915,31 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
+            if ( ! $this->is_table_exists('v_booked_capacity') ) {
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_booked_capacity (booking_date, resource_id, used_capacity) AS
+                        SELECT bd.booking_date, alloc.resource_id, COUNT(*) used_capacity
+                          FROM ".$wpdb->prefix."bookingdates bd
+                          JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
+                         GROUP BY bd.booking_date, alloc.resource_id";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_table_exists('v_resource_availability') ) {
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resource_availability (booking_date, resource_id, resource_name, path, capacity, used_capacity, avail_capacity) AS
+                        SELECT bc.booking_date, 
+                               rp.resource_id, 
+                               rp.name AS resource_name,
+                               rp.path, 
+                               rp.capacity, 
+                               bc.used_capacity,
+                               CAST(rp.capacity - IFNULL(bc.used_capacity, 0) AS SIGNED) AS avail_capacity 
+                          FROM ".$wpdb->prefix."v_resources_by_path rp
+                          LEFT OUTER JOIN ".$wpdb->prefix."v_booked_capacity bc ON rp.resource_id = bc.resource_id
+                         WHERE rp.number_children = 0
+                         ORDER BY bc.booking_date, rp.path";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
             // if( $this->wpdev_bk_pro !== false )  $this->wpdev_bk_pro->pro_activate();
             make_bk_action('wpdev_booking_activation');
 
