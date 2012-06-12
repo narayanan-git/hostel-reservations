@@ -40,16 +40,18 @@ class AllocationTable {
         // check that all of the ones we just added have been assigned "leaf" resources (beds)
         foreach ($newAllocationRows as $newAlloc) {
             if (false == $newAlloc->isAvailable) {
-error_log("AllocationTable::addAllocation throws ex");
+error_log("AllocationTable::addAllocation throws ex ".$newAlloc->resourceId . " with name ". $newAlloc->name);
                 throw new AllocationException("Insufficient resources to allocate $bookingName.");
             }
+else error_log("AllocationTable::addAllocation OK ".$newAlloc->resourceId . " with name ". $newAlloc->name);
         }
 error_log("Allocating ".sizeof($newAllocationRows));
         // allocation successful; add them to the existing ones we have for this booking
         foreach ($newAllocationRows as $newAlloc) {
             $this->allocationRows[] = $newAlloc;
             // keep the unique id for the row so we can reference it later when updating via ajax
-            $allocationRow->rowid = array_search($newAlloc, $this->allocationRows);
+            $newAlloc->rowid = array_search($newAlloc, $this->allocationRows);
+error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
         }
     }
     
@@ -129,6 +131,22 @@ error_log("Allocating ".sizeof($newAllocationRows));
         return $errors;
     }
 
+    /**
+     * Saves all allocations to the db.
+     * $mysqli : manual db connection (for transaction handling)
+     * $bookingId : booking id for this allocation
+     */
+    function save($mysqli, $bookingId) {
+    
+        foreach ($this->allocationRows as $alloc) {
+            $alloc_id = $alloc->save($mysqli, $bookingId);
+error_log("inserting record $alloc_id");
+//            $wpdb->query($wpdb->prepare(
+//                "CALL insert_allocation(%d, %d, %s, %s, %s, %s)",
+//                $bookingId, $alloc->resourceId, $alloc->name, $alloc->status, $alloc->gender, $alloc->getBookingDates(), 'admin'));
+        }
+
+    }
     
     /** 
       Generates the following xml:

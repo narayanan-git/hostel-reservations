@@ -5,8 +5,9 @@
  * and renders it.
  */
 class AllocationRow {
-    var $rowid;
+    var $rowid;  // unique id for this row
     var $name;
+    var $status;  // checkedin, checkedout, pending, etc
     var $gender;
     var $resourceId;
     var $showMinDate;   // minimum date to show on the table
@@ -19,6 +20,7 @@ class AllocationRow {
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
+        $this->status = 'pending';  // default entry for new allocation
         $this->resourceMap = ResourceDBO::getResourceMap();
     }
     
@@ -129,6 +131,43 @@ class AllocationRow {
             }
         }
         return $result;
+    }
+
+    /**
+     * Saves current allocation to the db.
+     * $mysqli : manual db connection (for transaction handling)
+     * $bookingId : booking id for this allocation
+     * Returns allocation id of newly created record
+     */
+    function save($mysqli, $bookingId) {
+    
+        global $wpdb;
+        
+        // create the allocation
+        $stmt = $mysqli->prepare(
+            "INSERT INTO ".$wpdb->prefix."allocation (booking_id, resource_id, guest_name, status, gender, created_by, created_date)
+             VALUES (?, ?, ?, ?, ?, ?, STR_TO_DATE(?, '%d.%m.%Y'))");
+             
+        $now = new DateTime();
+        $stmt->bind_param('iisssss', $bookingId, $this->resourceId, $this->name, $this->status, substr($this->gender, 0, 1),  wp_get_current_user()->user_login, $now->format('d.m.Y'));
+        
+        if(FALSE === $stmt->execute()) {
+            throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+        }
+        $stmt->close();
+        $allocationId = $mysqli->insert_id;
+        
+        // then create the booking dates for the allocation
+        foreach (array_keys($this->bookingDatePayment) as $bookingDate) {
+            $stmt = $mysqli->prepare("INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date) VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'))");
+            $stmt->bind_param('is', $allocationId, $bookingDate);
+            if(FALSE === $stmt->execute()) {
+                throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+            }
+            $stmt->close();
+        }
+
+        return $allocationId;
     }
 
     /**

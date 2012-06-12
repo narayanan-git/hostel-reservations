@@ -234,6 +234,15 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_exception.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_exception.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/database_exception.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/database_exception.class.php' ); }
+
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/db_transaction.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/db_transaction.class.php' ); }
+
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/booking_dbo.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/booking_dbo.class.php' ); }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // GET VERSION NUMBER

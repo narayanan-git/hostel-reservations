@@ -29,35 +29,38 @@ class AllocationStrategy {
         //     if not possible, assign one by one
         // else (if already assigned to a "bed")
         //     check that it is still available and set its flag
+        
 error_log("assignResourcesForAllocations ".sizeof($allocationRows));
         $RESOURCE_MAP = ResourceDBO::getAllResources();
         foreach ($allocationRows as $alloc) {
-            // if "parent" node, we need to assign a specific leaf (bed)
 error_log("number of children : ".$RESOURCE_MAP[$alloc->resourceId]->number_children);
-            if($RESOURCE_MAP[$alloc->resourceId]->number_children > 0) {
-                // collect all dates for all allocations sharing this resourceId
-                // (we should only need to check one as they *should* all be the same but just in case)
+            // collect all dates for all allocations sharing this resourceId
+            // (we should only need to check one as they *should* all be the same but just in case)
 error_log("found parent resource $alloc->resourceId");
-                $bookingDates = array();
-                $numberOfAllocationsSharingThisParent = $this->collectDatesWithResourceId($allocationRows, $alloc->resourceId, $bookingDates);
+
+            $bookingDates = array();
+            $numberOfAllocationsSharingThisParent = $this->collectDatesWithResourceId($allocationRows, $alloc->resourceId, $bookingDates);
 error_log("after collectDatesWithResourceId numberOfAllocationsSharingThisParent:$numberOfAllocationsSharingThisParent bookingDates : ".sizeof($bookingDates));
-                // availabilityCapacity : Map of key = resourceId, value = capacity
-                $availabilityCapacity = $this->fetchAvailableCapacity($alloc->resourceId, $bookingDates, $existingAllocationRows);
-error_log("after availableCapacity ".sizeof($availabilityCapacity));
-                
-                // first, try to fit everyone into the same room
-                // resourceIds : Map of key = resourceId, value = capacity
-                $resourceIds = AllocationDBO::fetchResourcesUnderOneParentResource(array_keys($availabilityCapacity), $numberOfAllocationsSharingThisParent);
-error_log("found resource ids ".implode(',', array_keys($resourceIds)));
+
+            // resourceIds : Map of key = resourceId, value = capacity
+            $resourceIds = $this->fetchAvailableCapacity($alloc->resourceId, $bookingDates, $existingAllocationRows);
+error_log("after availableCapacity ".sizeof($resourceIds));
+            
+            // if "parent" node, we need to assign a specific leaf (bed)
+            // first, try to fit everyone into the same room
+            if($RESOURCE_MAP[$alloc->resourceId]->number_children > 0) {
+                // reservedResourceIds : Map of key = resourceId, value = capacity
+                $reservedResourceIds = AllocationDBO::fetchResourcesUnderOneParentResource(array_keys($resourceIds), $numberOfAllocationsSharingThisParent);
+error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
+
                 // if we can't fit everyone in one room, just assign them in order
-                if (sizeof($resourceIds) == 0) {
-                    $resourceIds = $availabilityCapacity;
+                if (sizeof($reservedResourceIds) == 0) {
+                    $resourceIds = $reservedResourceIds;
                 }
-                
-                // assign all allocations for this parent and continue
-                $this->doAssignAllocations($allocationRows, $resourceIds);
             }
-error_log("skipping $alloc->resourceId");
+            
+            // assign all allocations for this parent and continue
+            $this->doAssignAllocations($allocationRows, $resourceIds);
         }
     }
     

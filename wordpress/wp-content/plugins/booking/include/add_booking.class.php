@@ -10,6 +10,7 @@ class AddBooking {
     
     var $firstname;
     var $lastname;
+    var $referrer;
     var $details;
     
     // all allocations for this booking (type AllocationTable)
@@ -83,9 +84,28 @@ class AddBooking {
      * Moves the reference dates to the left
      */
     function shiftCalendarLeft() {
-        // default is by 13 days (2 columns in previous table are now on the far left)
+        // default is by 13 days (2 columns in previous table are now on the far right)
         $this->allocationTable->showMinDate->sub(new DateInterval('P13D'));
         $this->allocationTable->showMaxDate->sub(new DateInterval('P13D'));
+    }
+    
+    /**
+     * Saves this booking and all allocations to the db.
+     */
+    function save() {
+        $dblink = new DbTransaction();
+        try {
+            $bookingId = BookingDBO::insertBooking($dblink->mysqli, $this->firstname, $this->lastname, $this->referrer,  wp_get_current_user()->user_login);
+error_log("inserted booking id $bookingId");
+            $this->allocationTable->save($dblink->mysqli, $bookingId);
+            $dblink->mysqli->commit();
+            $dblink->mysqli->close();
+
+        } catch(Exception $e) {
+            $dblink->mysqli->rollback();
+            $dblink->mysqli->close();
+            throw $e;
+        }
     }
 
     /** 

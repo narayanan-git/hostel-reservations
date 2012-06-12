@@ -210,17 +210,6 @@ function wpdev_bk_ajax_responder() {
 ///////////////////////// BEGIN CUSTOM CODE //////////////////////////////
 function wpdev_bk_insert_new_booking_v2(){
 
-    // display rotating progress circle
-    ?> <script type="text/javascript">
-        document.getElementById('ajax_working').innerHTML =
-            '<div class="info_message ajax_message" id="ajax_message">\n\
-            <div style="float:left;"><?php echo __('Updating...', 'wpdev-booking'); ?></div> \n\
-            <div style="float:left;width:80px;margin-top:-3px;">\n\
-                <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
-             </div>\n\
-          </div>';
-        </script> <?php
-
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
         $booking->firstname = $_POST['firstname'];
@@ -228,8 +217,9 @@ function wpdev_bk_insert_new_booking_v2(){
         $booking->details = $_POST['details'];
     } else {
         ?> <script type="text/javascript">
-            document.getElementById('ajax_working').innerHTML = '<?php echo "Please correct errors before continuing..."; ?><br>';
             document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Add some allocations first!"; ?></div>';
+            jWPDev("#submitting")
+                .css( {'color' : 'red'} )
         </script>
         <?php
         return;
@@ -245,19 +235,30 @@ function wpdev_bk_insert_new_booking_v2(){
         }
         
         ?> <script type="text/javascript">
-            document.getElementById('ajax_working').innerHTML = '<?php echo $error_text; ?>';
-            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Please correct errors before continuing..."; ?></div>';
+            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo $error_text; ?></div>';
+            jWPDev("#submitting")
+                .css( {'color' : 'red'} )
         </script>
         <?php
         return;
     }
     
+    // validates ok, save to db
+    try {
+        $booking->save();
+        $msg = "Updated successfully";
+    } catch(DatabaseException $ex) {
+        $msg = $ex->getMessage();
+    }
+error_log("db save: $msg"); 
+
     // stop and redirect
     ?> <script type="text/javascript">
-           document.getElementById('ajax_working').innerHTML = 'Updated successfully<br>';
-           jWPDev('#ajax_working').fadeOut(5000);
-           document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>Updated successfully</div>';
-           jWPDev('#submitting').fadeOut(5000);
+            var msg = "<?php echo $msg; ?>";
+            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
+            jWPDev("#submitting")
+                .css( {'color' : 'red'} )
+//           jWPDev('#submitting').fadeOut(5000);
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
     <?php
@@ -290,6 +291,10 @@ function wpdev_add_booking_allocation() {
             ?> 
             <script type="text/javascript">
                 document.getElementById('ajax_respond').innerHTML = "There is not enough availability for the room (type) and dates chosen.";
+                jWPDev("#ajax_respond")
+                    .css( {'color' : 'red'} )
+                    .fadeIn( 10 )
+                    .fadeOut( 5000 );   // hide message                
             </script>
             <?php
         }
