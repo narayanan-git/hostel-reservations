@@ -1220,6 +1220,20 @@ if (!class_exists('wpdev_booking')) {
 
         }
 
+        // Check if trigger exists
+        function is_trigger_exists( $trigger_name ) {
+            global $wpdb;
+            $sql_check_trigger = "
+                SELECT COUNT(*) AS count
+                  FROM information_schema.triggers
+                 WHERE trigger_schema = '". DB_NAME ."'
+                   AND trigger_name = $trigger_name";
+
+            $res = $wpdb->get_results($wpdb->prepare($sql_check_trigger));
+            return $res[0]->count;
+
+        }
+
         // Check if table exist
         function is_field_in_table_exists( $tablename , $fieldname) {
             global $wpdb;
@@ -4937,6 +4951,28 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
                           LEFT OUTER JOIN ".$wpdb->prefix."v_booked_capacity bc ON rp.resource_id = bc.resource_id
                          WHERE rp.number_children = 0
                          ORDER BY bc.booking_date, rp.path";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_trigger_exists('trg_enforce_availability') ) {
+                $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_enforce_availability
+                    -- this will raise an error by selecting from a non-existent table
+                    -- in order to enforce availability for a particular resource/date
+                    BEFORE INSERT ON ".$wpdb->prefix."bookingdates FOR EACH ROW
+                    BEGIN
+                        DECLARE p_avail_capacity INT;
+                        SELECT avail_capacity INTO p_avail_capacity
+                        FROM ".$wpdb->prefix."v_resource_availability ra
+                        JOIN ".$wpdb->prefix."allocation alloc ON ra.resource_id = alloc.resource_id
+                        WHERE ra.booking_date = NEW.booking_date
+                        AND alloc.allocation_id = NEW.allocation_id;
+                        
+                        IF p_avail_capacity <= 0 THEN
+                            SELECT 'Reservation conflicts with an existing reservation' INTO p_avail_capacity 
+                            FROM SANITY_CHECK_RESERVATION_CONFLICT_FOUND
+                            WHERE SANITY_CHECK_RESERVATION_CONFLICT_FOUND.id = NEW.allocation_id;
+                        END IF;
+                    END";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
