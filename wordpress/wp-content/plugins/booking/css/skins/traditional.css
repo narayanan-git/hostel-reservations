@@ -329,6 +329,10 @@ font-weight:normal;
     color:rgb(31, 74, 146);
 }
 
+.highlight_cell_red {
+    border:2px solid rgb(224,21,21); 
+}
+
 .date_status_pending {
     background:none repeat scroll 0% 0% rgb(223,154,0);
 }

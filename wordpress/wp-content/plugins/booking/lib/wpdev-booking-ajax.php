@@ -259,7 +259,13 @@ error_log("db save: $msg");
             var msg = "<?php echo $msg; ?>";
             document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
             jWPDev("#submitting")
-                .css( {'color' : 'red'} )
+                .css( {'color' : 'red'} );
+                
+            // reload allocation table if we get an exception
+            // invalid rows will be highlighted
+            if(msg.indexOf('success') < 0) {
+                document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+            }
 //           jWPDev('#submitting').fadeOut(5000);
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
@@ -278,10 +284,6 @@ function wpdev_add_booking_allocation() {
     // display datastructure(s) as table from min(dates) for 2 weeks afterwards
     // editing table on screen updates datastructure in real-time
     // on submit, start transaction, validate allocations, save and end transaction
-
-//$ar = new AllocationRow('Megan-2', 'F', 'bed gamma');
-//$ar->addPaymentForDate('13.03.2012', '22.22');
-//$ar->addPaymentForDate('14.03.2012', '33.11');
 
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];

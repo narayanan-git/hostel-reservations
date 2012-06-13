@@ -403,6 +403,16 @@
     //<![CDATA[
     function add_booking_allocation(submit_form , wpdev_active_locale) {
 
+        if(submit_form.firstname.value === '') {
+            showErrorMessage( submit_form.firstname, message_verif_requred );
+            return;
+        }
+        else if(document.getElementById('date_booking1').value === '') {
+            jWPDev('#ajax_respond').html("Select a date or date-range for the booking.")
+                .css( {'color' : 'red'} );
+            return;
+        }
+
         jWPDev.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',

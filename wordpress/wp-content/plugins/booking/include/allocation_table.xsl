@@ -61,7 +61,12 @@
 <!-- adds row for each allocation in the availability table -->
 <xsl:template mode="allocation_dates" match="allocation">
     <tr>
-        <td class="avail_attrib"><xsl:value-of select="name"/></td>
+        <td class="avail_attrib">
+            <xsl:if test="isAvailable != 'true'">
+                <xsl:attribute name="class">highlight_cell_red</xsl:attribute>
+            </xsl:if>
+            <xsl:value-of select="name"/>
+        </td>
         <td class="avail_attrib"><xsl:value-of select="gender"/></td>
         <td class="avail_attrib"><xsl:value-of select="resource"/></td>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>

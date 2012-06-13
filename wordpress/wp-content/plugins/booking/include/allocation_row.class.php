@@ -185,6 +185,7 @@ error_log("to insert $bookingDate");
         if($this->showMinDate != null && $this->showMaxDate != null) {
             $xmlRoot->appendChild($domtree->createElement('bookingsBeforeMinDate', $this->getNumBookingsBeforeMinDate()));
             $xmlRoot->appendChild($domtree->createElement('bookingsAfterMaxDate', $this->getNumBookingsAfterMaxDate()));
+            $xmlRoot->appendChild($domtree->createElement('isAvailable', $this->isAvailable ? 'true' : 'false'));
         
             // loop from showMinDate to showMaxDate creating a date element for every day in between
             // set the appropriate state if a booking exists for that date
@@ -226,6 +227,7 @@ error_log("to insert $bookingDate");
             <resource>Bed A</resource>
             <bookingsBeforeMinDate>0</bookingsBeforeMinDate>
             <bookingsAfterMaxDate>3</bookingsAfterMaxDate>
+            <isAvailable>true</isAvailable>
             <dates total="24.90">
                 <date payment="12.95" state="checkedin">15.08.2012</date>
                 <date payment="12.95" state="pending">16.08.2012</date>
