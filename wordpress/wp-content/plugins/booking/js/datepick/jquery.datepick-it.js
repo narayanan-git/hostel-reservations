@@ -1,4 +1,4 @@
-﻿/* Italian initialisation for the jWPDev UI date picker plugin. */
+/* Italian initialisation for the jQuery UI date picker plugin. */
 /* Written by Apaella (apaella@gmail.com). */
 (function($) {
 	$.datepick.regional['it'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Scegliere una data', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['it']);
-})(jWPDev);
+})(jQuery);

@@ -1,4 +1,4 @@
-/* Korean initialisation for the jWPDev calendar extension. */
+/* Korean initialisation for the jQuery calendar extension. */
 /* Written by DaeKwon Kang (ncrash.dk@gmail.com). */
 (function($) {
 	$.datepick.regional['ko'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['ko']);
-})(jWPDev);
+})(jQuery);

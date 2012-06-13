@@ -1,4 +1,4 @@
-﻿/* Bulgarian initialisation for the jWPDev UI date picker plugin. */
+/* Bulgarian initialisation for the jQuery UI date picker plugin. */
 /* Written by Stoyan Kyosev (http://svest.org). */
 (function($) {
     $.datepick.regional['bg'] = {
@@ -23,4 +23,4 @@
         initStatus: 'Избери дата', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
     $.datepick.setDefaults($.datepick.regional['bg']);
-})(jWPDev);
+})(jQuery);

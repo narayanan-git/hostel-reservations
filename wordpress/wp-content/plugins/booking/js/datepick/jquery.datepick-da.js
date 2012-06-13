@@ -1,4 +1,4 @@
-﻿/* Danish initialisation for the jWPDev UI date picker plugin. */
+/* Danish initialisation for the jQuery UI date picker plugin. */
 /* Written by Jan Christensen ( deletestuff@gmail.com). */
 (function($) {
     $.datepick.regional['da'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Vælg en dato', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
     $.datepick.setDefaults($.datepick.regional['da']);
-})(jWPDev);
+})(jQuery);

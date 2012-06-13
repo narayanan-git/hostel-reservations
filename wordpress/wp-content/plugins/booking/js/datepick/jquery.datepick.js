@@ -1,9 +1,9 @@
 /* http://keith-wood.name/datepick.html
-   Datepicker for jWPDev 3.7.1.
+   Datepicker for jQuery 3.7.1.
    Written by Marc Grabanski (m@marcgrabanski.com) and
               Keith Wood (kbwood{at}iinet.com.au).
-   Dual licensed under the GPL (http://dev.jWPDev.com/browser/trunk/jWPDev/GPL-LICENSE.txt) and
-   MIT (http://dev.jWPDev.com/browser/trunk/jWPDev/MIT-LICENSE.txt) licenses.
+   Dual licensed under the GPL (http://dev.jQuery.com/browser/trunk/jQuery/GPL-LICENSE.txt) and
+   MIT (http://dev.jQuery.com/browser/trunk/jQuery/MIT-LICENSE.txt) licenses.
    Please attribute the authors if you use it. */
 
 (function($) { // Hide the namespace
@@ -61,7 +61,7 @@ function Datepick() {
 		useThemeRoller: false, // True to apply ThemeRoller styling, false for default styling
 		showOn: 'focus', // 'focus' for popup on focus,
 			// 'button' for trigger button, or 'both' for either
-		showAnim: 'show', // Name of jWPDev animation for popup
+		showAnim: 'show', // Name of jQuery animation for popup
 		showOptions: {}, // Options for enhanced animations
 		duration: 'normal', // Duration of display/closure
 		buttonText: '...', // Text for trigger button
@@ -189,7 +189,7 @@ $.extend(Datepick.prototype, {
 		return this;
 	},
 
-	/* Attach the date picker to a jWPDev selection.
+	/* Attach the date picker to a jQuery selection.
 	   @param  target    (element) the target input field or division or span
 	   @param  settings  (object) the new settings to use for this date picker instance */
 	_attachDatepick: function(target, settings) {
@@ -210,10 +210,10 @@ $.extend(Datepick.prototype, {
 	},
 
 	/* Create a new instance object.
-	   @param  target  (jWPDev) the target input field or division or span
+	   @param  target  (jQuery) the target input field or division or span
 	   @param  inline  (boolean) true if this datepicker appears inline */
 	_newInst: function(target, inline) {
-		var id = target[0].id.replace(/([:\[\]\.\$])/g, '\\\\$1'); // Escape jWPDev meta chars
+		var id = target[0].id.replace(/([:\[\]\.\$])/g, '\\\\$1'); // Escape jQuery meta chars
 		return {id: id, input: target, // Associated target
 			cursorDate: this._daylightSavingAdjust(new Date()), // Current position
 			drawMonth: 0, drawYear: 0, // Month being drawn
@@ -380,7 +380,7 @@ $.extend(Datepick.prototype, {
 		}
 	},
 
-	/* Enable the date picker to a jWPDev selection.
+	/* Enable the date picker to a jQuery selection.
 	   @param  target  (element) the target input field or division or span */
 	_enableDatepick: function(target) {
 		var $target = $(target);
@@ -402,7 +402,7 @@ $.extend(Datepick.prototype, {
 			function(value) { return (value == target ? null : value); }); // Delete entry
 	},
 
-	/* Disable the date picker to a jWPDev selection.
+	/* Disable the date picker to a jQuery selection.
 	   @param  target  (element) the target input field or division or span */
 	_disableDatepick: function(target) {
 		var $target = $(target);
@@ -438,7 +438,7 @@ $.extend(Datepick.prototype, {
 		this._disabledInputs.push(target);
 	},
 
-	/* Is the first field in a jWPDev collection disabled as a datepicker?
+	/* Is the first field in a jQuery collection disabled as a datepicker?
 	   @param  target  (element) the target input field or division or span
 	   @return  (boolean) true if disabled, false if enabled */
 	_isDisabledDatepick: function(target) {
@@ -448,7 +448,7 @@ $.extend(Datepick.prototype, {
 	/* Retrieve the instance data for the target control.
 	   @param  target  (element) the target input field or division or span
 	   @return  (object) the associated instance data
-	   @throws  error if a jWPDev problem getting data */
+	   @throws  error if a jQuery problem getting data */
 	_getInst: function(target) {//alert(target.id);
 		try {
 			return $.data(target, PROP_NAME);
@@ -516,7 +516,7 @@ $.extend(Datepick.prototype, {
 		}
 	},
 
-	/* Set the dates for a jWPDev selection.
+	/* Set the dates for a jQuery selection.
 	   @param  target   (element) the target input field or division or span
 	   @param  date     (Date) the new date
 	   @param  endDate  (Date) the new end date for a range (optional) */
@@ -529,7 +529,7 @@ $.extend(Datepick.prototype, {
 		}
 	},
 
-	/* Get the date(s) for the first entry in a jWPDev selection.
+	/* Get the date(s) for the first entry in a jQuery selection.
 	   @param  target  (element) the target input field or division or span
 	   @return (Date) the current date or
 	           (Date[2]) the current dates for a range */
@@ -847,7 +847,7 @@ $.extend(Datepick.prototype, {
 	},
 
 	/* Retrieve the size of left and top borders for an element.
-	   @param  elem  (jWPDev object) the element of interest
+	   @param  elem  (jQuery object) the element of interest
 	   @return  (number[2]) the left and top borders */
 	_getBorders: function(elem) {
 		var convert = function(value) {
@@ -1653,12 +1653,12 @@ $.extend(Datepick.prototype, {
 		// Build the date picker HTML
 		var clear = (this._get(inst, 'mandatory') ? '' :
 			'<div class="' + this._clearClass[useTR] + '"><a href="javascript:void(0)" ' +
-			'onclick="jWPDev.datepick._clearDate(\'#' + inst.id + '\');"' +
+			'onclick="jQuery.datepick._clearDate(\'#' + inst.id + '\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'clearStatus'), initStatus) +
 			'>' + this._get(inst, 'clearText') + '</a></div>');
 		var controls = '<div class="' + this._controlClass[useTR] + '">' + (isRTL ? '' : clear) +
 			'<div class="' + this._closeClass[useTR] + '"><a href="javascript:void(0)" ' +
-			'onclick="jWPDev.datepick._hideDatepick();"' +
+			'onclick="jQuery.datepick._hideDatepick();"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'closeStatus'), initStatus) +
 			'>' + this._get(inst, 'closeText') + '</a></div>' + (isRTL ? clear : '')  + '</div>';
 		var prompt = this._get(inst, 'prompt');
@@ -1704,11 +1704,11 @@ $.extend(Datepick.prototype, {
 			this._getFormatConfig(inst)));
 		var prev = '<div class="' + this._prevClass[useTR] + '">' +
 			(this._canAdjustMonth(inst, -1, drawYear, drawMonth) ?
-			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', -' + stepBigMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'prevBigStatus'), initStatus) +
 			'>' + prevBigText + '</a>' : '') +
-			'<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			'<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', -' + stepMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'prevStatus'), initStatus) +
 			'>' + prevText + '</a>' :
@@ -1724,11 +1724,11 @@ $.extend(Datepick.prototype, {
 			this._getFormatConfig(inst)));
 		var next = '<div class="' + this._nextClass[useTR] + '">' +
 			(this._canAdjustMonth(inst, +1, drawYear, drawMonth) ?
-			'<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			'<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', +' + stepMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'nextStatus'), initStatus) +
 			'>' + nextText + '</a>' +
-			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', +' + stepBigMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'nextBigStatus'), initStatus) +
 			'>' + nextBigText + '</a>' : '') :
@@ -1741,7 +1741,7 @@ $.extend(Datepick.prototype, {
 		var html = (closeAtTop && !inst.inline ? controls : '');/* +
 			'<div class="' + this._linksClass[useTR] + '">' + (isRTL ? next : prev) +
 			'<div class="' + this._currentClass[useTR] + '">' + (this._isInRange(inst, gotoDate) ?
-			'<a href="javascript:void(0)" onclick="jWPDev.datepick._gotoToday(\'#' + inst.id + '\');"' +
+			'<a href="javascript:void(0)" onclick="jQuery.datepick._gotoToday(\'#' + inst.id + '\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'currentStatus'), initStatus) + '>' +
 			currentText + '</a>' : (hideIfNoPrevNext ? '&#xa0;' : '<label>' + currentText + '</label>')) +
 			'</div>' + (isRTL ? prev : next) + '</div>' +
@@ -1785,7 +1785,7 @@ $.extend(Datepick.prototype, {
 						' class="' + this._weekendClass[useTR] + '"') + '>' +
 						(!changeFirstDay ? '<span' +
 						this._addStatus(useTR, showStatus, inst.id, dayNames[day], initStatus) :
-						'<a href="javascript:void(0)" onclick="jWPDev.datepick._changeFirstDay(\'#' +
+						'<a href="javascript:void(0)" onclick="jQuery.datepick._changeFirstDay(\'#' +
 						inst.id + '\', ' + day + ');"' +
 						this._addStatus(useTR, showStatus, inst.id, dayStatus, initStatus)) +
 						' title="' + dayNames[day] + '">' +
@@ -1832,10 +1832,10 @@ $.extend(Datepick.prototype, {
 							// Highlight today (if different)
 							(printDate.getTime() == today.getTime() ? ' ' + this._todayClass[useTR] : '')) + '"' +
 							(!empty && daySettings[2] ? ' title="' + daySettings[2] + '"' : '') + // Cell title
-							(unselectable ? '' : ' onmouseover="' + 'jWPDev.datepick._doMouseOver(this,\'' +
+							(unselectable ? '' : ' onmouseover="' + 'jQuery.datepick._doMouseOver(this,\'' +
 							inst.id + '\',' + printDate.getTime() + ')"' +
-							' onmouseout="jWPDev.datepick._doMouseOut(this,\'' + inst.id + '\')"' +
-							' onclick="jWPDev.datepick._selectDay(this,\'#' + // Select
+							' onmouseout="jQuery.datepick._doMouseOut(this,\'' + inst.id + '\')"' +
+							' onclick="jQuery.datepick._selectDay(this,\'#' + // Select
 							inst.id + '\',' + printDate.getTime() + ')"') + '>' +
 							(empty ? '&#xa0;' : // Not showing other months
 							(unselectable ? printDate.getDate() : '<a>' + printDate.getDate() + '</a>')) + '</td>';
@@ -1885,12 +1885,12 @@ $.extend(Datepick.prototype, {
 		// Build the date picker HTML
 		var clear = (this._get(inst, 'mandatory') ? '' :
 			'<div class="' + this._clearClass[useTR] + '"><a href="javascript:void(0)" ' +
-			'onclick="jWPDev.datepick._clearDate(\'#' + inst.id + '\');"' +
+			'onclick="jQuery.datepick._clearDate(\'#' + inst.id + '\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'clearStatus'), initStatus) +
 			'>' + this._get(inst, 'clearText') + '</a></div>');
 		var controls = '<div class="' + this._controlClass[useTR] + '">' + (isRTL ? '' : clear) +
 			'<div class="' + this._closeClass[useTR] + '"><a href="javascript:void(0)" ' +
-			'onclick="jWPDev.datepick._hideDatepick();"' +
+			'onclick="jQuery.datepick._hideDatepick();"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'closeStatus'), initStatus) +
 			'>' + this._get(inst, 'closeText') + '</a></div>' + (isRTL ? clear : '')  + '</div>';
 		var prompt = this._get(inst, 'prompt');
@@ -1936,11 +1936,11 @@ $.extend(Datepick.prototype, {
 			this._getFormatConfig(inst)));
 		var prev = '<div class="' + this._prevClass[useTR] + '">' +
 			(this._canAdjustMonth(inst, -1, drawYear, drawMonth) ?
-			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', -' + stepBigMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'prevBigStatus'), initStatus) +
 			'>' + prevBigText + '</a>' : '') +
-			'<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			'<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', -' + stepMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'prevStatus'), initStatus) +
 			'>' + prevText + '</a>' :
@@ -1956,11 +1956,11 @@ $.extend(Datepick.prototype, {
 			this._getFormatConfig(inst)));
 		var next = '<div class="' + this._nextClass[useTR] + '">' +
 			(this._canAdjustMonth(inst, +1, drawYear, drawMonth) ?
-			'<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			'<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', +' + stepMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'nextStatus'), initStatus) +
 			'>' + nextText + '</a>' +
-			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jWPDev.datepick._adjustDate(\'#' +
+			(showBigPrevNext ? '<a href="javascript:void(0)" onclick="jQuery.datepick._adjustDate(\'#' +
 			inst.id + '\', +' + stepBigMonths + ', \'M\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'nextBigStatus'), initStatus) +
 			'>' + nextBigText + '</a>' : '') :
@@ -1973,7 +1973,7 @@ $.extend(Datepick.prototype, {
 		var html = (closeAtTop && !inst.inline ? controls : '');/* +
 			'<div class="' + this._linksClass[useTR] + '">' + (isRTL ? next : prev) +
 			'<div class="' + this._currentClass[useTR] + '">' + (this._isInRange(inst, gotoDate) ?
-			'<a href="javascript:void(0)" onclick="jWPDev.datepick._gotoToday(\'#' + inst.id + '\');"' +
+			'<a href="javascript:void(0)" onclick="jQuery.datepick._gotoToday(\'#' + inst.id + '\');"' +
 			this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'currentStatus'), initStatus) + '>' +
 			currentText + '</a>' : (hideIfNoPrevNext ? '&#xa0;' : '<label>' + currentText + '</label>')) +
 			'</div>' + (isRTL ? prev : next) + '</div>' +
@@ -2017,7 +2017,7 @@ $.extend(Datepick.prototype, {
 						' class="' + this._weekendClass[useTR] + '"') + '>' +
 						(!changeFirstDay ? '<span' +
 						this._addStatus(useTR, showStatus, inst.id, dayNames[day], initStatus) :
-						'<a href="javascript:void(0)" onclick="jWPDev.datepick._changeFirstDay(\'#' +
+						'<a href="javascript:void(0)" onclick="jQuery.datepick._changeFirstDay(\'#' +
 						inst.id + '\', ' + day + ');"' +
 						this._addStatus(useTR, showStatus, inst.id, dayStatus, initStatus)) +
 						' title="' + dayNames[day] + '">' +
@@ -2048,7 +2048,7 @@ $.extend(Datepick.prototype, {
 							selected = selected || (inst.dates[i] &&
 								printDate.getTime() == inst.dates[i].getTime());
 						var empty = otherMonth && !showOtherMonths;
-						html += '<td class="' + this._dayClass[useTR] +
+						html += '<td data-content="" class="' + this._dayClass[useTR] +
 							((dow + firstDay + 6) % 7 >= 5 ? ' ' + this._weekendClass[useTR] : '') + // Highlight weekends
 							(otherMonth ? ' ' + this._otherMonthClass[useTR] : '') + // Highlight days from other months
 							((printDate.getTime() == cursorDate.getTime() &&
@@ -2064,10 +2064,10 @@ $.extend(Datepick.prototype, {
 							// Highlight today (if different)
 							(printDate.getTime() == today.getTime() ? ' ' + this._todayClass[useTR] : '')) + '"' +
 							(!empty && daySettings[2] ? ' title="' + daySettings[2] + '"' : '') + // Cell title
-							(unselectable ? '' : ' onmouseover="' + 'jWPDev.datepick._doMouseOver(this,\'' +
+							(unselectable ? '' : ' onmouseover="' + 'jQuery.datepick._doMouseOver(this,\'' +
 							inst.id + '\',' + printDate.getTime() + ')"' +
-							' onmouseout="jWPDev.datepick._doMouseOut(this,\'' + inst.id + '\')"' +
-							' onclick="jWPDev.datepick._selectDay(this,\'#' + // Select
+							' onmouseout="jQuery.datepick._doMouseOut(this,\'' + inst.id + '\')"' +
+							' onclick="jQuery.datepick._selectDay(this,\'#' + // Select
 							inst.id + '\',' + printDate.getTime() + ')"') + '>' +
 							(empty ? '&#xa0;' : // Not showing other months
 							(unselectable ? printDate.getDate() : '<a>' + printDate.getDate() + '</a>')) + '</td>';
@@ -2126,8 +2126,8 @@ $.extend(Datepick.prototype, {
 			var inMinYear = (minDate && minDate.getFullYear() == drawYear);
 			var inMaxYear = (maxDate && maxDate.getFullYear() == drawYear);
 			monthHtml += '<select class="' + this._monthSelectClass[useTR] + '" ' +
-				'onchange="jWPDev.datepick._selectMonthYear(\'#' + inst.id + '\', this, \'M\');" ' +
-				'onclick="jWPDev.datepick._clickMonthYear(\'#' + inst.id + '\');"' +
+				'onchange="jQuery.datepick._selectMonthYear(\'#' + inst.id + '\', this, \'M\');" ' +
+				'onclick="jQuery.datepick._clickMonthYear(\'#' + inst.id + '\');"' +
 				this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'monthStatus'),
 				initStatus) + '>';
 			for (var month = 0; month < 12; month++) {
@@ -2162,8 +2162,8 @@ $.extend(Datepick.prototype, {
 			year = (minDate ? Math.max(year, minDate.getFullYear()) : year);
 			endYear = (maxDate ? Math.min(endYear, maxDate.getFullYear()) : endYear);
 			html += '<select class="' + this._yearSelectClass[useTR] + '" ' +
-				'onchange="jWPDev.datepick._selectMonthYear(\'#' + inst.id + '\', this, \'Y\');" ' +
-				'onclick="jWPDev.datepick._clickMonthYear(\'#' + inst.id + '\');"' +
+				'onchange="jQuery.datepick._selectMonthYear(\'#' + inst.id + '\', this, \'Y\');" ' +
+				'onclick="jQuery.datepick._clickMonthYear(\'#' + inst.id + '\');"' +
 				this._addStatus(useTR, showStatus, inst.id, this._get(inst, 'yearStatus'),
 				initStatus) + '>';
 			for (; year <= endYear; year++) {
@@ -2188,9 +2188,9 @@ $.extend(Datepick.prototype, {
 	   @param  initStatus  (string) the default status message
 	   @return  (string) hover actions for the status messages */
 	_addStatus: function(useTR, showStatus, id, text, initStatus) {
-		return (showStatus ? ' onmouseover="jWPDev(\'#' + this._statusId[useTR] + id +
+		return (showStatus ? ' onmouseover="jQuery(\'#' + this._statusId[useTR] + id +
 			'\').html(\'' + (text || initStatus) + '\');" ' +
-			'onmouseout="jWPDev(\'#' + this._statusId[useTR] + id +
+			'onmouseout="jQuery(\'#' + this._statusId[useTR] + id +
 			'\').html(\'' + initStatus + '\');"' : '');
 	},
 
@@ -2330,7 +2330,7 @@ $.extend(Datepick.prototype, {
 	}
 });
 
-/* jWPDev extend now ignores nulls!
+/* jQuery extend now ignores nulls!
    @param  target  (object) the object to extend
    @param  props   (object) the new settings
    @return  (object) the updated object */
@@ -2352,7 +2352,7 @@ function isArray(a) {
 /* Invoke the datepicker functionality.
    @param  options  (string) a command, optionally followed by additional parameters or
                     (object) settings for attaching new datepicker functionality
-   @return  (jWPDev) jWPDev object */
+   @return  (jQuery) jQuery object */
 $.fn.datepick = function(options){
 	var otherArgs = Array.prototype.slice.call(arguments, 1);
 	if (typeof options == 'string' && (options == 'isDisabled' ||
@@ -2377,4 +2377,4 @@ $(function() {
 		find('body').append($.datepick.dpDiv);
 });
 
-})(jWPDev);
+})(jQuery);

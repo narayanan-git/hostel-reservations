@@ -12,7 +12,7 @@
     <xsl:if test="selectedDates = ''">
         <div id="calendar_booking1">&#160;</div>
     </xsl:if>
-    <textarea rows="3" cols="50" id="date_booking1" name="date_booking1" style="display:none;"><xsl:comment/><xsl:value-of select="selectedDates"/></textarea>
+    <textarea rows="3" cols="50" id="calendar_booking1" name="calendar_booking1" style="display:none;"><xsl:comment/><xsl:value-of select="selectedDates"/></textarea>
     
     <!-- booking calendar legend -->
     <div class="block_hints datepick">
@@ -61,7 +61,7 @@
     <div class="form_bk_messages" id="form_bk_messages1"><xsl:comment/></div>
 
     <script type='text/javascript'>
-        jWPDev(document).ready( function(){
+        jQuery(document).ready( function(){
           init_datepick_cal('1', // booking type
                              [], 
                              1 , // calendar count

@@ -1,4 +1,4 @@
-/* Armenian(UTF-8) initialisation for the jWPDev UI date picker plugin. */
+/* Armenian(UTF-8) initialisation for the jQuery UI date picker plugin. */
 /* Written by Levon Zakaryan (levon.zakaryan@gmail.com)*/
 (function($) {
 	$.datepick.regional['hy'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['hy']);
-})(jWPDev);
+})(jQuery);

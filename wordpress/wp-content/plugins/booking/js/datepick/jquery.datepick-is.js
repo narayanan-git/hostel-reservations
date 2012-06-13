@@ -1,4 +1,4 @@
-/* Icelandic initialisation for the jWPDev UI date picker plugin. */
+/* Icelandic initialisation for the jQuery UI date picker plugin. */
 /* Written by Haukur H. Thorsson (haukur@eskill.is). */
 (function($) {
 	$.datepick.regional['is'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['is']);
-})(jWPDev);
+})(jQuery);

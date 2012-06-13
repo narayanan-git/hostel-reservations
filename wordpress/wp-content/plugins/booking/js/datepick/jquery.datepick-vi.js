@@ -1,4 +1,4 @@
-﻿/* Vietnamese (Tieng Viet) initialisation for the jWPDev UI date picker plugin
+/* Vietnamese (Tieng Viet) initialisation for the jQuery UI date picker plugin
 	Translated by Le Thanh Huy (lthanhhuy@cit.ctu.edu.vn). */
 (function($) {
 	$.datepick.regional['vi'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Chọn ngày', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['vi']);
-})(jWPDev);
+})(jQuery);

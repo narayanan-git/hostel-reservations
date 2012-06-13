@@ -18,7 +18,7 @@
             <table class="resource_table0 booking_table" cellspacing="0" cellpadding="0" style="width:99%;">
                 <thead>
                     <tr>
-                        <th style="width:15px;"><input id="resources_items_all" class="resources_items" type="checkbox" name="resources_items_all" onclick="javascript:jWPDev('.resources_items').attr('checked', this.checked);"/></th>
+                        <th style="width:15px;"><input id="resources_items_all" class="resources_items" type="checkbox" name="resources_items_all" onclick="javascript:jQuery('.resources_items').attr('checked', this.checked);"/></th>
                         <th style="width:10px; height:35px; border-left: 1px solid #BBBBBB;">ID</th>
                         <th style="height:35px;">Resource Name</th>
                         <th class="tipcy" title="Max number of occupants" style="width:50px;">Capacity</th>

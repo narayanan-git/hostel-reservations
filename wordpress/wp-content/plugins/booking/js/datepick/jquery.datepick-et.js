@@ -1,4 +1,4 @@
-﻿/* Estonian initialisation for the jWPDev UI date picker plugin. */ 
+/* Estonian initialisation for the jQuery UI date picker plugin. */ 
 /* Written by Mart Sõmermaa (mrts.pydev at gmail com). */ 
 (function($) {
 	$.datepick.regional['et'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['et']);
-})(jWPDev);
+})(jQuery);

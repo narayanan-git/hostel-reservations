@@ -1,4 +1,4 @@
-﻿/* Japanese initialisation for the jWPDev UI date picker plugin. */
+/* Japanese initialisation for the jQuery UI date picker plugin. */
 /* Written by Kentaro SATO (kentaro@ranvis.com). */
 (function($) {
 	$.datepick.regional['ja'] = {
@@ -23,4 +23,4 @@
 		initStatus: '日付を選択します', isRTL: false,
 		showMonthAfterYear: true, yearSuffix: '年'};
 	$.datepick.setDefaults($.datepick.regional['ja']);
-})(jWPDev);
+})(jQuery);

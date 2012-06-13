@@ -45,7 +45,7 @@
     font-size:0.85em;
     /*line-height:2em;*/
 	padding:5px 0px;
-	width:282px;
+	width:284px;
 }
 .datepick  .datepick-days-cell {
     text-align:center;
@@ -354,4 +354,4 @@ font-weight:normal;
     text-decoration:none;
     color:#000;
 }
-
+  

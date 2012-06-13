@@ -1,4 +1,4 @@
-/* Hungarian initialisation for the jWPDev UI date picker plugin. */
+/* Hungarian initialisation for the jQuery UI date picker plugin. */
 /* Written by Istvan Karaszi (jquery@spam.raszi.hu). */
 (function($) {
 	$.datepick.regional['hu'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['hu']);
-})(jWPDev);
+})(jQuery);

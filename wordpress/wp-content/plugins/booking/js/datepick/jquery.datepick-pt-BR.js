@@ -1,4 +1,4 @@
-﻿/* Brazilian initialisation for the jWPDev UI date picker plugin. */
+/* Brazilian initialisation for the jQuery UI date picker plugin. */
 /* Written by Leonildo Costa Silva (leocsilva@gmail.com). */
 (function($) {
 	$.datepick.regional['pt-BR'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['pt-BR']);
-})(jWPDev);
+})(jQuery);

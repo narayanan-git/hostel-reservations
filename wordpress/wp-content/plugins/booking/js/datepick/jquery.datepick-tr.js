@@ -1,4 +1,4 @@
-/* Turkish initialisation for the jWPDev UI date picker plugin. */
+/* Turkish initialisation for the jQuery UI date picker plugin. */
 /* Written by Izzet Emre Erkan (kara@karalamalar.net). */
 (function($) {
 	$.datepick.regional['tr'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Bir tarih seçiniz', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['tr']);
-})(jWPDev);
+})(jQuery);

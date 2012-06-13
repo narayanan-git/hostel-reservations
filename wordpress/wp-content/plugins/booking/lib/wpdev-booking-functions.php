@@ -3,6 +3,13 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  S u p p o r t    f u n c t i o n s       ///////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    function wpdev_bk_arraytolower( $array ){
+      return unserialize(strtolower(serialize($array)));
+    }
+
+    function wpdev_bk_cost_number_format( $value ){
+        return number_format ( $value , 2 , '.' , ' ' );
+    }
 
     function is_field_in_table_exists($tablename , $fieldname) {
             global $wpdb;
@@ -18,6 +25,16 @@
             return 0;
 
     }
+
+        // Check if index exist
+        function is_index_in_table_exists( $tablename , $fieldindex) {
+            global $wpdb;
+            if (strpos($tablename, $wpdb->prefix) ===false) $tablename = $wpdb->prefix . $tablename ;
+            $sql_check_table = "SHOW INDEX FROM ". $tablename ." WHERE Key_name = '".$fieldindex."'; ";
+            $res = $wpdb->get_results($wpdb->prepare($sql_check_table));
+            if (count($res)>0) return 1;
+            else               return 0;
+        }
 
 
 
@@ -178,6 +195,17 @@
     }
 
 
+        // Get version
+        function get_bk_version(){
+            $version = 'free';
+            if (class_exists('wpdev_bk_personal'))     $version = 'personal';
+            if (class_exists('wpdev_bk_biz_s')) $version = 'biz_s';
+            if (class_exists('wpdev_bk_biz_m'))   $version = 'biz_m';
+            if (class_exists('wpdev_bk_biz_l'))          $version = 'biz_l';
+            return $version;
+        }
+
+
     // Change date format
     function change_date_format( $mydates ) {
         if (empty($mydates)) return '';
@@ -261,7 +289,7 @@
     function get_times_from_bk_form($sdform, $my_dates, $bktype){
 
             $start_time = $end_time = '00:00:00';
-            if ( class_exists('wpdev_bk_premium')) {
+            if ( class_exists('wpdev_bk_biz_s')) {
             if ( strpos($sdform,'rangetime' . $bktype ) !== false ) {   // Get START TIME From form request
                 $pos1 = strpos($sdform,'rangetime' . $bktype );  // Find start time pos
                 $pos1 = strpos($sdform,'^',$pos1)+1;             // Find TIME pos
@@ -297,6 +325,7 @@
                     $pos2 = $pos2-$pos1;
                     $start_time = substr( $sdform, $pos1,$pos2)  ;
                     $start_time = explode(':',$start_time);
+                    if ($start_time == '') $start_time = '00:00';
                     $start_time[2]='01';
                 } else  $start_time = explode(':',$start_time);
 
@@ -307,6 +336,7 @@
                     if ($pos2 === false) $pos2 = strlen($sdform);
                     $pos2 = $pos2-$pos1;
                     $end_time = substr( $sdform, $pos1,$pos2)  ;
+                    if ($end_time == '') $end_time = '00:00';
 
                     if ( count($my_dates) == 1 ) { // add end date if someone select only 1 day with time range
                         $my_dates[]=$my_dates[0];
@@ -383,6 +413,44 @@
     }
 
     // Check if nowday is tommorow from previosday
+    function get_tommorow_day($nowday) {
+
+        $nowday_d = (date('m.d.Y',  mysql2date('U', $nowday ))  );
+        $previos_array = explode('.',$nowday_d);
+        $tommorow_day =   mktime(0, 0, 0, $previos_array[0], ($previos_array[1]+1), $previos_array[2] ) ;
+        return $tommorow_day;
+    }
+
+
+    function wpdevbkGetDaysBetween($sStartDate, $sEndDate){
+      // Firstly, format the provided dates.
+      // This function works best with YYYY-MM-DD
+      // but other date formats will work thanks
+      // to strtotime().
+      $sStartDate = gmdate("Y-m-d", strtotime($sStartDate));
+      $sEndDate = gmdate("Y-m-d", strtotime($sEndDate));
+
+      // Start the variable off with the start date
+      $aDays[] = $sStartDate;
+
+      // Set a 'temp' variable, sCurrentDate, with
+      // the start date - before beginning the loop
+      $sCurrentDate = $sStartDate;
+
+      // While the current date is less than the end date
+      while($sCurrentDate < $sEndDate){
+        // Add a day to the current date
+        $sCurrentDate = gmdate("Y-m-d", strtotime("+1 day", strtotime($sCurrentDate)));
+
+        // Add this new day to the aDays array
+        $aDays[] = $sCurrentDate;
+      }
+     // Once the loop has finished, return the
+        // array of days.
+     return $aDays;
+    }
+
+    // Check if nowday is tommorow from previosday
     function is_today_date($some_day) {
 
         $some_day_d = (date('m.d.Y',  mysql2date('U', $some_day ))  );
@@ -434,6 +502,7 @@
 
 
     function sendApproveEmails($approved_id_str, $is_send_emeils){
+//debuge($approved_id_str, $is_send_emeils);
                 global $wpdb;
                 $sql = "SELECT * FROM ".$wpdb->prefix ."booking as bk WHERE bk.booking_id IN ($approved_id_str)";
                 $result = $wpdb->get_results( $wpdb->prepare($sql ) );
@@ -509,6 +578,7 @@
 
 
     function sendDeclineEmails($approved_id_str, $is_send_emeils, $denyreason = '') {
+//debuge($approved_id_str, $is_send_emeils);
                 global $wpdb;
                 $sql = "SELECT *    FROM ".$wpdb->prefix ."booking as bk
                                     WHERE bk.booking_id IN ($approved_id_str)";
@@ -587,13 +657,20 @@
             $numargs = func_num_args();
             $var = func_get_args();
             $makeexit = is_bool($var[count($var)-1])?$var[count($var)-1]:false;
-            echo "<div style='text-align:left;background:#ffffff;border: 1px dashed #ff9933;font-size:11px;line-height:15px;font-family:'Lucida Grande',Verdana,Arial,'Bitstream Vera Sans',sans-serif;'><pre style='white-space:pre-wrap;font:10px Verdana;line-height:16px;'>";
+            echo "<div style=''><pre class='prettyprint linenums' style=''>";
             print_r ( $var );
             echo "</pre></div>";
             if ($makeexit) {
                 echo '<div style="font-size:18px;float:right;">' . get_num_queries(). '/'  . timer_stop(0, 3) . 'qps</div>';
                 exit;
             }
+        }
+    }
+
+
+    if (!function_exists ('debugq')) {
+        function debugq() {
+                echo '<div style="font-size:18px;float:right;">' . get_num_queries(). '/'  . timer_stop(0, 3) . 'qps</div>';
         }
     }
 
@@ -956,6 +1033,7 @@
           $sql_req = "SELECT bk.booking_id FROM ".$wpdb->prefix ."booking as bk WHERE  bk.is_new = 1" ;
 
           $sql_req = apply_bk_filter('get_sql_for_checking_new_bookings', $sql_req );
+          $sql_req = apply_bk_filter('get_sql_for_checking_new_bookings_multiuser', $sql_req );
 
           $bookings = $wpdb->get_results( $wpdb->prepare($sql_req) );
 
@@ -963,23 +1041,40 @@
         
     }
 
-    function updateNumOfNewBookings($tid = 1){
-            global $wpdb;
+
+    function renew_NumOfNewBookings($id_of_new_bookings, $is_new = '0' ){
+
+        if (count($id_of_new_bookings) > 0 ) {
 
             if  (is_field_in_table_exists('booking','is_new') == 0)  return 0;  // do not created this field, so return 0
+            
+            $id_of_new_bookings = implode(',', $id_of_new_bookings);
+            
+            global $wpdb;
+            
+            $update_sql = "UPDATE ".$wpdb->prefix ."booking AS bk SET bk.is_new = ".$is_new." WHERE bk.booking_id IN  ( ".$id_of_new_bookings." ) ";
 
-            $update_sql = "UPDATE ".$wpdb->prefix ."booking AS bk SET bk.is_new = 0 WHERE bk.is_new = 1 ";
-
-            if ($tid>0) if ( class_exists('wpdev_bk_pro') ) $update_sql .= " AND bk.booking_type = ".$tid." ; ";
-
-            $update_sql = apply_bk_filter('update_sql_for_checking_new_bookings', $update_sql, $tid );
-
-            //$update_sql = "UPDATE ".$wpdb->prefix ."booking AS bk SET bk.is_new = 1 ";  // For tests needs
             if ( false === $wpdb->query( $wpdb->prepare($update_sql) ) ) {
                 bk_error('Error during updating status of bookings at DB',__FILE__,__LINE__);
                 die();
             }
+        }
     }
+
+
+    function wpdev_bk_is_this_demo(){
+
+        if  (
+                ( strpos($_SERVER['SCRIPT_FILENAME'],'onlinebookingcalendar.com') !== FALSE ) ||
+                ( strpos($_SERVER['HTTP_HOST'],'onlinebookingcalendar.com') !== FALSE ) ||
+                ( strpos($_SERVER['SCRIPT_FILENAME'],'wpbookingcalendar.com') !== FALSE ) ||
+                ( strpos($_SERVER['HTTP_HOST'],'wpbookingcalendar.com') !== FALSE )
+            )
+              return true;
+            else
+              return false;
+    }
+
 
     // Add Admin Bar
     add_action( 'admin_bar_menu', 'wp_admin_bar_bookings_menu', 70 );
@@ -1006,7 +1101,7 @@
         $title = __('Bookings', 'wpdev-booking');
         $update_title = $title;
         if ($update_count > 0) {
-            $update_count_title = "&nbsp;<span id='booking-count' class='booking-count' >" . number_format_i18n($update_count) . "</span>" ;
+            $update_count_title = "&nbsp;<span id='ab-updates' class='booking-count bk-update-count' >" . number_format_i18n($update_count) . "</span>" ; //id='booking-count'
             $update_title .= $update_count_title;
         }
 
@@ -1032,26 +1127,27 @@
          if (   ( ($current_user->user_level < $level) && (! $is_super_admin)  ) || !is_admin_bar_showing() ) return;
 
 
-        $wp_admin_bar->add_menu(
+         $wp_admin_bar->add_menu(
                 array(
                     'parent' => 'booking_options',
                     'title' => __( 'Settings', 'wpdev-booking' ),
-                    'href' => $link_settings
+                    'href' => $link_settings,
+                    'id' => 'booking_settings'
                     )
                 );
     }
 
 
 
-    define ('OBC_CHECK_URL', 'http://onlinebookingcalendar.com/');
+    define ('OBC_CHECK_URL', 'http://wpbookingcalendar.com/');
 
     function wpdev_ajax_check_bk_news(){
 
         $v=array();
-        if (class_exists('wpdev_bk_pro'))            $v[] = 'wpdev_bk_pro';
-        if (class_exists('wpdev_bk_premium'))        $v[] = 'wpdev_bk_premium';
-        if (class_exists('wpdev_bk_premium_plus'))   $v[] = 'wpdev_bk_premium_plus';
-        if (class_exists('wpdev_bk_hotel'))          $v[] = 'wpdev_bk_hotel';
+        if (class_exists('wpdev_bk_personal'))            $v[] = 'wpdev_bk_personal';
+        if (class_exists('wpdev_bk_biz_s'))        $v[] = 'wpdev_bk_biz_s';
+        if (class_exists('wpdev_bk_biz_m'))   $v[] = 'wpdev_bk_biz_m';
+        if (class_exists('wpdev_bk_biz_l'))          $v[] = 'wpdev_bk_biz_l';
         if (class_exists('wpdev_bk_multiuser'))      $v[] = 'wpdev_bk_multiuser';
 
         $obc_settings = array();
@@ -1097,10 +1193,10 @@
 
     function wpdev_ajax_check_bk_version(){
         $v=array();
-        if (class_exists('wpdev_bk_pro'))            $v[] = 'wpdev_bk_pro';
-        if (class_exists('wpdev_bk_premium'))        $v[] = 'wpdev_bk_premium';
-        if (class_exists('wpdev_bk_premium_plus'))   $v[] = 'wpdev_bk_premium_plus';
-        if (class_exists('wpdev_bk_hotel'))          $v[] = 'wpdev_bk_hotel';
+        if (class_exists('wpdev_bk_personal'))            $v[] = 'wpdev_bk_personal';
+        if (class_exists('wpdev_bk_biz_s'))        $v[] = 'wpdev_bk_biz_s';
+        if (class_exists('wpdev_bk_biz_m'))   $v[] = 'wpdev_bk_biz_m';
+        if (class_exists('wpdev_bk_biz_l'))          $v[] = 'wpdev_bk_biz_l';
         if (class_exists('wpdev_bk_multiuser'))      $v[] = 'wpdev_bk_multiuser';
 
         $obc_settings = array();
@@ -1136,7 +1232,7 @@
             if (is_wp_error($result))  echo $result->get_error_message();
             else                       echo $result['response']['message'];
             echo '<br />';
-            _e('Please contact by email (with  info about order number and used site) for finishing the registrations', 'wpdev-booking'); echo ' <a href="mailto:activate@onlinebookingcalendar.com">activate@onlinebookingcalendar.com</a>';
+            _e('Please contact by email (with  info about order number and used site) for finishing the registrations', 'wpdev-booking'); echo ' <a href="mailto:activate@wpbookingcalendar.com">activate@wpbookingcalendar.com</a>';
             echo '</strong></div>';
             echo ' <script type="text/javascript"> ';
             echo '    document.getElementById("ajax_message").style.display="none";';
@@ -1169,5 +1265,23 @@
             else                             $res = maybe_unserialize($request['body']);
     }
 
+    // Show Ajax message at the top of page //////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (!function_exists ('wpdev_bk_show_ajax_message')) {
+         function wpdev_bk_show_ajax_message($mess, $show_time = 3000, $is_hide=false) {
+        ?> <script type="text/javascript">
+            document.getElementById('ajax_working').innerHTML =
+            '<div class="info_message ajax_message" id="ajax_message">\n\
+                <div style="float:left;">'+'<?php echo $mess; ?>'+'</div> \n\
+                <div  style="float:left;width:80px;margin-top:-3px;">\n\
+                       <img src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/img/ajax-loader.gif">\n\
+                </div>\n\
+            </div>';
+
+            jQuery('.info_message').animate({opacity: 1},<?php echo $show_time; ?>);
+            <?php if($is_hide) { ?> jQuery('.info_message').fadeOut(2000); <?php } ?>
+
+        </script> <?php
+    }
+    }
 
 ?>

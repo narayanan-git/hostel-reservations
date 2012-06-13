@@ -1,4 +1,4 @@
-/* Latvian (UTF-8) initialisation for the jWPDev UI date picker plugin. */
+/* Latvian (UTF-8) initialisation for the jQuery UI date picker plugin. */
 /* @author Arturas Paleicikas <arturas.paleicikas@metasite.net> */
 (function($) {
 	$.datepick.regional['lv'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['lv']);
-})(jWPDev);
+})(jQuery);

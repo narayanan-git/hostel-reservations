@@ -1,4 +1,4 @@
-/* Ukrainian (UTF-8) initialisation for the jWPDev UI date picker plugin. */
+/* Ukrainian (UTF-8) initialisation for the jQuery UI date picker plugin. */
 /* Written by Maxim Drogobitskiy (maxdao@gmail.com). */
 (function($) {
 	$.datepick.regional['uk'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['uk']);
-})(jWPDev);
+})(jQuery);

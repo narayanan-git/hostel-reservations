@@ -1,4 +1,4 @@
-﻿/* Persian (Farsi) Translation for the jWPDev UI date picker plugin. */
+/* Persian (Farsi) Translation for the jQuery UI date picker plugin. */
 /* Javad Mowlanezhad -- jmowla@gmail.com */
 /* Jalali calendar should supported soon! (Its implemented but I have to test it) */
 (function($) {
@@ -23,4 +23,4 @@
 		initStatus: 'انتخاب تاريخ', isRTL: true,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['fa']);
-})(jWPDev);
+})(jQuery);

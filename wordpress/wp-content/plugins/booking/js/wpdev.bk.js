@@ -25,7 +25,8 @@
             }
 
             function selectDay(date) {
-                jWPDev('#date_booking' + bk_type).val(date);
+                jQuery('.datepick-days-cell' ).popover('hide');
+                jQuery('#date_booking' + bk_type).val(date);
                 if(typeof( selectDayPro ) == 'function') {selectDayPro( date, bk_type);}
             }
 
@@ -66,8 +67,12 @@
 
                 // we have 0 available at this day - Only for resources, which have childs
                 if (  wpdev_in_array( parent_booking_resources, bk_type ) )
-                        if (reserved_days_count <= 0)
-                                return [false, 'cal4date-' + class_day +' date2approve date_unavailable_for_all_childs ' + blank_admin_class_day];
+                        if (reserved_days_count <= 0) {
+                                if(typeof(date2approve[ bk_type ]) !== 'undefined')
+                                   if(typeof(date2approve[ bk_type ][ class_day ]) !== 'undefined')
+                                     return [false, 'cal4date-' + class_day +' date2approve date_unavailable_for_all_childs ' + blank_admin_class_day];
+                                 return [false, 'cal4date-' + class_day +' date_approved date_unavailable_for_all_childs ' + blank_admin_class_day];
+                        }
 
                 //var class_day_previos = (date.getMonth()+1) + '-' + (date.getDate()-1) + '-' + date.getFullYear();
                 var blank_admin_class_day = '';
@@ -130,7 +135,7 @@
                 }
             }
             // Configure and show calendar
-            jWPDev('#calendar_booking'+ bk_type).datepick(
+            jQuery('#calendar_booking'+ bk_type).datepick(
                     {beforeShowDay: applyCSStoDays,
                         onSelect: selectDay,
                         onHover:hoverDay,
@@ -159,73 +164,133 @@
 
 
             if ( start_bk_month != false ) {
-                var inst = jWPDev.datepick._getInst(document.getElementById('calendar_booking'+bk_type));
+                var inst = jQuery.datepick._getInst(document.getElementById('calendar_booking'+bk_type));
                 inst.cursorDate = new Date();
                 inst.cursorDate.setFullYear( start_bk_month[0], (start_bk_month[1]-1) ,  1 );
                 inst.drawMonth = inst.cursorDate.getMonth();
                 inst.drawYear = inst.cursorDate.getFullYear();
 
-                jWPDev.datepick._notifyChange(inst);
-                jWPDev.datepick._adjustInstDate(inst);
-                jWPDev.datepick._showDate(inst);
-                jWPDev.datepick._updateDatepick(inst);
+                jQuery.datepick._notifyChange(inst);
+                jQuery.datepick._adjustInstDate(inst);
+                jQuery.datepick._showDate(inst);
+                jQuery.datepick._updateDatepick(inst);
             }
 
 
 
 
-            //jWPDev('td.datepick-days-cell').bind('click', 'selectDayPro');
+            //jQuery('td.datepick-days-cell').bind('click', 'selectDayPro');
             if(typeof( prepare_tooltip ) == 'function') {setTimeout("prepare_tooltip("+bk_type+");",1000);}
     }
 
-
-    //   A D M I N    Highlight dates when mouse over
-    function highlightDay(td_class, bk_color){
-       //jWPDev('.'+td_class).css({'background-color' : bk_color });
-       //jWPDev('.'+td_class + ' a').css({'background-color' : bk_color });
-
-       jWPDev('td a').removeClass('admin_calendar_selection');
-       if (bk_color == '#ff0000')
-            jWPDev('td.'+td_class + ' a').addClass('admin_calendar_selection');
-
-       jWPDev('td').removeClass('admin_calendar_selection');
-       if (bk_color == '#ff0000')
-            jWPDev('td.'+td_class + '').addClass('admin_calendar_selection');
-
-       
+    // Show Yes/No dialog
+    function bk_are_you_sure( message_question ){
+            var answer = confirm( message_question );
+            if ( answer) { return true; }
+            else         { return false;}
     }
 
 
-    // A D M I N    Run this function at Admin side when click at Approve button
-    function bookingApprove(is_delete, is_in_approved, user_id, wpdev_active_locale){
-        var checkedd = jWPDev(".booking_appr"+is_in_approved+":checked");
-        id_for_approve = "";
+    // Set Booking listing row as   R e a d
+    function set_booking_row_read(booking_id){
+        jQuery('#booking_mark_'+booking_id + '').removeClass('hidden_items');
+    }
 
-        // get all IDs
-        checkedd.each(function(){
-            var id_c = jWPDev(this).attr('id');
-            id_c = id_c.substr(13,id_c.length-13)
-            id_for_approve += id_c + "|";
-        });
+    // Set Booking listing row as   U n R e a d
+    function set_booking_row_unread(booking_id){
+        jQuery('#booking_mark_'+booking_id + '').addClass('hidden_items');
+    }
 
-        //delete last "|"
-        id_for_approve = id_for_approve.substr(0,id_for_approve.length-1);
+    // Set Booking listing   R O W   Approved
+    function set_booking_row_approved(booking_id){
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-approved').removeClass('hidden_items');
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-pending').addClass('hidden_items');
 
-        var denyreason ;
-        if (is_delete ==1) {
-            if (is_in_approved==0) {denyreason= jWPDev('#denyreason').val();}
-            else                   {denyreason= jWPDev('#cancelreason').val();}
-        } else {denyreason = '';}
+        jQuery('#booking_row_'+booking_id + ' .booking-dates .field-booking-date').addClass('approved');
+
+        jQuery('#booking_row_'+booking_id + ' .booking-actions .approve_bk_link').addClass('hidden_items');
+        jQuery('#booking_row_'+booking_id + ' .booking-actions .pending_bk_link').removeClass('hidden_items');
+
+    }
+
+    // Set Booking listing   R O W   Pending
+    function set_booking_row_pending(booking_id){
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-approved').addClass('hidden_items');
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-pending').removeClass('hidden_items');
+
+        jQuery('#booking_row_'+booking_id + ' .booking-dates .field-booking-date').removeClass('approved');
+
+        jQuery('#booking_row_'+booking_id + ' .booking-actions .approve_bk_link').removeClass('hidden_items');
+        jQuery('#booking_row_'+booking_id + ' .booking-actions .pending_bk_link').addClass('hidden_items');
+
+    }
+
+    // Remove  Booking listing   R O W
+    function set_booking_row_deleted(booking_id){
+        jQuery('#booking_row_'+booking_id).fadeOut(1000);
+    }
+
+    // Set in Booking listing   R O W   Resource title
+    function set_booking_row_resource_name(booking_id, resourcename){
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-resource').html(resourcename);
+    }
+
+
+    // Set in Booking listing   R O W   new Remark in hint
+    function set_booking_row_remark_in_hint(booking_id, new_remark){
+        jQuery('#booking_row_'+booking_id + ' .booking-actions .remark_bk_link').attr('data-original-title', new_remark);
+
+        var my_img = jQuery('#booking_row_'+booking_id + ' .booking-actions .remark_bk_link img').attr('src');
+        var check_my_img = my_img.substr( my_img.length - 7);
+        if (check_my_img !== '_rd.png') {
+            my_img = my_img.substr(0, my_img.length - 4);
+            jQuery('#booking_row_'+booking_id + ' .booking-actions .remark_bk_link img').attr('src', my_img+'_rd.png');
+        } else {
+            my_img = my_img.substr(0, my_img.length - 7);
+            jQuery('#booking_row_'+booking_id + ' .booking-actions .remark_bk_link img').attr('src', my_img+'.png');
+        }
+
+
+    }
+
+    // Set in Booking listing   R O W   new Remark in hint
+    function set_booking_row_payment_status(booking_id, payment_status, payment_status_show){
+
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-payment-status').removeClass('label-important');
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-payment-status').removeClass('label-success');
+
+        jQuery('#booking_row_'+booking_id + ' .booking-labels .label-payment-status').html(payment_status_show)
+
+        if (payment_status == 'OK') {
+            jQuery('#booking_row_'+booking_id + ' .booking-labels .label-payment-status').addClass('label-success');
+        } else if (payment_status == '') {
+            jQuery('#booking_row_'+booking_id + ' .booking-labels .label-payment-status').addClass('label-important');
+        } else {
+            jQuery('#booking_row_'+booking_id + ' .booking-labels .label-payment-status').addClass('label-important');
+        }
+    }
 
 
 
-        if (id_for_approve!='') {
+    // Approve or set Pending  booking
+    function approve_unapprove_booking(booking_id, is_approve_or_pending, user_id, wpdev_active_locale, is_send_emeils ) {
 
-            var wpdev_ajax_path = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
+        if ( booking_id !='' ) {
 
-            var ajax_type_action='';
-            if (is_delete) {ajax_type_action =  'DELETE_APPROVE';var ajax_bk_message = 'Deleting...';}
-            else           {ajax_type_action =  'UPDATE_APPROVE';var ajax_bk_message = 'Updating...';};
+            var wpdev_ajax_path     = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
+            var ajax_type_action    = 'UPDATE_APPROVE';
+            var ajax_bk_message     = 'Updating...';
+            //var is_send_emeils      = 1;
+            var denyreason          = '';
+            if (is_send_emeils == 1) {
+                is_send_emeils = jQuery('#is_send_email_for_pending').attr('checked');
+                if (is_send_emeils == undefined) {is_send_emeils = 0 ;}
+                else                             {is_send_emeils = 1 ;}
+                denyreason = jQuery('#denyreason').val();
+            } else {
+                is_send_emeils = 0;
+            }
+
 
             document.getElementById('ajax_working').innerHTML =
             '<div class="info_message ajax_message" id="ajax_message">\n\
@@ -234,32 +299,65 @@
                        <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
                 </div>\n\
             </div>';
-            
-            var is_send_emeils = 1;
 
-
-            var elm1 = document.getElementById("is_send_email_for_all");
-            if (elm1 != null) {is_send_emeils = jWPDev('#is_send_email_for_all').attr('checked' );}
-            else {
-                    if (is_in_approved==0) {is_send_emeils= jWPDev('#is_send_email_for_pending').attr('checked' );}
-                    else                   {is_send_emeils= jWPDev('#is_send_email_for_aproved').attr('checked' );}
-            }
-
-            if (is_send_emeils) is_send_emeils = 1;
-            else                is_send_emeils = 0;
-
-            if (is_delete == 2 ) is_send_emeils = 0;
-
-            jWPDev.ajax({                                           // Start Ajax Sending
+            jQuery.ajax({                                           // Start Ajax Sending
                 url: wpdev_ajax_path,
                 type:'POST',
-                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data );},
-                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://onlinebookingcalendar.com/faq/#faq-13');}},
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data );},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
                 // beforeSend: someFunction,
                 data:{
-                    ajax_action : ajax_type_action,
-                    approved : id_for_approve,
-                    is_in_approved : is_in_approved,
+                    ajax_action : ajax_type_action,         // Action
+                    booking_id : booking_id,                  // ID of Booking  - separator |
+                    is_approve_or_pending : is_approve_or_pending,           // Approve: 1, Unapprove: 0
+                    is_send_emeils : is_send_emeils,
+                    denyreason: denyreason,
+                    user_id: user_id,
+                    wpdev_active_locale:wpdev_active_locale
+                }
+            });
+            return false;  
+        }
+
+        return true;
+    }
+
+    // Delete booking
+    function delete_booking(booking_id, user_id, wpdev_active_locale, is_send_emeils ) {
+
+        if ( booking_id !='' ) {
+
+            var wpdev_ajax_path     = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
+            var ajax_type_action    = 'DELETE_APPROVE';
+            var ajax_bk_message     = 'Updating...';
+            //var is_send_emeils      = 1;
+            var denyreason          = '';
+            if (is_send_emeils == 1) {
+                is_send_emeils = jQuery('#is_send_email_for_pending').attr('checked');
+                if (is_send_emeils == undefined) {is_send_emeils = 0 ;}
+                else                             {is_send_emeils = 1 ;}
+                denyreason = jQuery('#denyreason').val();
+            } else {
+                is_send_emeils = 0;
+            }
+
+            document.getElementById('ajax_working').innerHTML =
+            '<div class="info_message ajax_message" id="ajax_message">\n\
+                <div style="float:left;">'+ajax_bk_message+'</div> \n\
+                <div  style="float:left;width:80px;margin-top:-3px;">\n\
+                       <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
+                </div>\n\
+            </div>';
+
+            jQuery.ajax({                                           // Start Ajax Sending
+                url: wpdev_ajax_path,
+                type:'POST',
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data );},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
+                // beforeSend: someFunction,
+                data:{
+                    ajax_action : ajax_type_action,         // Action
+                    booking_id : booking_id,                  // ID of Booking  - separator |
                     is_send_emeils : is_send_emeils,
                     denyreason: denyreason,
                     user_id: user_id,
@@ -268,8 +366,68 @@
             });
             return false;
         }
+
         return true;
     }
+
+
+    // Mark as Read or Unread selected bookings
+    function mark_read_booking(booking_id, is_read_or_unread, user_id, wpdev_active_locale ) {
+
+        if ( booking_id !='' ) {
+
+            var wpdev_ajax_path     = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
+            var ajax_type_action    = 'UPDATE_READ_UNREAD';
+            var ajax_bk_message     = 'Updating...';
+
+            document.getElementById('ajax_working').innerHTML =
+            '<div class="info_message ajax_message" id="ajax_message">\n\
+                <div style="float:left;">'+ajax_bk_message+'</div> \n\
+                <div  style="float:left;width:80px;margin-top:-3px;">\n\
+                       <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
+                </div>\n\
+            </div>';
+
+            jQuery.ajax({                                           // Start Ajax Sending
+                url: wpdev_ajax_path,
+                type:'POST',
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data );},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
+                // beforeSend: someFunction,
+                data:{
+                    ajax_action : ajax_type_action,         // Action
+                    booking_id : booking_id,                  // ID of Booking  - separator |
+                    is_read_or_unread : is_read_or_unread,           // Read: 1, Unread: 0
+                    user_id: user_id,
+                    wpdev_active_locale:wpdev_active_locale
+                }
+            });
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // Get the list of ID in selected bookings from booking listing
+    function get_selected_bookings_id_in_booking_listing(){
+
+        var checkedd = jQuery(".booking_list_item_checkbox:checked");
+        var id_for_approve = "";
+
+        // get all IDs
+        checkedd.each(function(){
+            var id_c = jQuery(this).attr('id');
+            id_c = id_c.substr(20,id_c.length-20)
+            id_for_approve += id_c + "|";
+        });
+
+        if ( id_for_approve.length > 1 )
+            id_for_approve = id_for_approve.substr(0,id_for_approve.length-1);      //delete last "|"
+
+        return id_for_approve ;
+    }
+
 
     // Send booking Cacel by visitor
     function bookingCancelByVisitor(booking_hash, bk_type){
@@ -284,11 +442,11 @@
             var wpdev_ajax_path = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
             var ajax_type_action='DELETE_BY_VISITOR';
   
-            jWPDev.ajax({                                           // Start Ajax Sending
+            jQuery.ajax({                                           // Start Ajax Sending
                 url: wpdev_ajax_path,
                 type:'POST',
-                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond_insert' + bk_type).html( data ) ;},
-                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://onlinebookingcalendar.com/faq/#faq-13');}},
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond_insert' + bk_type).html( data ) ;},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
                 // beforeSend: someFunction,
                 data:{
                     ajax_action : ajax_type_action,
@@ -304,25 +462,34 @@
  
     // Scroll to script
     function makeScroll(object_name) {
-         var targetOffset = jWPDev( object_name ).offset().top;
-         jWPDev('html,body').animate({scrollTop: targetOffset}, 1000);
+         var targetOffset = jQuery( object_name ).offset().top;
+         targetOffset = targetOffset - 50;
+         if (targetOffset<0) targetOffset = 0;
+         jQuery('html,body').animate({scrollTop: targetOffset}, 1000)
+         
     }
 
     //Admin function s for checking all checkbos in one time
     function setCheckBoxInTable(el_stutus, el_class){
-         jWPDev('.'+el_class).attr('checked', el_stutus);
+         jQuery('.'+el_class).attr('checked', el_stutus);
+
+         if ( el_stutus ) {
+             jQuery('.'+el_class).parent().parent().addClass('row_selected_color');
+         } else {
+             jQuery('.'+el_class).parent().parent().removeClass('row_selected_color');
+         }
     }
 
 
     // Set selected days at calendar as UnAvailable
     function setUnavailableSelectedDays( bk_type ){
-        var sel_dates = jWPDev('#calendar_booking'+bk_type).datepick('getDate');
+        var sel_dates = jQuery('#calendar_booking'+bk_type).datepick('getDate');
         var class_day2;
         for( var i =0; i <sel_dates.length; i++) {
           class_day2 = (sel_dates[i].getMonth()+1) + '-' + sel_dates[i].getDate() + '-' + sel_dates[i].getFullYear();
           date_approved[ bk_type ][ class_day2 ] = [ (sel_dates[i].getMonth()+1) ,  sel_dates[i].getDate(),  sel_dates[i].getFullYear(),0,0,0];
-          jWPDev('#calendar_booking'+bk_type+' td.cal4date-'+class_day2).html(sel_dates[i].getDate());
-          // jWPDev('#calendar_booking'+bk_type).datepick('refresh');
+          jQuery('#calendar_booking'+bk_type+' td.cal4date-'+class_day2).html(sel_dates[i].getDate());
+          // jQuery('#calendar_booking'+bk_type).datepick('refresh');
         }
     }
 
@@ -339,19 +506,20 @@
                             timeoutID_of_thank_you_page = setTimeout(function ( ) {location.href= thank_you_page_URL;} ,1000);
             } else {                                        // Message
                             document.getElementById('submiting'+bk_type).innerHTML = '<div class=\"submiting_content\" >'+new_booking_title+'</div>';
-                            jWPDev('.submiting_content').fadeOut( new_booking_title_time );
+                            jQuery('.submiting_content').fadeOut( new_booking_title_time );
             }
         } else {
 
                 setUnavailableSelectedDays(bk_type);                            // Set days as unavailable
                 document.getElementById('date_booking'+bk_type).value = '';     // Set textarea date booking to ''
                 document.getElementById('calendar_booking'+bk_type).style.display= 'none';
-                
+                jQuery('.block_hints').css( {'display' : 'none'} );
+
                 var is_admin = 0;
                 if (location.href.indexOf('booking.php') != -1 ) {is_admin = 1;}
                 if (is_admin == 0) {
                     // Get calendar from the html and insert it before form div, which will hide after btn click
-                    jWPDev('#calendar_booking'+bk_type).insertBefore("#booking_form_div"+bk_type);
+                    jQuery('#calendar_booking'+bk_type).insertBefore("#booking_form_div"+bk_type);
                     document.getElementById("booking_form_div"+bk_type).style.display="none";
                     makeScroll('#calendar_booking'+bk_type);
 
@@ -369,7 +537,7 @@
                             //new_booking_title;
                             //new_booking_title_time;
                             document.getElementById('submiting'+bk_type).innerHTML = '<div class=\"submiting_content\" >'+new_booking_title+'</div>';
-                            jWPDev('.submiting_content').fadeOut( new_booking_title_time );
+                            jQuery('.submiting_content').fadeOut( new_booking_title_time );
                         }
                     }
 
@@ -382,14 +550,14 @@
 
         function showErrorMessage( element , errorMessage) {
 
-            jWPDev("[name='"+ element.name +"']")
+            jQuery("[name='"+ element.name +"']")
                     .fadeOut( 350 ).fadeIn( 300 )
                     .fadeOut( 350 ).fadeIn( 400 )
                     .animate( {opacity: 1}, 4000 )
             ;  // mark red border
-            jWPDev("[name='"+ element.name +"']")
+            jQuery("[name='"+ element.name +"']")
                     .after('<div class="wpdev-help-message">'+ errorMessage +'</div>'); // Show message
-            jWPDev(".wpdev-help-message")
+            jQuery(".wpdev-help-message")
                     .css( {'color' : 'red'} )
                     .animate( {opacity: 1}, 10000 )
                     .fadeOut( 2000 );   // hide message
@@ -407,20 +575,20 @@
             showErrorMessage( submit_form.firstname, message_verif_requred );
             return;
         }
-        else if(document.getElementById('date_booking1').value === '') {
-            jWPDev('#ajax_respond').html("Select a date or date-range for the booking.")
+        else if(document.getElementById('calendar_booking1').value === '') {
+            jQuery('#ajax_respond').html("Select a date or date-range for the booking.")
                 .css( {'color' : 'red'} );
             return;
         }
 
-        jWPDev.ajax({                                           // Start Ajax Sending
+        jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
-            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
             error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
             data:{
                 ajax_action : 'ADD_ALLOCATION',
-                dates: document.getElementById('date_booking1').value,
+                dates: document.getElementById('calendar_booking1').value,
                 firstname: submit_form.firstname.value,
                 num_visitors : submit_form.num_visitors.value,
                 gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
@@ -437,10 +605,10 @@
     // cell_id : element id of cell to update
     function toggle_booking_date(rowid, booking_date, cell_id) {
 
-        jWPDev.ajax({                                           // Start Ajax Sending
+        jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
-            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
             error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
             data:{
                 ajax_action : 'TOGGLE_BOOKING_DATE',
@@ -457,10 +625,10 @@
      */
     function shift_availability_calendar(direction) {
 
-        jWPDev.ajax({                                           // Start Ajax Sending
+        jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
-            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data ) ;},
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
             error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
             data:{
                 ajax_action : 'PAGE_AVAILABILITY_TABLE_LEFT_RIGHT',
@@ -495,10 +663,10 @@
 
         document.getElementById('submitting').innerHTML = '<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>';
 
-        jWPDev.ajax({                                           // Start Ajax Sending
+        jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
-            success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond_insert').html( data ) ;},
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond_insert').html( data ) ;},
             error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
             data:{
                 ajax_action : 'INSERT_INTO_TABLE',
@@ -563,11 +731,6 @@
                 }
 
 
-
-
-// if(typeof( write_js_validation ) == 'function') {if (write_js_validation(element, inp_value, bk_type )) return;}
-
-
                 // Get Form Data
                 if ( element.name !== ('captcha_input' + bk_type) ) {
                     if (formdata !=='') formdata +=  '~';                                                // next field element
@@ -595,9 +758,19 @@
                 return;
 
 
+        var inst = jQuery.datepick._getInst(document.getElementById('calendar_booking'+bk_type));
+        if (wpdev_bk_is_dynamic_range_selection != undefined)
+            if ( wpdev_bk_is_dynamic_range_selection )
+                if (days_select_count_dynamic != undefined)
+                    if (inst.dates.length < days_select_count_dynamic ) {
+                        alert(message_verif_selectdts);
+                        return;
+                    }
 
         //Show message if no selected days
         if (document.getElementById('date_booking' + bk_type).value == '')  {
+
+
 
             if ( document.getElementById('additional_calendars' + bk_type) != null ) { // Checking according additional calendars.
 
@@ -609,6 +782,7 @@
                         is_all_additional_days_unselected = false;
                     }
                 }
+
                 if (is_all_additional_days_unselected) {
                     alert(message_verif_selectdts);
                     return;
@@ -640,7 +814,7 @@
 
             if (wpdev_bk_edit_id_hash != '') my_booking_hash = wpdev_bk_edit_id_hash;
 
-            var is_send_emeils= jWPDev('#is_send_email_for_new_booking').attr('checked' );
+            var is_send_emeils= jQuery('#is_send_email_for_new_booking').attr('checked' );
             if (is_send_emeils == undefined) {is_send_emeils =1 ;}            
             if (is_send_emeils) is_send_emeils = 1;
             else                is_send_emeils = 0;
@@ -681,12 +855,12 @@
 
                     if (document.getElementById('date_booking' + id_additional).value != '' ) {
                         setUnavailableSelectedDays(id_additional);                                              // Set selected days unavailable in this calendar
-                        jWPDev('#calendar_booking'+id_additional).insertBefore("#booking_form_div"+bk_type);    // Insert calendar before form to do not hide it
+                        jQuery('#calendar_booking'+id_additional).insertBefore("#booking_form_div"+bk_type);    // Insert calendar before form to do not hide it
                         if (document.getElementById('paypalbooking_form'+id_additional) != null)
-                            jWPDev('#paypalbooking_form'+id_additional).insertBefore("#booking_form_div"+bk_type);    // Insert payment form to do not hide it
+                            jQuery('#paypalbooking_form'+id_additional).insertBefore("#booking_form_div"+bk_type);    // Insert payment form to do not hide it
                         else {
-                            jWPDev("#booking_form_div"+bk_type).append('<div id="paypalbooking_form'+id_additional+'" ></div>')
-                            jWPDev("#booking_form_div"+bk_type).append('<div id="ajax_respond_insert'+id_additional+'" ></div>')
+                            jQuery("#booking_form_div"+bk_type).append('<div id="paypalbooking_form'+id_additional+'" ></div>')
+                            jQuery("#booking_form_div"+bk_type).append('<div id="ajax_respond_insert'+id_additional+'" ></div>')
                         }
                         send_ajax_submit( id_additional ,formdata_additional,captcha_chalange,user_captcha,is_send_emeils,my_booking_hash,my_booking_form ,wpdev_active_locale  );
                     }
@@ -701,11 +875,11 @@
             var my_bk_res = bk_type;
             if ( document.getElementById('bk_type' + bk_type) != null ) my_bk_res = document.getElementById('bk_type' + bk_type).value;
 
-            jWPDev.ajax({                                           // Start Ajax Sending
+            jQuery.ajax({                                           // Start Ajax Sending
                 url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
                 type:'POST',
-                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond_insert' + bk_type).html( data ) ;},
-                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://onlinebookingcalendar.com/faq/#faq-13');}},
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond_insert' + bk_type).html( data ) ;},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
                 // beforeSend: someFunction,
                 data:{
                     ajax_action : 'INSERT_INTO_TABLE',
@@ -730,10 +904,10 @@
            var tooltip_day_class_4_show = " .timespartly";
            if (is_show_availability_in_tooltips) {
                if (  wpdev_in_array( parent_booking_resources , myParam ) )
-                    tooltip_day_class_4_show = " .datepick-days-cell a";  // each day
+                    tooltip_day_class_4_show = " .datepick-days-cell";//" .datepick-days-cell a";  // each day
            }
            if (is_show_cost_in_tooltips) {
-                tooltip_day_class_4_show = " .datepick-days-cell a";  // each day
+                tooltip_day_class_4_show =  " .datepick-days-cell";//" .datepick-days-cell a";  // each day
            }
 
           // Show tooltip at each day if time availability filter is set
@@ -741,30 +915,28 @@
               if (global_avalaibility_times[myParam].length>0)  tooltip_day_class_4_show = " .datepick-days-cell";  // each day
           }
  
-          jWPDev("#calendar_booking" + myParam + tooltip_day_class_4_show ).tooltip( { //TODO I am changed here
-                          tip:'#demotip'+myParam,
-                          predelay:500,
-                          delay:0,
-                          position:"top center",
-                          offset:[2,0],
-                          opacity:1
-          });
-          //    tooltips[myParam] = jWPDev("#calendar_booking" + myParam+ " .timespartly").tooltip( { tip:'#demotip'+myParam, predelay:500, api:true  });
-          //    tooltips[myParam].show();
+
+                jQuery("#calendar_booking" + myParam + tooltip_day_class_4_show ).popover( {
+                    placement: 'top'
+                  , delay: { show: 500, hide: 1 }
+                  , content: ''
+                  , template: '<div class="wpdevbk popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
+                });
+
     }
 
     // Hint labels inside of input boxes
-    jWPDev(document).ready( function(){
+    jQuery(document).ready( function(){
         
-            jWPDev('div.inside_hint').click(function(){
-                    jWPDev(this).css('visibility', 'hidden').siblings('.has-inside-hint').focus();
+            jQuery('div.inside_hint').click(function(){
+                    jQuery(this).css('visibility', 'hidden').siblings('.has-inside-hint').focus();
             });
 
-            jWPDev('input.has-inside-hint').blur(function() {
+            jQuery('input.has-inside-hint').blur(function() {
                 if ( this.value == '' )
-                    jWPDev(this).siblings('.inside_hint').css('visibility', '');
+                    jQuery(this).siblings('.inside_hint').css('visibility', '');
             }).focus(function(){
-                    jWPDev(this).siblings('.inside_hint').css('visibility', 'hidden');
+                    jQuery(this).siblings('.inside_hint').css('visibility', 'hidden');
             });
     });
 
@@ -772,13 +944,13 @@
 
 function openModalWindow(content_ID){
     //alert('!!!' + content);
-    jWPDev('.modal_content_text').attr('style','display:none;');
+    jQuery('.modal_content_text').attr('style','display:none;');
     document.getElementById( content_ID ).style.display = 'block';
     var buttons = {};//{ "Ok": wpdev_bk_dialog_close };
-    jWPDev("#wpdev-bk-dialog").dialog( {
+    jQuery("#wpdev-bk-dialog").dialog( {
             autoOpen: false,
             width: 700,
-            height: 300,
+            height: 330,
             buttons:buttons,
             draggable:false,
             hide: 'slide',
@@ -786,16 +958,16 @@ function openModalWindow(content_ID){
             modal: true,
             title: '<img src="'+wpdev_bk_plugin_url+ '/img/calendar-16x16.png" align="middle" style="margin-top:1px;"> Booking Calendar'
     });
-    jWPDev("#wpdev-bk-dialog").dialog("open");
+    jQuery("#wpdev-bk-dialog").dialog("open");
 }
 
 function wpdev_bk_dialog_close(){
-    jWPDev("#wpdev-bk-dialog").dialog("close");
+    jQuery("#wpdev-bk-dialog").dialog("close");
 }
 
 function wpdev_togle_box(boxid){
-    if ( jWPDev( '#' + boxid ).hasClass('closed') ) jWPDev('#' + boxid).removeClass('closed');
-    else                                            jWPDev('#' + boxid).addClass('closed');
+    if ( jQuery( '#' + boxid ).hasClass('closed') ) jQuery('#' + boxid).removeClass('closed');
+    else                                            jQuery('#' + boxid).addClass('closed');
 }
 
 
@@ -812,11 +984,11 @@ function setNumerOfCalendarsAtAdminSide(us_id, cal_count) {
                 </div>\n\
             </div>';
 
-            jWPDev.ajax({                                           // Start Ajax Sending
+            jQuery.ajax({                                           // Start Ajax Sending
                 url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
                 type:'POST',
-                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data );},
-                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://onlinebookingcalendar.com/faq/#faq-13');}},
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data );},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
                 // beforeSend: someFunction,
                 data:{
                     ajax_action : 'USER_SAVE_OPTION',
@@ -835,19 +1007,19 @@ function verify_window_opening(us_id,  window_id ){
 
         var is_closed = 0;
 
-        if (jWPDev('#' + window_id ).hasClass('closed') == true){
-            jWPDev('#' + window_id ).removeClass('closed');
+        if (jQuery('#' + window_id ).hasClass('closed') == true){
+            jQuery('#' + window_id ).removeClass('closed');
         } else {
-            jWPDev('#' + window_id ).addClass('closed');
+            jQuery('#' + window_id ).addClass('closed');
             is_closed = 1;
         }
 
 
-        jWPDev.ajax({                                           // Start Ajax Sending
+        jQuery.ajax({                                           // Start Ajax Sending
                 url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
                 type:'POST',
-                success: function (data, textStatus){if( textStatus == 'success')   jWPDev('#ajax_respond').html( data );},
-                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://onlinebookingcalendar.com/faq/#faq-13');}},
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data );},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
                 // beforeSend: someFunction,
                 data:{
                     ajax_action : 'USER_SAVE_WINDOW_STATE',
@@ -888,27 +1060,79 @@ function days_between(date1, date2) {
 }
 
 function showwidedates_at_admin_side(){
-                                 jWPDev('.short_dates_view').addClass('hide_dates_view');
-                                jWPDev('.short_dates_view').removeClass('show_dates_view');
-                                jWPDev('.wide_dates_view').addClass('show_dates_view');
-                                jWPDev('.wide_dates_view').removeClass('hide_dates_view');
-                                jWPDev('#showwidedates').addClass('hide_dates_view');
+                                 jQuery('.short_dates_view').addClass('hide_dates_view');
+                                jQuery('.short_dates_view').removeClass('show_dates_view');
+                                jQuery('.wide_dates_view').addClass('show_dates_view');
+                                jQuery('.wide_dates_view').removeClass('hide_dates_view');
+                                jQuery('#showwidedates').addClass('hide_dates_view');
 
-                                jWPDev('.showwidedates').addClass('hide_dates_view');
-                                jWPDev('.showshortdates').addClass('show_dates_view');
-                                jWPDev('.showshortdates').removeClass('hide_dates_view');
-                                jWPDev('.showwidedates').removeClass('show_dates_view');
+                                jQuery('.showwidedates').addClass('hide_dates_view');
+                                jQuery('.showshortdates').addClass('show_dates_view');
+                                jQuery('.showshortdates').removeClass('hide_dates_view');
+                                jQuery('.showwidedates').removeClass('show_dates_view');
 }
 
 function showshortdates_at_admin_side(){
-                                jWPDev('.wide_dates_view').addClass('hide_dates_view');
-                                jWPDev('.wide_dates_view').removeClass('show_dates_view');
-                                jWPDev('.short_dates_view').addClass('show_dates_view');
-                                jWPDev('.short_dates_view').removeClass('hide_dates_view');
+                                jQuery('.wide_dates_view').addClass('hide_dates_view');
+                                jQuery('.wide_dates_view').removeClass('show_dates_view');
+                                jQuery('.short_dates_view').addClass('show_dates_view');
+                                jQuery('.short_dates_view').removeClass('hide_dates_view');
 
-                                jWPDev('.showshortdates').addClass('hide_dates_view');
-                                jWPDev('.showwidedates').addClass('show_dates_view');
-                                jWPDev('.showwidedates').removeClass('hide_dates_view');
-                                jWPDev('.showshortdates').removeClass('show_dates_view');
+                                jQuery('.showshortdates').addClass('hide_dates_view');
+                                jQuery('.showwidedates').addClass('show_dates_view');
+                                jQuery('.showwidedates').removeClass('hide_dates_view');
+                                jQuery('.showshortdates').removeClass('show_dates_view');
 
 }
+
+
+
+function daysInMonth(month,year) {
+    var m = [31,28,31,30,31,30,31,31,30,31,30,31];
+    if (month != 2) return m[month - 1];
+    if (year%4 != 0) return m[1];
+    if (year%100 == 0 && year%400 != 0) return m[1];
+    return m[1] + 1;
+}
+
+
+function setSelectBoxByValue(el_id, el_value) {
+
+    for (var i=0; i < document.getElementById(el_id).length; i++) {
+        if (document.getElementById(el_id)[i].value == el_value) {
+            document.getElementById(el_id)[i].selected = true;
+        }
+    }
+}
+
+
+//<![CDATA[
+function save_bk_listing_filter(us_id,  filter_name, filter_value ){
+
+        var wpdev_ajax_path     = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
+        var ajax_type_action    = 'SAVE_BK_LISTING_FILTER';
+        var ajax_bk_message     = 'Saving...';
+
+        document.getElementById('ajax_working').innerHTML =
+        '<div class="info_message ajax_message" id="ajax_message">\n\
+            <div style="float:left;">'+ajax_bk_message+'</div> \n\
+            <div  style="float:left;width:80px;margin-top:-3px;">\n\
+                   <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
+            </div>\n\
+        </div>';
+
+        jQuery.ajax({
+                url: wpdev_ajax_path,
+                type:'POST',
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data );},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error');}},
+                data:{
+                    ajax_action : ajax_type_action,
+                    user_id: us_id ,
+                    filter_name: filter_name ,
+                    filter_value: filter_value
+
+                }
+        });
+}
+//]]>

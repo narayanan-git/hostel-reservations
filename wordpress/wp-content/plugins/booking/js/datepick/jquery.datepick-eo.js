@@ -1,4 +1,4 @@
-﻿/* Esperanto initialisation for the jWPDev UI date picker plugin. */
+/* Esperanto initialisation for the jQuery UI date picker plugin. */
 /* Written by Olivier M. (olivierweb@ifrance.com). */
 (function($) {
 	$.datepick.regional['eo'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Elekti la daton', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['eo']);
-})(jWPDev);
+})(jQuery);

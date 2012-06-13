@@ -1,4 +1,4 @@
-﻿/* Czech initialisation for the jWPDev UI date picker plugin. */
+/* Czech initialisation for the jQuery UI date picker plugin. */
 /* Written by Tomas Muller (tomas@tomas-muller.net). */
 (function($) {
 	$.datepick.regional['cs'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Vyberte datum', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['cs']);
-})(jWPDev);
+})(jQuery);

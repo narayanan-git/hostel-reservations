@@ -1,4 +1,4 @@
-/* Slovak initialisation for the jWPDev UI date picker plugin. */
+/* Slovak initialisation for the jQuery UI date picker plugin. */
 /* Written by Vojtech Rinik (vojto@hmm.sk). */
 (function($) {
 	$.datepick.regional['sk'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['sk']);
-})(jWPDev);
+})(jQuery);

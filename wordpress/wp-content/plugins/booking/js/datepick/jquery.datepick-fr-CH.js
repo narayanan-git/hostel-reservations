@@ -1,4 +1,4 @@
-﻿/* French initialisation for the jWPDev UI date picker plugin. */
+/* French initialisation for the jQuery UI date picker plugin. */
 /* Written by Martin Voelkle (martin.voelkle@e-tc.ch). */
 (function($) {
 	$.datepick.regional['fr-CH'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Choisir la date', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['fr-CH']);
-})(jWPDev);
+})(jQuery);

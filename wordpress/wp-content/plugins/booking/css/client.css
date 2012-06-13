@@ -38,7 +38,7 @@
                     -moz-background-clip:border;
                     -moz-background-inline-policy:continuous;
                     -moz-background-origin:padding;
-                    background:#F2F2F2 url(../images/white-grad.png) repeat-x scroll left top;
+                    background:#F2F2F2;
                 }
                 .booking_form_div .submit, .booking_form_div .button, .booking_form_div .button-primary, .booking_form_div .button-secondary, .booking_form_div .button-highlighted, .booking_form_div #postcustomstuff .submit input {
                     -moz-border-radius:11px;
@@ -146,42 +146,6 @@
                     width:100%;
                     height:auto;
                 }
-                /* Tool Tip style */
-                .tooltips {
-/*
-                    display:none;
-                    background:transparent url(../js/tooltip/img/black_arrow.png);
-                    font-size:12px;
-                    height:70px;
-                    width:160px;
-                    padding:25px;
-                    color:#fff;/**/
-/*
-                    
-                         background-color:#000;
-                        border:1px solid #fff;
-                        padding:10px 15px;
-                        width:200px;
-                        display:none;
-                        color:#fff;
-                        text-align:left;
-                        font-size:12px;
-                        -moz-box-shadow:0 0 10px #000;
-                        -webkit-box-shadow:0 0 10px #000; /*
-
-                        background-color:#ececec;
-                        border:1px solid #aaa;
-                        padding:10px 15px;
-                        width:100px;
-                        display:none;
-                        color:#444;
-                        text-align:left;
-                        font-size:12px;
-                        font-weight:bold;
-                        -moz-box-shadow:0 0 10px #000;
-                        -webkit-box-shadow:0 0 10px #000;/**/
-
-                }
 
                 /*Captcha styles*/
                 img.captcha_img{
@@ -246,151 +210,191 @@
                 }
                 div#datepick-div {
                     width: 284px !important;
-
+                    z-index: 2147483645 !important;
                 }
                 .widget_wpdev_booking .datepick-inline table.datepick{
                         width: 184px !important;
                 }
 
 
-                /* Search form */
-                .booking_search_form {
-                    margin:15px 0px;
-                    padding:10px;
-                    border: 1px solid #FFF141;
-                    text-shadow: 0 1px 0 #FFFFFF;
-                    -border-radius:5px;
-                    -webkit-border-radius:5px;
-                    -moz-border-radius:5px;
-                    -moz-box-shadow: 0 0 2px #FEF691;
-                    -webkit-box-shadow: 0 0 2px #FEF691;
-                    -box-shadow: 0 0 2px #FEF691;
-                }
+/* Search form */
+.booking_search_form {
+    margin:15px 0px;
+    padding:10px;
+    border: 1px solid #FFF141;
+    text-shadow: 0 1px 0 #FFFFFF;
+    -border-radius:5px;
+    -webkit-border-radius:5px;
+    -moz-border-radius:5px;
+    -moz-box-shadow: 0 0 2px #FEF691;
+    -webkit-box-shadow: 0 0 2px #FEF691;
+    -box-shadow: 0 0 2px #FEF691;
+}
 
-                .booking_search_form label{
-                    font-weight: bold;
-                    font-size: 13px;
-                    color:#555 !important;
-                }
+.booking_search_form label{
+    font-weight: bold;
+    font-size: 13px;
+    color:#555 !important;
+}
 
-                .booking_search_form h3{
-                    font-size: 18px;
-                    line-height: 28px !important;
-                    font-weight: bold;
-                    font-family: Arial;
-                    margin: 0 !important;
-                    color:#555 !important;
-                }
+.booking_search_form h3{
+    font-size: 18px;
+    line-height: 28px !important;
+    font-weight: bold;
+    font-family: Arial;
+    margin: 0 !important;
+    color:#555 !important;
+}
 
-                .booking_search_form input.search_booking {
-                    float:right;
-                    margin-top:15px;
-                    -box-shadow: 0 0 1px #DDDDDD;
-                    -webkit-box-shadow: 0 0 1px #DDDDDD;
-                    -moz-box-shadow: 0 0 1px #DDDDDD;
-                    background: none repeat scroll 0 0 #F5F5F5 !important;
-                    color: #717171 !important;
-                    font-family: Helvetica;
-                    font-size: 15px !important;
-                    font-weight: bold !important;
-                    text-shadow: 0 0 1px #FFFFFF;
-                }
+.booking_search_form input.search_booking {
+    float:right;
+    margin-top:15px;
+    -box-shadow: 0 0 1px #DDDDDD;
+    -webkit-box-shadow: 0 0 1px #DDDDDD;
+    -moz-box-shadow: 0 0 1px #DDDDDD;
+    background: none repeat scroll 0 0 #F5F5F5 !important;
+    color: #717171 !important;
+    font-family: Helvetica;
+    font-size: 15px !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 1px #FFFFFF;
+}
 
-                .booking_search_form input.search_booking:hover {
-                    background: none repeat scroll 0 0 #eee !important;
-                }
+.booking_search_form input.search_booking:hover {
+    background: none repeat scroll 0 0 #eee !important;
+}
 
-                .booking_search_form input.hasDatepick {
-                    border: 1px solid #BBB8B8;
-                    color: #555555;
-                    font-size: 0.8em !important;
-                    font-weight: bold;
-                    margin-right: 20px;
-                }
+.booking_search_form input.hasDatepick {
+    border: 1px solid #BBB8B8;
+    color: #555555;
+    font-size: 0.8em !important;
+    font-weight: bold;
+    margin-right: 20px;
+}
 
 
 
-                /*Search results*/
-                #booking_search_ajax {
-                    margin-bottom:20px;
-                }
+/*Search results*/
+#booking_search_ajax {
+    margin-bottom:20px;
+}
 
-                .booking_search_result_item{
-                    clear:both;
-                    margin:10px 0px;
-                    padding:5px 5px 20px;
-                    border-bottom:1px solid #e5e5e5;
-                    font-size: 0.9em;
-                }
+.booking_search_result_item{
+    clear:both;
+    margin:10px 0px;
+    padding:5px 5px 20px;
+    border-bottom:1px solid #e5e5e5;
+    font-size: 0.9em;
+}
 
-                .booking_search_result_item .booking_search_result_title{
-                    font-weight: bold;
-                    font-size: 1.3em;
-                    margin-bottom: 10px;
-                }
-                
-                .booking_search_result_item img.booking_featured_image {
-                    border: 1px solid #ccc;
-                    padding:2px;
-                    width:200px !important;
-                    float: left;
-                    margin: 5px 15px 5px 0px !important;
-                }
+.booking_search_result_item .booking_search_result_title{
+    font-weight: bold;
+    font-size: 1.3em;
+    margin-bottom: 10px;
+}
 
-                .booking_search_result_item .booking_search_result_info {
-                    font-size: 1.1em;
-                    font-style: italic;
-                    margin: 10px;
-                }
+.booking_search_result_item img.booking_featured_image {
+    border: 1px solid #ccc;
+    padding:2px;
+    width:200px !important;
+    float: left;
+    margin: 5px 15px 5px 0px !important;
+}
 
-                .booking_search_result_visitors_num, .booking_search_result_items_num, .booking_search_result_cost{
-                    font-weight: bold;
-                }
+.booking_search_result_item .booking_search_result_info {
+    font-size: 1.1em;
+    font-style: italic;
+    margin: 10px;
+}
 
-                .booking_search_result_item label{
-                    font-size: 16px;
-                    font-weight: bold;
-                }
+.booking_search_result_visitors_num, .booking_search_result_items_num, .booking_search_result_cost{
+    font-weight: bold;
+}
 
-                .booking_search_result_item a{
-                    -box-shadow: 0 0 1px #DDDDDD;
-                    -webkit-box-shadow: 0 0 1px #DDDDDD;
-                    -moz-box-shadow: 0 0 1px #DDDDDD;
-                    background: none repeat scroll 0 0 #F5F5F5 !important;
-                    color: #717171 !important;
-                    font-family: Helvetica;
-                    font-size: 12px !important;
-                    line-height:18px;
-                    font-weight: bold !important;
-                    text-shadow: 0 0 1px #FFFFFF;
-                    float:right;
-                    cursor: pointer;
-                    padding: 2px;
-                    border: 1px solid #bbb;
-                    -border-radius:3px;
-                    -webkit-border-radius:3px;
-                    -moz-border-radius:3px;
-                    text-decoration: none;
-                    margin-top:15px;
-                }
+.booking_search_result_item label{
+    font-size: 16px;
+    font-weight: bold;
+}
 
-                .booking_search_result_item a:hover {
-                    background: none repeat scroll 0 0 #eee !important;
-                }
+.booking_search_result_item a{
+    -box-shadow: 0 0 1px #DDDDDD;
+    -webkit-box-shadow: 0 0 1px #DDDDDD;
+    -moz-box-shadow: 0 0 1px #DDDDDD;
+    background: none repeat scroll 0 0 #F5F5F5 !important;
+    color: #717171 !important;
+    font-family: Helvetica;
+    font-size: 12px !important;
+    line-height:18px;
+    font-weight: bold !important;
+    text-shadow: 0 0 1px #FFFFFF;
+    float:right;
+    cursor: pointer;
+    padding: 2px;
+    border: 1px solid #bbb;
+    -border-radius:3px;
+    -webkit-border-radius:3px;
+    -moz-border-radius:3px;
+    text-decoration: none;
+    margin-top:15px;
+}
 
-                
+.booking_search_result_item a:hover {
+    background: none repeat scroll 0 0 #eee !important;
+}
 
-                #wp-admin-bar-booking_options a span#booking-count {
-                    background: none repeat scroll 0 0 #EEEEEE;
-                    border-radius: 10px 10px 10px 10px;
-                    color: #333333;
-                    display: inline;
-                    font-size: 10px;
-                    font-weight: bold;
-                    padding: 2px 5px;
-                    text-shadow: none;
-                }
-                #wp-admin-bar-booking_options a:hover span#booking-count {
-                    background: none repeat scroll 0 0 #FFFFFF;
-                    color: #000000;
-                }
+    /* Admin bar COUNT*/
+    #wp-admin-bar-booking_options a span#booking-count {
+        background: none repeat scroll 0 0 #EEEEEE;
+        border-radius: 10px 10px 10px 10px;
+        color: #333333;
+        display: inline;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 2px 5px;
+        text-shadow: none;
+    }
+    #wp-admin-bar-booking_options a:hover span#booking-count {
+        background: none repeat scroll 0 0 #FFFFFF;
+        color: #000000;
+    }
+
+
+/* Pop Over Styles */
+.wpdevbk.popover{
+  z-index: 2147483647 !important;
+}
+.wpdevbk.popover.top .arrow {
+    border-top: 5px solid rgba(140, 140, 140, 0.8) !important;
+}
+.wpdevbk.popover.bottom .arrow {
+    border-bottom: 5px solid rgba(140, 140, 140, 0.8) !important;
+}
+.wpdevbk.popover.left .arrow {
+    border-left: 5px solid rgba(140, 140, 140, 0.8) !important;
+}
+.wpdevbk.popover.right .arrow {
+    border-right: 5px solid rgba(140, 140, 140, 0.8) !important;
+}
+.wpdevbk .popover-inner{
+    background: none repeat scroll 0 0 rgba(140, 140, 140, 0.8);
+    border-radius: 6px 6px 6px 6px;
+    box-shadow: 0 3px 7px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    padding: 3px;
+    width: 150px;
+}
+.wpdevbk .popover-inner .popover-title{
+    background-color: #FFF;
+    border-bottom: 0px solid #EEEEEE;
+    border-radius: 3px 3px 0 0;
+    line-height: 1;
+    padding: 0px; /*9px 15px;*/
+    font-size: 13px;
+}
+.wpdevbk .popover-inner .popover-content{
+    background-clip: padding-box;
+    background-color: #FFFFFF;
+    border-radius: 0 0 3px 3px;
+    padding: 14px;
+}
+

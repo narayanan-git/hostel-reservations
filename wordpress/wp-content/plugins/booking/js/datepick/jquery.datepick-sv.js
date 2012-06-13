@@ -1,4 +1,4 @@
-﻿/* Swedish initialisation for the jWPDev UI date picker plugin. */
+/* Swedish initialisation for the jQuery UI date picker plugin. */
 /* Written by Anders Ekdahl ( anders@nomadiz.se). */
 (function($) {
     $.datepick.regional['sv'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
     $.datepick.setDefaults($.datepick.regional['sv']);
-})(jWPDev);
+})(jQuery);

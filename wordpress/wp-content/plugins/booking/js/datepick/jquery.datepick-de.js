@@ -1,4 +1,4 @@
-﻿/* German initialisation for the jWPDev UI date picker plugin. */
+/* German initialisation for the jQuery UI date picker plugin. */
 /* Written by Milian Wolff (mail@milianw.de). */
 (function($) {
 	$.datepick.regional['de'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Wähle ein Datum', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['de']);
-})(jWPDev);
+})(jQuery);

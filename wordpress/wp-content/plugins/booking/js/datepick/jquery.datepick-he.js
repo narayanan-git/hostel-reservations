@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: true,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['he']);
-})(jWPDev);
+})(jQuery);

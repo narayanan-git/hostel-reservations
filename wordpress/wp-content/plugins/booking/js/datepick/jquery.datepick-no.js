@@ -1,4 +1,4 @@
-/* Norwegian initialisation for the jWPDev UI date picker plugin. */
+/* Norwegian initialisation for the jQuery UI date picker plugin. */
 /* Written by Naimdjon Takhirov (naimdjon@gmail.com). */
 (function($) {
 	$.datepick.regional['no'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['no']);
-})(jWPDev);
+})(jQuery);

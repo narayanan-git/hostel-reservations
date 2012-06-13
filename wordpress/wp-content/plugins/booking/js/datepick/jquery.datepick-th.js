@@ -1,4 +1,4 @@
-﻿/* Thai initialisation for the jWPDev UI date picker plugin. */
+/* Thai initialisation for the jQuery UI date picker plugin. */
 /* Written by pipo (pipo@sixhead.com). */
 (function($) {
 	$.datepick.regional['th'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['th']);
-})(jWPDev);
+})(jQuery);

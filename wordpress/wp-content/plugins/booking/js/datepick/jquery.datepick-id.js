@@ -1,4 +1,4 @@
-/* Indonesian initialisation for the jWPDev UI date picker plugin. */
+/* Indonesian initialisation for the jQuery UI date picker plugin. */
 /* Written by Deden Fathurahman (dedenf@gmail.com). */
 (function($) {
 	$.datepick.regional['id'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Pilih Tanggal', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['id']);
-})(jWPDev);
+})(jQuery);

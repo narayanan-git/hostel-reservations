@@ -1,4 +1,4 @@
-﻿/* Greek (el) initialisation for the jWPDev UI date picker plugin. */
+/* Greek (el) initialisation for the jQuery UI date picker plugin. */
 /* Written by Alex Cicovic (http://www.alexcicovic.com) */
 (function($) {
 	$.datepick.regional['el'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Επιλέξτε μια ημερομηνία', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['el']);
-})(jWPDev);
+})(jQuery);

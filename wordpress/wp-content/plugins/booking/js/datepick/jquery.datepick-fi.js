@@ -1,4 +1,4 @@
-/* Finnish initialisation for the jWPDev UI date picker plugin. */
+/* Finnish initialisation for the jQuery UI date picker plugin. */
 /* Written by Harri Kilpi� (harrikilpio@gmail.com). */
 (function($) {
     $.datepick.regional['fi'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
     $.datepick.setDefaults($.datepick.regional['fi']);
-})(jWPDev);
+})(jQuery);

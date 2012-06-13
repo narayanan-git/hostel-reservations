@@ -1,4 +1,4 @@
-/* Russian (UTF-8) initialisation for the jWPDev UI date picker plugin. */
+/* Russian (UTF-8) initialisation for the jQuery UI date picker plugin. */
 /* Written by Andrew Stromnov (stromnov@gmail.com). */
 (function($) {
 	$.datepick.regional['ru'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['ru']);
-})(jWPDev);
+})(jQuery);

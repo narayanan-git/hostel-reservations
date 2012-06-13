@@ -1,4 +1,4 @@
-﻿/* Azerbaijani (UTF-8) initialisation for the jWPDev UI date picker plugin. */
+/* Azerbaijani (UTF-8) initialisation for the jQuery UI date picker plugin. */
 /* Written by Jamil Najafov (necefov33@gmail.com). */
 (function($) {
 	$.datepick.regional['az'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Bir tarix seçin', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['az']);
-})(jWPDev);
+})(jQuery);

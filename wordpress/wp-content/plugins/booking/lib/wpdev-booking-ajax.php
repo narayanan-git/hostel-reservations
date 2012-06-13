@@ -10,7 +10,7 @@ if ( isset( $_POST['ajax_action'] ) ) {
     define('DOING_AJAX', true);
 
 
-    if ( class_exists('wpdev_bk_pro')) { $wpdev_bk_pro_in_ajax = new wpdev_bk_pro(); }
+    if ( class_exists('wpdev_bk_personal')) { $wpdev_bk_personal_in_ajax = new wpdev_bk_personal(); }
 
     wpdev_bk_ajax_responder();
 }
@@ -18,7 +18,7 @@ if ( isset( $_POST['ajax_action'] ) ) {
 
 if ( ( isset( $_GET['payed_booking'] ) )  || (  isset( $_GET['merchant_return_link'])) ) {
 
-    if ( class_exists('wpdev_bk_pro'))                 { $wpdev_bk_pro_in_ajax = new wpdev_bk_pro(); }
+    if ( class_exists('wpdev_bk_personal'))                 { $wpdev_bk_personal_in_ajax = new wpdev_bk_personal(); }
 
     if (function_exists ('wpdev_bk_update_pay_status')) wpdev_bk_update_pay_status();
     die;
@@ -26,7 +26,7 @@ if ( ( isset( $_GET['payed_booking'] ) )  || (  isset( $_GET['merchant_return_li
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//    A J A X     R e s p o n d e r     Real Ajax with jWPDev sender     ///////////////////////////////////////////////////////////////////////
+//    A J A X     R e s p o n d e r     Real Ajax with jQuery sender     ///////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 function wpdev_bk_ajax_responder() {
 
@@ -70,30 +70,80 @@ function wpdev_bk_ajax_responder() {
             
 /////////////////////// END CUSTOM CODE ///////////////////////////
 
+            case 'UPDATE_READ_UNREAD':
+
+            make_bk_action('check_multiuser_params_for_client_side_by_user_id', $_POST['user_id'] );
+
+            $is_read_or_unread = $_POST[ "is_read_or_unread" ];
+            if ($is_read_or_unread == 1)   $is_new = '1';
+            else                           $is_new = '0';
+
+            $id_of_new_bookings       = $_POST[ "booking_id" ];
+            $arrayof_bookings_id    = explode('|',$id_of_new_bookings);
+
+            renew_NumOfNewBookings(  $arrayof_bookings_id, $is_new  );
+
+
+            ?>  <script type="text/javascript">
+                    <?php foreach ($arrayof_bookings_id as $bk_id) {
+                            if ($is_new == '1') { ?>
+                                set_booking_row_read(<?php echo $bk_id ?>);
+                            <?php } else { ?>
+                                set_booking_row_unread(<?php echo $bk_id ?>);
+                            <?php }?>
+                    <?php } ?>
+                    <?php if ($is_new == '1') { ?>
+                    //    var my_num = parseInt(jQuery('.bk-update-count').text()) + parseInt(1<?php echo '*' . count($arrayof_bookings_id); ?>);
+                    <?php } else { ?>
+                    //    var my_num = parseInt(jQuery('.bk-update-count').text()) - parseInt(1<?php echo '*' . count($arrayof_bookings_id); ?>);
+                    <?php } ?>
+                    //jQuery('.bk-update-count').html( my_num );
+                    document.getElementById('ajax_message').innerHTML = '<?php if ($is_new == '1') { echo __('Set as Read', 'wpdev-booking'); } else { echo __('Set as Unread', 'wpdev-booking'); } ?>';
+                    jQuery('#ajax_message').fadeOut(1000);
+                </script> <?php
+            die();
+
+            break;
+
         case 'UPDATE_APPROVE' :
 
             make_bk_action('check_multiuser_params_for_client_side_by_user_id', $_POST['user_id'] );
 
-            $is_in_approved = $_POST[ "is_in_approved" ];
-            $approved       = $_POST[ "approved" ];
+            // Approve or Unapprove
+            $is_approve_or_pending = $_POST[ "is_approve_or_pending" ];
+            if ($is_approve_or_pending == 1)   $is_approve_or_pending = '1';
+            else                        $is_approve_or_pending = '0';
+            // Booking ID
+            $booking_id       = $_POST[ "booking_id" ];
+            $approved_id    = explode('|',$booking_id);
+            $denyreason     = $_POST["denyreason"];
             $is_send_emeils = $_POST["is_send_emeils"];
-            $approved_id    = explode('|',$approved);
+            
 
             if ( (count($approved_id)>0) && ($approved_id !==false)) {
 
                 $approved_id_str = join( ',', $approved_id);
 
-                if ( false === $wpdb->query( $wpdb->prepare("UPDATE ".$wpdb->prefix ."bookingdates SET approved = '1' WHERE booking_id IN ($approved_id_str)") ) ){
-                    ?> <script type="text/javascript"> document.getElementById('admin_bk_messages<?php echo $is_in_approved; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php bk_error('Error during updating to DB' ,__FILE__,__LINE__); ?></div>'; </script> <?php
+                if ( false === $wpdb->query( $wpdb->prepare("UPDATE ".$wpdb->prefix ."bookingdates SET approved = '".$is_approve_or_pending."' WHERE booking_id IN ($approved_id_str)") ) ){
+                    ?> <script type="text/javascript"> document.getElementById('ajax_message').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php bk_error('Error during updating to DB' ,__FILE__,__LINE__); ?></div>'; </script> <?php
                     die();
                 }
 
-                sendApproveEmails($approved_id_str, $is_send_emeils);
+                if ($is_approve_or_pending == '1')
+                    sendApproveEmails($approved_id_str, $is_send_emeils);
+                else
+                    sendDeclineEmails($approved_id_str, $is_send_emeils,$denyreason);
 
                 ?>  <script type="text/javascript">
-                        document.getElementById('ajax_message').innerHTML = '<?php echo __('Approved', 'wpdev-booking'); ?>';
-                        jWPDev('#ajax_message').fadeOut(1000);
-                        location.reload(true);
+                        <?php foreach ($approved_id as $bk_id) {
+                                if ($is_approve_or_pending == '1') { ?>
+                                    set_booking_row_approved(<?php echo $bk_id ?>);
+                                <?php } else { ?>
+                                    set_booking_row_pending(<?php echo $bk_id ?>);
+                                <?php }?>
+                        <?php } ?>
+                        document.getElementById('ajax_message').innerHTML = '<?php if ($is_approve_or_pending == '1') { echo __('Set as Approved', 'wpdev-booking'); } else { echo __('Set as Pending', 'wpdev-booking'); } ?>';
+                        jQuery('#ajax_message').fadeOut(1000);
                     </script> <?php
                 die();
             }
@@ -102,12 +152,11 @@ function wpdev_bk_ajax_responder() {
         case 'DELETE_APPROVE' :
             make_bk_action('check_multiuser_params_for_client_side_by_user_id', $_POST['user_id'] );
 
-            $is_in_approved = $_POST[ "is_in_approved" ];
-            $approved       = $_POST[ "approved" ];
+            $booking_id       = $_POST[ "booking_id" ];         // Booking ID
             $denyreason     = $_POST["denyreason"];
             if ( ( $denyreason == __('Reason of cancellation here', 'wpdev-booking')) || ( $denyreason == 'Reason of cancel here') )  $denyreason = '';
             $is_send_emeils = $_POST["is_send_emeils"];
-            $approved_id    = explode('|',$approved);
+            $approved_id    = explode('|',$booking_id);
 
             if ( (count($approved_id)>0) && ($approved_id !=false) && ($approved_id !='')) {
 
@@ -117,20 +166,22 @@ function wpdev_bk_ajax_responder() {
 
 
                 if ( false === $wpdb->query( $wpdb->prepare("DELETE FROM ".$wpdb->prefix ."bookingdates WHERE booking_id IN ($approved_id_str)") ) ){
-                    ?> <script type="text/javascript"> document.getElementById('admin_bk_messages<?php echo $is_in_approved; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php bk_error('Error during deleting dates at DB' ,__FILE__,__LINE__); ?></div>'; </script> <?php
+                    ?> <script type="text/javascript"> document.getElementById('ajax_message').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php bk_error('Error during deleting dates at DB' ,__FILE__,__LINE__); ?></div>'; </script> <?php
                     die();
                 }
 
                 if ( false === $wpdb->query($wpdb->prepare( "DELETE FROM ".$wpdb->prefix ."booking WHERE booking_id IN ($approved_id_str)") ) ){
-                    ?> <script type="text/javascript"> document.getElementById('admin_bk_messages<?php echo $is_in_approved; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php bk_error('Error during deleting reservation at DB',__FILE__,__LINE__ ); ?></div>'; </script> <?php
+                    ?> <script type="text/javascript"> document.getElementById('ajax_message').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php bk_error('Error during deleting reservation at DB',__FILE__,__LINE__ ); ?></div>'; </script> <?php
                     die();
                 }
 
                 ?>
                     <script type="text/javascript">
+                        <?php foreach ($approved_id as $bk_id) { ?>
+                                    set_booking_row_deleted(<?php echo $bk_id ?>);
+                        <?php } ?>
                         document.getElementById('ajax_message').innerHTML = '<?php echo __('Deleted', 'wpdev-booking'); ?>';
-                        jWPDev('#ajax_message').fadeOut(1000);
-                        location.reload(true);
+                        jQuery('#ajax_message').fadeOut(1000);
                     </script>
                 <?php
                 die();
@@ -147,6 +198,11 @@ function wpdev_bk_ajax_responder() {
 
         case 'SEND_PAYMENT_REQUEST':
             make_bk_action('wpdev_send_payment_request');
+            break;
+
+
+        case 'CHANGE_PAYMENT_STATUS':
+            make_bk_action('wpdev_change_payment_status');
             break;
 
         case 'UPDATE_BK_RESOURCE_4_BOOKING':
@@ -169,7 +225,7 @@ function wpdev_bk_ajax_responder() {
             }
             ?> <script type="text/javascript">
                     document.getElementById('ajax_message').innerHTML = '<?php echo __('Done', 'wpdev-booking'); ?>';
-                    jWPDev('#ajax_message').fadeOut(1000);
+                    jQuery('#ajax_message').fadeOut(1000);
                     <?php if ( $_POST['is_reload'] == 1 ) { ?> location.reload(true); <?php  } ?>
                 </script> <?php
             die();
@@ -199,6 +255,14 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
 
+        case 'SAVE_BK_LISTING_FILTER':
+            make_bk_action('wpdev_ajax_save_bk_listing_filter');
+            die();
+            break;
+        case 'EXPORT_BOOKINGS_TO_CSV'    :
+            make_bk_action('wpdev_ajax_export_bookings_to_csv');
+            die();
+
         default:
             if (function_exists ('wpdev_pro_bk_ajax')) wpdev_pro_bk_ajax();
             die();
@@ -218,7 +282,7 @@ function wpdev_bk_insert_new_booking_v2(){
     } else {
         ?> <script type="text/javascript">
             document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Add some allocations first!"; ?></div>';
-            jWPDev("#submitting")
+            jQuery("#submitting")
                 .css( {'color' : 'red'} )
         </script>
         <?php
@@ -233,10 +297,10 @@ function wpdev_bk_insert_new_booking_v2(){
         foreach ($errors as $error) {
             $error_text .= $error . '<br>';
         }
-        
+
         ?> <script type="text/javascript">
             document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo $error_text; ?></div>';
-            jWPDev("#submitting")
+            jQuery("#submitting")
                 .css( {'color' : 'red'} )
         </script>
         <?php
@@ -258,7 +322,7 @@ error_log("db save: $msg");
     ?> <script type="text/javascript">
             var msg = "<?php echo $msg; ?>";
             document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
-            jWPDev("#submitting")
+            jQuery("#submitting")
                 .css( {'color' : 'red'} );
                 
             // reload allocation table if we get an exception
@@ -266,7 +330,7 @@ error_log("db save: $msg");
             if(msg.indexOf('success') < 0) {
                 document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
             }
-//           jWPDev('#submitting').fadeOut(5000);
+//           jQuery('#submitting').fadeOut(5000);
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
     <?php
@@ -295,7 +359,7 @@ function wpdev_add_booking_allocation() {
             ?> 
             <script type="text/javascript">
                 document.getElementById('ajax_respond').innerHTML = "There is not enough availability for the room (type) and dates chosen.";
-                jWPDev("#ajax_respond")
+                jQuery("#ajax_respond")
                     .css( {'color' : 'red'} )
                     .fadeIn( 10 )
                     .fadeOut( 5000 );   // hide message                
@@ -365,6 +429,7 @@ function wpdev_bk_insert_new_booking(){
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             $dates          = $_POST[ "dates" ];
+
             $bktype         = $_POST[ "bktype" ];
             $formdata       = $_POST[ "form" ];
             $formdata = escape_any_xss($formdata);
@@ -385,7 +450,7 @@ function wpdev_bk_insert_new_booking(){
                 }
             }
 
-            $is_approved_dates = '0';
+
 
             if (strpos($dates,' - ')!== FALSE) {
                 $dates =explode(' - ', $dates );
@@ -415,12 +480,12 @@ function wpdev_bk_insert_new_booking(){
                         document.getElementById('captcha_msg<?php echo $bktype; ?>').innerHTML =
                             '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Your entered code is incorrect', 'wpdev-booking'); ?></div>';
                         document.getElementById('submiting<?php echo $bktype; ?>').innerHTML ='';
-                        jWPDev('#captcha_input<?php echo $bktype; ?>')
+                        jQuery('#captcha_input<?php echo $bktype; ?>')
                         .fadeOut( 350 ).fadeIn( 300 )
                         .fadeOut( 350 ).fadeIn( 400 )
                         .animate( {opacity: 1}, 4000 )
                         ;  // mark red border
-                        jWPDev(".wpdev-help-message div")
+                        jQuery(".wpdev-help-message div")
                         .css( {'color' : 'red'} )
                         .animate( {opacity: 1}, 10000 )
                         .fadeOut( 2000 );   // hide message
@@ -487,13 +552,21 @@ function wpdev_bk_insert_new_booking(){
                 }
                 // Make insertion into BOOKINGDATES
                 $booking_id = (int) $wpdb->insert_id;       //Get ID  of reservation
+
+                $is_approved_dates = '0';
+                $auto_approve_new_bookings_is_active       =  get_bk_option( 'booking_auto_approve_new_bookings_is_active' );
+                if ( trim($auto_approve_new_bookings_is_active) == 'On')
+                    $is_approved_dates = '1';
+
+
             }
 
 
 
 
             $sdform = $_POST['form'];
-            $my_dates = explode(", ",$dates);
+            $my_dates = explode(",",$dates);
+            $i=0; foreach ($my_dates as $md) {$my_dates[$i] = trim($my_dates[$i]) ; $i++; }
 
             $start_end_time = get_times_from_bk_form($sdform, $my_dates, $bktype);
             $start_time = $start_end_time[0];
@@ -642,11 +715,11 @@ function wpdev_bk_insert_new_booking(){
                 <?php
                 if ( strpos($_SERVER['HTTP_REFERER'],'wp-admin/admin.php?') ===false ) { ?>
                             //document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div class=\"submiting_content\" ><?php echo get_bk_option( 'booking_title_after_reservation'); ?></div>';
-                            //jWPDev('.submiting_content').fadeOut(<?php echo get_bk_option( 'booking_title_after_reservation_time'); ?>);
+                            //jQuery('.submiting_content').fadeOut(<?php echo get_bk_option( 'booking_title_after_reservation_time'); ?>);
                             setReservedSelectedDates('<?php echo $bktype; ?>');
                     <?php }  else { ?>
                             document.getElementById('ajax_message').innerHTML = '<?php echo __('Updated successfully', 'wpdev-booking'); ?>';
-                            jWPDev('#ajax_message').fadeOut(1000);
+                            jQuery('#ajax_message').fadeOut(1000);
                             document.getElementById('submiting<?php echo $bktype; ?>').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo __('Updated successfully', 'wpdev-booking'); ?></div>';
                             location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=<?php echo $bktype; ?>&booking_id_selection=<?php echo  $my_booking_id;?>';
                     <?php } ?>
@@ -757,5 +830,4 @@ function wpdev_bk_insert_new_booking(){
                 make_bk_action('wpdev_booking_reupdate_bk_type_to_childs', $booking_id, $bktype, str_replace('|',',',$dates),  array($start_time, $end_time ) , $sdform );
 
 }
-
 ?>

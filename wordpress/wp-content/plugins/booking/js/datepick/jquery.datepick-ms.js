@@ -1,4 +1,4 @@
-/* Malaysian initialisation for the jWPDev UI date picker plugin. */
+/* Malaysian initialisation for the jQuery UI date picker plugin. */
 /* Written by Mohd Nawawi Mohamad Jamili (nawawi@ronggeng.net). */
 (function($) {
 	$.datepick.regional['ms'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Sila pilih tarikh', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['ms']);
-})(jWPDev);
+})(jQuery);

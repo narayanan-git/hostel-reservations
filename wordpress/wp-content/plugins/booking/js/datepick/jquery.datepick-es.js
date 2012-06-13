@@ -1,4 +1,4 @@
-﻿/* Inicialización en español para la extensión 'UI date picker' para jWPDev. */
+/* Inicialización en español para la extensión 'UI date picker' para jQuery. */
 /* Traducido por Vester (xvester@gmail.com). */
 (function($) {
 	$.datepick.regional['es'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['es']);
-})(jWPDev);
+})(jQuery);

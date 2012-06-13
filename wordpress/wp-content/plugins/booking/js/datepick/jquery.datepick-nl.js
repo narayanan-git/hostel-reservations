@@ -1,4 +1,4 @@
-﻿/* Dutch (UTF-8) initialisation for the jWPDev UI date picker plugin. */
+/* Dutch (UTF-8) initialisation for the jQuery UI date picker plugin. */
 /* Written by Mathias Bynens <http://mathiasbynens.be/> */
 (function($) {
 	$.datepick.regional['nl'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Kies een datum', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['nl']);
-})(jWPDev);
+})(jQuery);

@@ -1,4 +1,4 @@
-/* Polish initialisation for the jWPDev UI date picker plugin. */
+/* Polish initialisation for the jQuery UI date picker plugin. */
 /* Written by Jacek Wysocki (jacek.wysocki@gmail.com). */
 (function($) {
 	$.datepick.regional['pl'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Wybierz datę', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['pl']);
-})(jWPDev);
+})(jQuery);

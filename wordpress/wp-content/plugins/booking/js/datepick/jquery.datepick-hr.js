@@ -1,4 +1,4 @@
-﻿/* Croatian i18n for the jWPDev UI date picker plugin. */
+/* Croatian i18n for the jQuery UI date picker plugin. */
 /* Written by Vjekoslav Nesek. */
 (function($) {
 	$.datepick.regional['hr'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Odaberi datum', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['hr']);
-})(jWPDev);
+})(jQuery);

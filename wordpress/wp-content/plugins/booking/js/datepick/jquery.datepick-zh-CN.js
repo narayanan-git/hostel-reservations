@@ -1,4 +1,4 @@
-/* Chinese initialisation for the jWPDev UI date picker plugin. */
+/* Chinese initialisation for the jQuery UI date picker plugin. */
 /* Written by Cloudream (cloudream@gmail.com). */
 (function($) {
 	$.datepick.regional['zh-CN'] = {
@@ -23,4 +23,4 @@
 		initStatus: '请选择日期', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['zh-CN']);
-})(jWPDev);
+})(jQuery);

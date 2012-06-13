@@ -1,4 +1,4 @@
-﻿/* Albanian initialisation for the jWPDev UI date picker plugin. */
+/* Albanian initialisation for the jQuery UI date picker plugin. */
 /* Written by Flakron Bytyqi (flakron@gmail.com). */
 (function($) {
 	$.datepick.regional['sq'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Zgjedhe një datë', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['sq']);
-})(jWPDev);
+})(jQuery);

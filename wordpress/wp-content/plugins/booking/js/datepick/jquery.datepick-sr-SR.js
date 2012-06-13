@@ -1,4 +1,4 @@
-﻿/* Serbian i18n for the jWPDev UI date picker plugin. */
+/* Serbian i18n for the jQuery UI date picker plugin. */
 /* Written by Dejan Dimić. */
 (function($){
 	$.datepick.regional['sr-SR'] = {
@@ -22,4 +22,4 @@
 		initStatus: 'Odaberi datum', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['sr-SR']);
-})(jWPDev);
+})(jQuery);

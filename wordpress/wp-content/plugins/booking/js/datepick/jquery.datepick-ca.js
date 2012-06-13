@@ -1,4 +1,4 @@
-/* Inicialitzaci� en catal� per a l'extenci� 'calendar' per jWPDev. */
+/* Inicialitzaci� en catal� per a l'extenci� 'calendar' per jQuery. */
 /* Writers: (joan.leon@gmail.com). */
 (function($) {
 	$.datepick.regional['ca'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['ca']);
-})(jWPDev);
+})(jQuery);

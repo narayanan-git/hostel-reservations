@@ -1,4 +1,4 @@
-﻿/* Arabic Translation for jWPDev UI date picker plugin. */
+/* Arabic Translation for jQuery UI date picker plugin. */
 /* Khaled Al Horani -- koko.dw@gmail.com */
 /* خالد الحوراني -- koko.dw@gmail.com */
 /* NOTE: monthNames are the original months names and they are the Arabic names, not the new months name فبراير - يناير and there isn't any Arabic roots for these months */
@@ -24,4 +24,4 @@
 		initStatus: 'اختر يوم', isRTL: true,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['ar']);
-})(jWPDev);
+})(jQuery);

@@ -1,4 +1,4 @@
-﻿/* Romanian initialisation for the jWPDev UI date picker plugin. */
+/* Romanian initialisation for the jQuery UI date picker plugin. */
 /* Written by Edmond L. (ll_edmond@walla.com) and Ionut G. Stan (ionut.g.stan@gmail.com). */
 (function($) {
 	$.datepick.regional['ro'] = {
@@ -23,4 +23,4 @@
 		initStatus: 'Selecteaza o data', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['ro']);
-})(jWPDev);
+})(jQuery);

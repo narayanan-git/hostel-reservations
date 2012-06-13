@@ -1,5 +1,5 @@
 /* http://keith-wood.name/datepick.html
-   Datepicker Validation extension for jWPDev 3.7.1.
+   Datepicker Validation extension for jQuery 3.7.1.
    Requires J�rn Zaefferer's Validation plugin (http://plugins.jquery.com/project/validate).
    Written by Keith Wood (kbwood{at}iinet.com.au).
    Dual licensed under the GPL (http://dev.jquery.com/browser/trunk/jquery/GPL-LICENSE.txt) and 
@@ -35,8 +35,8 @@ if ($.fn.validate) {
 		},
 
 		/* Correct error placement for validation errors - after any trigger.
-		   @param  error    (jWPDev) the error message
-		   @param  element  (jWPDev) the field in error */
+		   @param  error    (jQuery) the error message
+		   @param  element  (jQuery) the field in error */
 		errorPlacement: function(error, element) {
 			var trigger = element.next('.' + $.datepick._triggerClass);
 			error.insertAfter(trigger.length > 0 ? trigger : element);
@@ -138,4 +138,4 @@ if ($.fn.validate) {
 		});
 }
 
-})(jWPDev);
+})(jQuery);

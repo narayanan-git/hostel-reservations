@@ -1,4 +1,4 @@
-﻿/* Euskarako oinarria 'jWPDev date picker' jquery-ko extentsioarentzat */
+/* Euskarako oinarria 'jQuery date picker' jquery-ko extentsioarentzat */
 /* Karrikas-ek itzulia (karrikas@karrikas.com) */
 (function($){
 	$.datepick.regional['eu'] = {
@@ -23,4 +23,4 @@
 		initStatus: '', isRTL: false,
 		showMonthAfterYear: false, yearSuffix: ''};
 	$.datepick.setDefaults($.datepick.regional['eu']);
-})(jWPDev);
+})(jQuery);
