@@ -20,8 +20,6 @@ class BookingDBO {
         $stmt = $mysqli->prepare(
             "INSERT INTO ".$wpdb->prefix."booking(firstname, lastname, referrer, created_by, created_date)
              VALUES(?, ?, ?, ?, NOW())");
-             
-        $now = new DateTime();
         $stmt->bind_param('ssss', $firstname, $lastname, $referrer, $createdBy);
         
         if(FALSE === $stmt->execute()) {
