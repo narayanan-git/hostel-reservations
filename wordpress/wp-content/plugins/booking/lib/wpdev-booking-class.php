@@ -1338,6 +1338,10 @@ if (!class_exists('wpdev_booking')) {
 
         // Get dates
         function get_dates ($approved = 'all', $bk_type = 1, $additional_bk_types= array() ) {
+            return array(array(), array());
+        }
+        
+        function get_dates_OLD ($approved = 'all', $bk_type = 1, $additional_bk_types= array() ) {
             // if ( ! defined('WP_ADMIN') ) if ($approved == 0)  return array(array(),array());
             make_bk_action('check_pending_not_paid_auto_cancell_bookings', $bk_type );
 
@@ -3738,10 +3742,11 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
             }
 
             if ( ! $this->is_table_exists('v_resources_by_path') ) {
-                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path(resource_id, name, capacity, path, lvl, number_children) AS
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path(resource_id, name, capacity, path, lvl, number_children, parent_resource_id) AS
                         SELECT resource_id, name, capacity, path, 
                                LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
-                               (SELECT COUNT(*) FROM ".$wpdb->prefix."v_resources_sub2 s2 WHERE s2.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children
+                               (SELECT COUNT(*) FROM ".$wpdb->prefix."v_resources_sub2 s2 WHERE s2.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children,
+                               parent_resource_id
                           FROM ".$wpdb->prefix."v_resources_sub2 s
                          ORDER BY path";
                 $wpdb->query($wpdb->prepare($simple_sql));

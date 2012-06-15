@@ -4,8 +4,8 @@
  * Encapsulates and renders a table containing all allocations for a booking.
  */
 class AllocationTable {
-    var $showMinDate;   // minimum date to show on the table
-    var $showMaxDate;   // maximum date to show on the table
+    var $showMinDate;   // minimum date to show on the table (DateTime)
+    var $showMaxDate;   // maximum date to show on the table (DateTime)
     private $allocationRows = array();  // array of AllocationRow
     private $allocationStrategy;
     

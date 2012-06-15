@@ -151,6 +151,78 @@ error_log("availCapacity $availCapacity");
 error_log("allocation $allocationId on $bookingDate complies with avaiability: $compliesWithAvailability");       
         return $compliesWithAvailability;
     }
+    
+    /**
+     * Fetches (filtered) allocations between the given start end dates
+     * and optionally matched by resource, status, name.
+     * $startDate : include allocations where a booking exists after this date (inclusive)  (DateTime)
+     * $endDate : include allocations where a booking exists before this date (inclusive)  (DateTime)
+     * $resourceId : only match this resource id (optional)
+     * $status : only match this status (optional)
+     * $name : match this name against guest name or booking first/last name (* wildcard allowed) (optional)
+     * Returns array() of BookingResource including matching allocations
+     */
+    static function getAllocationsByResourceForDateRange($startDate, $endDate, $resourceId = null, $status = null, $name = null) {
+        global $wpdb;
+
+        // fetch all matching allocations; key => resource id, value => array[AllocationRow]
+        $nameToMatch = $name == null ? '__ALL__' : str_replace('*', '%', strtolower($name));
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT alloc.allocation_id, alloc.guest_name, alloc.gender, alloc.status, alloc.resource_id, bk.firstname, bk.lastname
+               FROM ".$wpdb->prefix."allocation alloc
+               JOIN ".$wpdb->prefix."booking bk ON alloc.booking_id = bk.booking_id
+              WHERE ".($resourceId == null ? -1 : "alloc.resource_id"). " = %d
+                AND ".($status == null ? "'__ALL__'" : "alloc.status") ." = %s
+                AND (".($name == null ? "'__ALL__' =" : "LOWER(alloc.name) LIKE") ." %s
+                        OR ".($name == null ? "'__ALL__' =" : "LOWER(bk.firstname) LIKE") ." %s
+                        OR ".($name == null ? "'__ALL__' =" : "LOWER(bk.lastname) LIKE") ." %s
+                    ) AND EXISTS (SELECT 1 from ".$wpdb->prefix."bookingdates bd
+                             WHERE alloc.allocation_id = bd.allocation_id
+                               AND booking_date >= STR_TO_DATE(%s, '%%d.%%m.%%Y') 
+                               AND booking_date <= STR_TO_DATE(%s, '%%d.%%m.%%Y'))",
+            // bit of trickery to get this to work with nulls
+            $resourceId == null ? -1 : $resourceId,  
+            $status == null ? '__ALL__' : $status, 
+            $nameToMatch, $nameToMatch, $nameToMatch,
+            $startDate->format('d.m.Y'), $endDate->format('d.m.Y')));
+        
+        $allocationResourceMap = array();
+        foreach ($resultset as $res) {
+            $row = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $res->status);
+            $row->id = $res->allocation_id;
+            $row->showMinDate = $startDate;
+            $row->showMaxDate = $endDate;
+            //$row->setEditMode();
+            AllocationDBO::fetchBookingDatesForAllocation($row);
+            
+            if (false == isset($allocationResourceMap[$res->resource_id])) {
+                $allocationResourceMap[$res->resource_id] = array();
+            }
+            $allocationResourceMap[$res->resource_id][] = $row;
+        }
+        
+        // now get all the resources an bind the allocations above to them
+        $bookingResources = ResourceDBO::getAllResourcesNested($allocationResourceMap);
+        return $bookingResources;
+    }
+    
+    /**
+     * Loads the payment/booking dates for the given allocation.
+     * $allocationRow : initialised allocation row to populate dates for
+     */
+    static function fetchBookingDatesForAllocation($allocationRow) {
+        global $wpdb;
+
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT allocation_id, DATE_FORMAT(booking_date, '%%d.%%m.%%Y') AS booking_date
+               FROM ".$wpdb->prefix."bookingdates
+              WHERE allocation_id = ".$allocationRow->id. 
+            " ORDER BY booking_date"));
+        
+        foreach ($resultset as $res) {
+            $allocationRow->addPaymentForDate($res->booking_date, '15');  // TODO: fix payment
+        }
+    }
 }
 
 ?>

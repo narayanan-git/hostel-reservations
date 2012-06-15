@@ -5,23 +5,40 @@
  * and renders it.
  */
 class AllocationRow {
-    var $rowid;  // unique id for this row
+    var $rowid;  // unique id for this row prior to creation
+    var $id;  // TODO: can consolidate id => rowid
     var $name;
     var $status;  // checkedin, checkedout, pending, etc
     var $gender;
     var $resourceId;
-    var $showMinDate;   // minimum date to show on the table
-    var $showMaxDate;   // maximum date to show on the table
+    var $showMinDate;   // minimum date to show on the table (DateTime)
+    var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
+    var $editMode;  // either 'edit' or 'add'
     private $bookingDatePayment = array();  // key = booking date, value = payment amount
     private $resourceMap;  // array of resource_id -> resource_name
 
-    function AllocationRow($name, $gender, $resourceId) {
+    function AllocationRow($name, $gender, $resourceId, $status = 'pending') {
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
-        $this->status = 'pending';  // default entry for new allocation
+        $this->status = $status;
         $this->resourceMap = ResourceDBO::getResourceMap();
+        $this->editMode = 'add'; // default unless set
+    }
+
+    /**
+     * Sets rendering of allocation as an existing one.
+     */
+    function setEditMode() {
+        $this->editMode = 'edit';
+    }
+    
+    /**
+     * Sets rendering of allocation as a new one.
+     */
+    function setAddMode() {
+        $this->editMode = 'add';
     }
     
     /**
@@ -76,6 +93,20 @@ class AllocationRow {
         foreach ($this->bookingDatePayment as $bookingDate => $payment) {
             $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
             if($result == null || $bd < $result) {
+                $result = $bd;
+            }
+        }
+        return $result;
+    }
+    
+    /**
+     * Returns the maximum date (DateTime) for this allocation.
+     */
+    function getMaxDate() {
+        $result = null;
+        foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+            $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
+            if($result == null || $bd > $result) {
                 $result = $bd;
             }
         }
@@ -172,6 +203,7 @@ error_log("to insert $bookingDate");
         $xmlRoot = $domtree->createElement('allocation');
         $xmlRoot = $parentElement->appendChild($xmlRoot);
     
+        $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
@@ -181,19 +213,31 @@ error_log("to insert $bookingDate");
         $attrTotal = $domtree->createAttribute('total');
         $attrTotal->value = $this->getTotalPayment();
         $dateRow->appendChild($attrTotal);
+        $xmlRoot->appendChild($dateRow);
         
-        if($this->showMinDate != null && $this->showMaxDate != null) {
+        // initialise min/max dates if not set
+        if($this->showMinDate == null) {
+            $this->showMinDate = $this->getMinDate();
+        }
+        if($this->showMaxDate == null) {
+            $this->showMaxDate = $this->getMaxDate();
+        }
+        
+        // adding new allocations, we generate entries for all dates within min/max
+        if($this->editMode == "add") {
+
             $xmlRoot->appendChild($domtree->createElement('bookingsBeforeMinDate', $this->getNumBookingsBeforeMinDate()));
             $xmlRoot->appendChild($domtree->createElement('bookingsAfterMaxDate', $this->getNumBookingsAfterMaxDate()));
             $xmlRoot->appendChild($domtree->createElement('isAvailable', $this->isAvailable ? 'true' : 'false'));
-        
+            
             // loop from showMinDate to showMaxDate creating a date element for every day in between
             // set the appropriate state if a booking exists for that date
             $dt = clone $this->showMinDate;
             while ($dt < $this->showMaxDate) {
                 $dateElem = $dateRow->appendChild($domtree->createElement('date', $dt->format('d.m.Y')));
-                $payment = $this->bookingDatePayment[$dt->format('d.m.Y')];
-                if($payment != null) {   // also means that booking exists on this date
+                
+                if(isset($this->bookingDatePayment[$dt->format('d.m.Y')])) {   // also means that booking exists on this date
+                    $payment = $this->bookingDatePayment[$dt->format('d.m.Y')];
                     $attrPayment = $domtree->createAttribute('payment');
                     $attrPayment->value = $payment;
                     $dateElem->appendChild($attrPayment);
@@ -203,7 +247,7 @@ error_log("to insert $bookingDate");
                     $dateElem->appendChild($attrState);
                 
                 // TODO: different state when date is in the past?
-
+    
                 } else { // booking doesn't exist
                     $attrPayment = $domtree->createAttribute('payment');
                     $attrPayment->value = 15;  // TODO: add payment rules
@@ -216,12 +260,22 @@ error_log("to insert $bookingDate");
                 $dt->add(new DateInterval('P1D'));  // increment by day
             }
         }
-        $xmlRoot->appendChild($dateRow);
+
+        // editing existing allocations, we just generate the dates which exist for the allocation
+        if($this->editMode == "edit") {
+            foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+                $dateElem = $dateRow->appendChild($domtree->createElement('date', $bookingDate));
+                $attrPayment = $domtree->createAttribute('payment');
+                $attrPayment->value = 15;  // TODO: add payment rules
+                $dateElem->appendChild($attrPayment);
+            }
+        }
     }
     
     /** 
       Generates the following xml:
         <allocation>
+            <id>3</id>
             <name>Megan-1</name>
             <gender>Female</gender>
             <resource>Bed A</resource>

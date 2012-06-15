@@ -14,13 +14,14 @@ class ResourceDBO {
      * lvl : depth of tree (starting at 1)
      * path : tree path by resource id
      * number_children : number of children (0 for leaf nodes)
+     * parent_resource_id : resource id of parent (optional)
      */
     static function getAllResources() {
         global $wpdb;
 
         // query all our resources (in order)
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT resource_id, name, capacity, lvl, path, number_children 
+            "SELECT resource_id, name, capacity, lvl, path, number_children, parent_resource_id 
                FROM ".$wpdb->prefix."v_resources_by_path
               ORDER BY path"));
         
@@ -29,6 +30,36 @@ class ResourceDBO {
             $result[$res->resource_id] = $res;
         }
         return $result;
+    }
+    
+    /**
+     * Fetches all available resource objects.
+     * The result will be a nested tree based on their path.
+     * $resourceAllocationMap : map of resource id, array[AllocationRow] to assign
+     *                          to each resource (optional)
+     * Returns array of BookingResource
+     */
+    static function getAllResourcesNested($resourceAllocationMap = null) {
+        
+        // resources are path-ordered
+        $return_val = array();
+        $return_val_map = array();  // map of all resource id => BookingResource in return_val
+        foreach (ResourceDBO::getAllResources() as $res) {
+            $br = new BookingResource($res->resource_id, $res->name, $res->capacity, $res->lvl, $res->path, $res->number_children);
+            if ($br->level == 1) {  // root element
+                $return_val[] = $br;
+            } else { // child of root
+                // if paths are correct, lastAncestor will always be set
+                $return_val_map[$res->parent_resource_id]->addChildResource($br);
+            }
+            
+            // if defined, set the list of allocations for the resource
+            if($resourceAllocationMap != null && isset($resourceAllocationMap[$br->resourceId])) {
+                $br->setAllocationRows($resourceAllocationMap[$br->resourceId]);
+            }
+            $return_val_map[$res->resource_id] = $br;
+        }
+        return $return_val;
     }
     
     /**
@@ -78,21 +109,6 @@ class ResourceDBO {
               WHERE parent_resource_id = 0"));
     }
     
-    /**
-     * Returns the selection list of parent resources when adding a new resource.
-     * The returned collection will have the following properties:
-     * resource_id : id of allowable parent resource 
-     * name : name of allowable parent resource
-     */
-     // DEPRECATED -- should be able to select any parent
-    static function getParentResourceSelection() {
-        global $wpdb;
-        // only one level of descendants are allowed
-        $parents = $wpdb->get_results($wpdb->prepare(
-            "SELECT resource_id, name FROM ".$wpdb->prefix."bookingresources 
-              WHERE parent_resource_id IS NULL
-              ORDER BY resource_id"));
-    }
 }
 
 ?>

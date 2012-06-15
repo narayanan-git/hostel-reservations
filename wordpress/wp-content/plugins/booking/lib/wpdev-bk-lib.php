@@ -1214,16 +1214,18 @@ if (empty( $num_per_page_check)) {
 	$args = wpdev_get_args_from_request_in_bk_listing();                    // Get safy PARAMS from REQUEST
         ?><textarea id="bk_request_params" style="display:none;"><?php echo  serialize($args) ; ?></textarea><?php
 
-        $bk_listing = wpdev_get_bk_listing_structure_engine( $args );           // Get Bookings structure
-        $bookings       = $bk_listing[0];
-        $booking_types  = $bk_listing[1];
-        $bookings_count = $bk_listing[2];
-        $page_num       = $bk_listing[3];
-        $page_items_count= $bk_listing[4];
+//        $bk_listing = wpdev_get_bk_listing_structure_engine( $args );           // Get Bookings structure
+//        $bookings       = $bk_listing[0];
+//        $booking_types  = $bk_listing[1];
+//        $bookings_count = $bk_listing[2];
+//        $page_num       = $bk_listing[3];
+//        $page_items_count= $bk_listing[4];
         
-        booking_listing_table($bookings , $booking_types);                      // Show the bookings listing table
+//        booking_listing_table($bookings , $booking_types);                      // Show the bookings listing table
+        booking_listing_table(0 , 0);                      // Show the bookings listing table
 
-        wpdevbk_show_pagination($bookings_count, $page_num, $page_items_count); // Show Pagination
+//        wpdevbk_show_pagination($bookings_count, $page_num, $page_items_count); // Show Pagination
+        wpdevbk_show_pagination(0, 1, 10); // Show Pagination
         
         wpdevbk_booking_listing_write_js();                                     // Wtite inline  JS
         wpdevbk_booking_listing_write_css();                                    // Write inline  CSS
@@ -1236,6 +1238,17 @@ if (empty( $num_per_page_check)) {
 
     //   S H O W      B o o k i n g    L i s t i n g    T a b l e
     function booking_listing_table($bookings , $booking_types) {
+        $av = new AllocationView();
+        $minDate = '13.06.2012';
+        $maxDate = '30.06.2012';
+        $resourceId = null;
+        $status = null;
+        $name = null;
+        $av->doSearch($minDate, $maxDate, $resourceId, $status, $name);
+        echo $av->toHtml();
+    }
+    
+    function booking_listing_table_OLD($bookings , $booking_types) {
 
         $user = wp_get_current_user(); $user_bk_id = $user->ID;
         
