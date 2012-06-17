@@ -11,8 +11,8 @@ class BookingResource {
     var $level;
     var $path;
     var $numberChildren;
-    private $childResources;  // array of BookingResource (where this is a parent resource, ie numberChildren = 0)
-    private $allocationRows;  // (optional) array of AllocationRow assigned to this resource
+    private $childResources;  // array of BookingResource (where this is a parent resource, ie numberChildren > 0)
+    private $allocationCells;  // (optional) array of AllocationCell assigned to this resource (where this is a child node, ie. numberChildren = 0)
     
     /**
      * Default constructor.
@@ -25,7 +25,7 @@ class BookingResource {
         $this->path = $path;
         $this->numberChildren = $numberChildren;
         $this->childResources = array();
-        $this->allocationRows = array();
+        $this->allocationCells = array();
     }
     
     /**
@@ -37,13 +37,13 @@ class BookingResource {
     }
     
     /**
-     * Sets the allocation assigned for this resource.
+     * Sets the allocation cells assigned for this resource.
      * This is transaction specific; for any particular set of dates
-     * the allocation rows may vary.
-     * $allocationRows : array of AllocationRow
+     * the allocation cells may vary.
+     * $allocationCells : array of AllocationCell
      */
-    function setAllocationRows($allocationRows) {
-        $this->allocationRows = $allocationRows;
+    function setAllocationCells($allocationCells) {
+        $this->allocationCells = $allocationCells;
     }
 
     /**
@@ -68,8 +68,9 @@ class BookingResource {
             $res->addSelfToDocument($domtree, $parentElement);
         }
 
-        foreach ($this->allocationRows as $alloc) {
-            $alloc->addSelfToDocument($domtree, $parentElement);
+        $cells = $parentElement->appendChild($domtree->createElement('cells'));
+        foreach ($this->allocationCells as $alloc) {
+            $alloc->addSelfToDocument($domtree, $cells);
         }
     }
     
@@ -95,8 +96,10 @@ class BookingResource {
      *         <path>/1/2</path>
      *         <level>2</level>
      *         <numberChildren>0</numberChildren>
-     *         <allocation> ... </allocation>
-     *         <allocation> ... </allocation>
+     *         <cells>
+     *             <allocationcell span="2"> ... </allocationcell>
+     *             <allocationcell span="1"> ... </allocationcell>
+     *         <cells>
      *     </resource>
      */
     function toXml() {

@@ -8,6 +8,8 @@ class ResourceDBO {
     /**
      * Returns all resources indexed by resource_id. 
      * Each object in the collection returned has the following properties:
+     * $resourceId : id of (parent) resource (if not provided, will return all resources)
+     * Returns resultset array()
      * resource_id : id of resource
      * name : resource name
      * capacity : capacity of resource
@@ -16,13 +18,16 @@ class ResourceDBO {
      * number_children : number of children (0 for leaf nodes)
      * parent_resource_id : resource id of parent (optional)
      */
-    static function getAllResources() {
+    static function getAllResources($resourceId = null) {
         global $wpdb;
 
         // query all our resources (in order)
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT resource_id, name, capacity, lvl, path, number_children, parent_resource_id 
                FROM ".$wpdb->prefix."v_resources_by_path
+                    ". ($resourceId == null ? "" : "
+                            WHERE ((path LIKE '%%/$resourceId' AND number_children = 0)
+                                OR (path LIKE '%%/$resourceId/%%' AND number_children = 0))") . "
               ORDER BY path"));
         
         $result = array();
@@ -33,29 +38,28 @@ class ResourceDBO {
     }
     
     /**
-     * Fetches all available resource objects.
+     * Fetches available resource objects by parent resource id.
      * The result will be a nested tree based on their path.
-     * $resourceAllocationMap : map of resource id, array[AllocationRow] to assign
-     *                          to each resource (optional)
+     * $resourceId : id of (parent) resource (if not provided, will return all resources)
+     * $allocationCellMap : 2D map of resource id, date [d.m.Y] => array() of AllocationCell to populate for any matched resource
      * Returns array of BookingResource
      */
-    static function getAllResourcesNested($resourceAllocationMap = null) {
+    static function getBookingResourcesById($resourceId = null, $allocationCellMap = null) {
         
         // resources are path-ordered
         $return_val = array();
         $return_val_map = array();  // map of all resource id => BookingResource in return_val
-        foreach (ResourceDBO::getAllResources() as $res) {
+        foreach (ResourceDBO::getAllResources($resourceId) as $res) {
             $br = new BookingResource($res->resource_id, $res->name, $res->capacity, $res->lvl, $res->path, $res->number_children);
             if ($br->level == 1) {  // root element
                 $return_val[] = $br;
             } else { // child of root
-                // if paths are correct, lastAncestor will always be set
+                // if paths are correct, parent_resource_id will always be set
                 $return_val_map[$res->parent_resource_id]->addChildResource($br);
             }
             
-            // if defined, set the list of allocations for the resource
-            if($resourceAllocationMap != null && isset($resourceAllocationMap[$br->resourceId])) {
-                $br->setAllocationRows($resourceAllocationMap[$br->resourceId]);
+            if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId])) {
+                $br->setAllocationCells($allocationCellMap[$br->resourceId]);
             }
             $return_val_map[$res->resource_id] = $br;
         }

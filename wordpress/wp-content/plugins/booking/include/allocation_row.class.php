@@ -6,7 +6,6 @@
  */
 class AllocationRow {
     var $rowid;  // unique id for this row prior to creation
-    var $id;  // TODO: can consolidate id => rowid
     var $name;
     var $status;  // checkedin, checkedout, pending, etc
     var $gender;
@@ -24,23 +23,8 @@ class AllocationRow {
         $this->resourceId = $resourceId;
         $this->status = $status;
         $this->resourceMap = ResourceDBO::getResourceMap();
-        $this->editMode = 'add'; // default unless set
     }
 
-    /**
-     * Sets rendering of allocation as an existing one.
-     */
-    function setEditMode() {
-        $this->editMode = 'edit';
-    }
-    
-    /**
-     * Sets rendering of allocation as a new one.
-     */
-    function setAddMode() {
-        $this->editMode = 'add';
-    }
-    
     /**
      * Adds a date/payment entry for this allocation row
      * $dt  date string in format dd.MM.yyyy
@@ -203,7 +187,6 @@ error_log("to insert $bookingDate");
         $xmlRoot = $domtree->createElement('allocation');
         $xmlRoot = $parentElement->appendChild($xmlRoot);
     
-        $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
@@ -224,51 +207,38 @@ error_log("to insert $bookingDate");
         }
         
         // adding new allocations, we generate entries for all dates within min/max
-        if($this->editMode == "add") {
-
-            $xmlRoot->appendChild($domtree->createElement('bookingsBeforeMinDate', $this->getNumBookingsBeforeMinDate()));
-            $xmlRoot->appendChild($domtree->createElement('bookingsAfterMaxDate', $this->getNumBookingsAfterMaxDate()));
-            $xmlRoot->appendChild($domtree->createElement('isAvailable', $this->isAvailable ? 'true' : 'false'));
+        $xmlRoot->appendChild($domtree->createElement('bookingsBeforeMinDate', $this->getNumBookingsBeforeMinDate()));
+        $xmlRoot->appendChild($domtree->createElement('bookingsAfterMaxDate', $this->getNumBookingsAfterMaxDate()));
+        $xmlRoot->appendChild($domtree->createElement('isAvailable', $this->isAvailable ? 'true' : 'false'));
+        
+        // loop from showMinDate to showMaxDate creating a date element for every day in between
+        // set the appropriate state if a booking exists for that date
+        $dt = clone $this->showMinDate;
+        while ($dt < $this->showMaxDate) {
+            $dateElem = $dateRow->appendChild($domtree->createElement('date', $dt->format('d.m.Y')));
             
-            // loop from showMinDate to showMaxDate creating a date element for every day in between
-            // set the appropriate state if a booking exists for that date
-            $dt = clone $this->showMinDate;
-            while ($dt < $this->showMaxDate) {
-                $dateElem = $dateRow->appendChild($domtree->createElement('date', $dt->format('d.m.Y')));
-                
-                if(isset($this->bookingDatePayment[$dt->format('d.m.Y')])) {   // also means that booking exists on this date
-                    $payment = $this->bookingDatePayment[$dt->format('d.m.Y')];
-                    $attrPayment = $domtree->createAttribute('payment');
-                    $attrPayment->value = $payment;
-                    $dateElem->appendChild($attrPayment);
-    
-                    $attrState = $domtree->createAttribute('state');
-                    $attrState->value = 'pending';
-                    $dateElem->appendChild($attrState);
-                
-                // TODO: different state when date is in the past?
-    
-                } else { // booking doesn't exist
-                    $attrPayment = $domtree->createAttribute('payment');
-                    $attrPayment->value = 15;  // TODO: add payment rules
-                    $dateElem->appendChild($attrPayment);
-                    
-                    $attrState = $domtree->createAttribute('state');
-                    $attrState->value = 'available';
-                    $dateElem->appendChild($attrState);
-                }
-                $dt->add(new DateInterval('P1D'));  // increment by day
-            }
-        }
+            if(isset($this->bookingDatePayment[$dt->format('d.m.Y')])) {   // also means that booking exists on this date
+                $payment = $this->bookingDatePayment[$dt->format('d.m.Y')];
+                $attrPayment = $domtree->createAttribute('payment');
+                $attrPayment->value = $payment;
+                $dateElem->appendChild($attrPayment);
 
-        // editing existing allocations, we just generate the dates which exist for the allocation
-        if($this->editMode == "edit") {
-            foreach ($this->bookingDatePayment as $bookingDate => $payment) {
-                $dateElem = $dateRow->appendChild($domtree->createElement('date', $bookingDate));
+                $attrState = $domtree->createAttribute('state');
+                $attrState->value = 'pending';
+                $dateElem->appendChild($attrState);
+            
+            // TODO: different state when date is in the past?
+
+            } else { // booking doesn't exist
                 $attrPayment = $domtree->createAttribute('payment');
                 $attrPayment->value = 15;  // TODO: add payment rules
                 $dateElem->appendChild($attrPayment);
+                
+                $attrState = $domtree->createAttribute('state');
+                $attrState->value = 'available';
+                $dateElem->appendChild($attrState);
             }
+            $dt->add(new DateInterval('P1D'));  // increment by day
         }
     }
     

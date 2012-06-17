@@ -374,6 +374,9 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_view.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_view.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_cell.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_cell.class.php' ); }
+
     //////////////////////// END CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
         
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

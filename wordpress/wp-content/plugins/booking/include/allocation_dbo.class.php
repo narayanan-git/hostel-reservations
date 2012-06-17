@@ -171,57 +171,110 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
             "SELECT alloc.allocation_id, alloc.guest_name, alloc.gender, alloc.status, alloc.resource_id, bk.firstname, bk.lastname
                FROM ".$wpdb->prefix."allocation alloc
                JOIN ".$wpdb->prefix."booking bk ON alloc.booking_id = bk.booking_id
-              WHERE ".($resourceId == null ? -1 : "alloc.resource_id"). " = %d
-                AND ".($status == null ? "'__ALL__'" : "alloc.status") ." = %s
+               JOIN ".$wpdb->prefix."v_resources_by_path res ON alloc.resource_id = res.resource_id
+              WHERE ".($status == null ? "'__ALL__'" : "alloc.status") ." = %s
+                    ". ($resourceId == null ? "" : "
+                            AND   ((path LIKE '%%/$resourceId' AND number_children = 0)
+                                OR (path LIKE '%%/$resourceId/%%' AND number_children = 0))") . "
                 AND (".($name == null ? "'__ALL__' =" : "LOWER(alloc.name) LIKE") ." %s
                         OR ".($name == null ? "'__ALL__' =" : "LOWER(bk.firstname) LIKE") ." %s
                         OR ".($name == null ? "'__ALL__' =" : "LOWER(bk.lastname) LIKE") ." %s
                     ) AND EXISTS (SELECT 1 from ".$wpdb->prefix."bookingdates bd
                              WHERE alloc.allocation_id = bd.allocation_id
                                AND booking_date >= STR_TO_DATE(%s, '%%d.%%m.%%Y') 
-                               AND booking_date <= STR_TO_DATE(%s, '%%d.%%m.%%Y'))",
+                               AND booking_date <= STR_TO_DATE(%s, '%%d.%%m.%%Y'))
+              ORDER BY res.path",  // ordered by path so view stays ordered
             // bit of trickery to get this to work with nulls
-            $resourceId == null ? -1 : $resourceId,  
             $status == null ? '__ALL__' : $status, 
             $nameToMatch, $nameToMatch, $nameToMatch,
             $startDate->format('d.m.Y'), $endDate->format('d.m.Y')));
-        
-        $allocationResourceMap = array();
-        foreach ($resultset as $res) {
-            $row = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $res->status);
-            $row->id = $res->allocation_id;
-            $row->showMinDate = $startDate;
-            $row->showMaxDate = $endDate;
-            //$row->setEditMode();
-            AllocationDBO::fetchBookingDatesForAllocation($row);
             
-            if (false == isset($allocationResourceMap[$res->resource_id])) {
-                $allocationResourceMap[$res->resource_id] = array();
+        // best we put this into a 2D map, first by resource id, then date
+        // value = row in resultset (above)
+        $resourceToBookingDateAllocationMap = array();
+
+        foreach ($resultset as $res) {
+            foreach (AllocationDBO::fetchBookingDatesForAllocation($res->allocation_id) as $bookingDate) {
+                $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = $res;
             }
-            $allocationResourceMap[$res->resource_id][] = $row;
         }
         
+        return AllocationDBO::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
+    }
+    
+    /**
+     * Queries the booking resources matching the given resource id and 
+     * populates a tree hierarchy of BookingResources populated with the specified allocations.
+     * $startDate : include allocations where a booking exists after this date (inclusive)  (DateTime)
+     * $endDate : include allocations where a booking exists before this date (inclusive)  (DateTime)
+     * $filteredResourceId : id of resource to match (can be parent resource id)
+     * $resourceToBookingDateAllocationMap : 2D map of resource id, booking date [d.m.Y] => allocation resultset
+     *                                       to insert into model being returned
+     * Returns array() of BookingResource including matching allocations
+     */
+    private static function buildResourceTree($startDate, $endDate, $filteredResourceId, $resourceToBookingDateAllocationMap) {
+        // to make it easier to render the front-end table, we will create table "cells"
+        // for all dates from $startDate to $endDate for each resource
+debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format('d.m.Y')." for $filteredResourceId ",
+                $resourceToBookingDateAllocationMap);
+        // another 2D map, to store the final allocation "cells"
+        $resourceBookingDateMap = array();
+        
+        foreach (array_keys($resourceToBookingDateAllocationMap) as $resourceId) {
+            $start = clone $startDate;  // we will incrementally move $start until $start = $endDate
+            $lastrec = null;  // previous record one day behind so we can modify the previous date when calculating span
+
+            while ($start <= $endDate) {
+                if(isset($resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')])) {
+                    $rs = $resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')];
+                    
+                    // it's the continuation of the same record
+                    if($lastrec != null && $rs->allocation_id == $lastrec->id) {
+                        $lastrec->span += 1;
+                        
+                    // new record found; create a new cell
+                    } else {
+                        $lastrec = new AllocationCell($rs->allocation_id, $rs->guest_name, $rs->gender, $rs->status);
+                        $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = $lastrec;
+                    }
+                 
+                } else { // allocation doesn't exist for date, place empty cell
+                    if($lastrec != null && $lastrec->id == 0) {
+                        $lastrec->span += 1;
+                    } else {
+                        $lastrec = new AllocationCell();
+                        $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = $lastrec;
+                    }
+                }
+                $start->add(new DateInterval('P1D'));  // increment by day
+            }
+        }
+debuge("resourceBookingDateMap ", $resourceBookingDateMap);
         // now get all the resources an bind the allocations above to them
-        $bookingResources = ResourceDBO::getAllResourcesNested($allocationResourceMap);
+        $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceBookingDateMap);
+debuge("bookingresources", $bookingResources);
         return $bookingResources;
     }
     
     /**
      * Loads the payment/booking dates for the given allocation.
-     * $allocationRow : initialised allocation row to populate dates for
+     * $allocationId : allocation id to query
+     * Returns array() of booking date (format d.m.Y)
      */
-    static function fetchBookingDatesForAllocation($allocationRow) {
+    static function fetchBookingDatesForAllocation($allocationId) {
         global $wpdb;
 
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT allocation_id, DATE_FORMAT(booking_date, '%%d.%%m.%%Y') AS booking_date
                FROM ".$wpdb->prefix."bookingdates
-              WHERE allocation_id = ".$allocationRow->id. 
-            " ORDER BY booking_date"));
+              WHERE allocation_id = $allocationId
+              ORDER BY booking_date"));
         
+        $return_val = array();
         foreach ($resultset as $res) {
-            $allocationRow->addPaymentForDate($res->booking_date, '15');  // TODO: fix payment
+            $return_val[] = $res->booking_date;
         }
+        return $return_val;
     }
 }
 

@@ -6,52 +6,47 @@
 // Distributed under the GNU General Public Licence
 //*****************************************************************************
 -->
-
-<xsl:template match="//resource">
-    <xsl:if test="level = 1">
-        <h1><xsl:value-of select="name"/></h1>
-    </xsl:if>
-    <xsl:if test="level = 2">
-        <h2><xsl:value-of select="name"/></h2>
-    </xsl:if>
-    <xsl:if test="level = 3">
-        <h3><xsl:value-of select="name"/></h3>
-    </xsl:if>
-    
-    <!-- recurse if required -->
+<xsl:template match="/view">
     <xsl:apply-templates select="resource"/>
-    
-    <!-- table visible only if we have at least one -->
-    <xsl:if test="allocation">
-    
-        <table width="100%" cellspacing="0" cellpadding="0" border="0">
-            <tbody>
-                <tr valign="top">
-                    <td width="240"></td>
-                    <td class="availability_header"><xsl:value-of select="/view/dateheaders/header"/></td>
-                </tr>
-                <tr valign="top">
-                    <td colspan="2" width="870" valign="top">
-                        <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
-                            <thead>
-                                <tr>
-                                    <th class="avail_attrib">Name</th>
-                                    <th class="avail_attrib">Gender</th>
-                                    <th class="avail_attrib">Room Type</th>
-                                    <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
-                                    <xsl:apply-templates select="/view/dateheaders/datecol" mode="availability_date_header"/>
-                                    <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <xsl:apply-templates select="allocation" mode="allocation_dates"/>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </xsl:if>  
+</xsl:template>
+
+<xsl:template match="resource">
+    <xsl:if test="count(cells/allocationcell) = 0">
+        <div class="allocation_view_resource_lvl{level}"><xsl:value-of select="name"/></div>
+    </xsl:if>
+
+    <xsl:choose>
+        <!-- if this is the immediate parent (one level up from leaf node), then we generate a single table containing all children -->
+        <xsl:when test="resource/cells/allocationcell">
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tbody>
+                    <tr valign="top">
+                        <td width="180"></td>
+                        <td class="availability_header"><xsl:value-of select="/view/dateheaders/header"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2" width="{60 * count(/view/dateheaders/datecol)}" valign="top">
+                            <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
+                                <thead>
+                                    <tr>
+                                        <th class="alloc_resource_attrib">Bed</th>
+                                        <xsl:apply-templates select="/view/dateheaders/datecol" mode="availability_date_header"/>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <xsl:apply-templates select="resource/cells"/>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xsl:when>
+        <xsl:otherwise>
+            <!-- recurse if required -->
+            <xsl:apply-templates select="resource"/>
+        </xsl:otherwise>
+    </xsl:choose>
 </xsl:template>
 
 <!-- adds "class" attribute to a table row depending on position -->
@@ -67,38 +62,26 @@
 
 <!-- adds header entries for the availability table -->
 <xsl:template mode="availability_date_header" match="datecol">
-    <th class="avail_date_attrib"><xsl:value-of select="date"/><span><xsl:value-of select="day"/></span></th>
+    <th class="alloc_view_date"><xsl:value-of select="date"/><span><xsl:value-of select="day"/></span></th>
 </xsl:template>
 
-<!-- adds row for each allocation in the availability table -->
-<xsl:template mode="allocation_dates" match="allocation">
+<!-- adds row for each resource in the availability table -->
+<xsl:template match="cells">
     <tr>
-        <td class="avail_attrib">
-            <xsl:if test="isAvailable != 'true'">
-                <xsl:attribute name="class">highlight_cell_red</xsl:attribute>
-            </xsl:if>
-            <xsl:value-of select="name"/>
-        </td>
-        <td class="avail_attrib"><xsl:value-of select="gender"/></td>
-        <td class="avail_attrib"><xsl:value-of select="resource"/></td>
-        <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
-        <xsl:apply-templates select="dates/date" mode="allocation_date"/>
-        <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate > 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
+        <td><xsl:value-of select="../name"/></td>
+        <xsl:apply-templates select="allocationcell"/>
     </tr>
 </xsl:template>
 
-<!-- adds table entries for each allocation in the availability table -->
-<xsl:template mode="allocation_date" match="date">
-    <td id="cell_{../../rowid}_{.}">
-        <xsl:attribute name="class">avail_date_attrib date_status_<xsl:value-of select="@state"/></xsl:attribute>
-        <xsl:choose>
-            <xsl:when test="@state != 'inactive'">
-                <a href="javascript:toggle_booking_date({../../rowid}, '{.}', 'cell_{../../rowid}_{.}');"><xsl:value-of select="@payment"/></a>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="@payment"/>
-            </xsl:otherwise>
-        </xsl:choose>
+<!-- adds table entries for each allocation cell in the availability table -->
+<xsl:template match="allocationcell">
+    <td>
+        <xsl:if test="@span &gt; 1">
+            <xsl:attribute name="colspan"><xsl:value-of select="@span"/></xsl:attribute>
+        </xsl:if>
+        <xsl:if test="id &gt; 0">
+            <a class="booking_item status_{status}"><xsl:value-of select="name"/></a>
+        </xsl:if>
     </td>
 </xsl:template>
 

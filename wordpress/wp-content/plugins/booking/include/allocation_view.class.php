@@ -35,28 +35,26 @@ class AllocationView {
             <resource>
                 <id>4</id>
                 <name>Room 10</name>
-                <allocation>
-                    <id>1</id>
-                    <name>Megan-1</name>
-                    <gender>Female</gender>
-                    <resource>Bed A</resource>
-                    <status>checkedin</status>
-                    <dates total="24.90">
-                        <date payment="12.95">15.08.2012</date>
-                        <date payment="12.95">16.08.2012</date>
-                    </dates>
-                </allocation>
-                <allocation>
-                    <id>2</id>
-                    <name>Megan-2</name>
-                    <gender>Female</gender>
-                    <resource>Bed B</resource>
-                    <status>checkedin</status>
-                    <dates total="24.90">
-                        <date payment="12.95">15.08.2012</date>
-                        <date payment="12.95">16.08.2012</date>
-                    </dates>
-                </allocation>
+                <resource>
+                    <id>5</id>
+                    <name>Bed A</name>
+                    <cells> <!-- cells comprises one row on the allocation table -->
+                        <allocationcell span="1"/>
+                        <allocationcell span="4">
+                            <id>1</id>
+                            <name>Megan-1</name>
+                            <gender>Female</gender>
+                            <status>checkedin</status>
+                        </allocationcell>
+                        <allocationcell span="2"/>
+                        <allocationcell span="3">
+                            <id>2</id>
+                            <name>Romeo-1</name>
+                            <gender>Female</gender>
+                            <status>checkedin</status>
+                        <allocationcell>
+                    </cells>
+                </resource>
             </resource>
             <resource>
                 ...
