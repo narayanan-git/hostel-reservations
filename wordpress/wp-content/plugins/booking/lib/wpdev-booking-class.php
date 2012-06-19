@@ -1250,7 +1250,19 @@ if (!class_exists('wpdev_booking')) {
 
             $res = $wpdb->get_results($wpdb->prepare($sql_check_trigger));
             return $res[0]->count;
+        }
 
+        // Check if procedure/function exists
+        function is_routine_exists( $routine_name ) {
+            global $wpdb;
+            $sql_check_routine = "
+                SELECT COUNT(*) AS count
+                  FROM information_schema.routines
+                 WHERE routine_schema = '". DB_NAME ."'
+                   AND routine_name = $routine_name";
+
+            $res = $wpdb->get_results($wpdb->prepare($sql_check_routine));
+            return $res[0]->count;
         }
 
         // Check if table exist
@@ -1570,12 +1582,30 @@ if (!class_exists('wpdev_booking')) {
         //content of resources management page
         function content_of_resource_page(){
 
-            // if the user has just submitted an "Add new resource" request
-            if ( isset($_POST['type_name_new'])) {
-                ResourceDBO::insertResource($_POST['type_name_new'], $_POST['type_capacity_new'], $_POST['type_parent_new']);
+            try {
+                // if the user has just submitted an "Add new resource" request
+                if ( isset($_POST['resource_name_new'])) {
+                    ResourceDBO::insertResource($_POST['resource_name_new'], $_POST['resource_capacity_new'], 
+                        $_POST['resource_parent_new'] == 0 ? null : $_POST['resource_parent_new'],
+                        $_POST['resource_type_new']);
+                }
+    
+            } catch (DatabaseException $de) {
+                $msg = $de->getMessage();
             }
 
             echo Resources::toHtml();
+            
+            if(isset($msg)) { // show error if defined as post jsscript
+                ?>
+                    <script type="text/javascript">
+                        var msg = "<?php echo $msg; ?>";
+                        document.getElementById('ajax_working').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
+                        jQuery("#ajax_working")
+                            .css( {'color' : 'red'} )
+                    </script>
+                <?php
+            }
 
         }
         //////////////////// END OF CUSTOM CODE ////////////////////
@@ -3691,6 +3721,7 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
                             name varchar(50) NOT NULL,
                             capacity bigint(20) unsigned,
                             parent_resource_id bigint(20) unsigned,
+                            resource_type varchar(10) NOT NULL,
                             PRIMARY KEY (resource_id),
                             FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
                         ) $charset_collate;";
@@ -3723,31 +3754,47 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
             
-            if ( ! $this->is_table_exists('v_resources_sub1') ) {
-                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1(resource_id, name, capacity, parent_resource_id, gp_resource_id) AS
-                        SELECT br1.resource_id, br1.name, br1.capacity, br1.parent_resource_id, 
-                            (SELECT br2.parent_resource_id FROM ".$wpdb->prefix ."bookingresources br2 WHERE br2.resource_id = br1.parent_resource_id) AS gp_resource_id
-                        FROM wp_bookingresources br1";
+            if( ! $this->is_routine_exists('walk_tree_path')) {
+                $simple_sql = "CREATE FUNCTION walk_tree_path(p_resource_id BIGINT(20) UNSIGNED) RETURNS VARCHAR(255)
+                    -- walks the wp_bookingresources table from the given resource_id down to the root
+                    -- returns the path walked delimited with /
+                    BEGIN
+                        DECLARE last_id BIGINT(20) UNSIGNED;
+                        DECLARE parent_id BIGINT(20) UNSIGNED;
+                        DECLARE return_val VARCHAR(255);
+                        
+                        SET return_val = p_resource_id;
+                        SET parent_id = p_resource_id;
+                    
+                        WHILE parent_id IS NOT NULL DO
+                        
+                            SELECT parent_resource_id INTO parent_id
+                            FROM wp_bookingresources
+                            WHERE resource_id = parent_id;
+                    
+                            SET return_val = CONCAT(IFNULL(parent_id, ''), '/', return_val);
+                    
+                        END WHILE;
+                        
+                        RETURN return_val;
+                    
+                    END;";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
-
-            if ( ! $this->is_table_exists('v_resources_sub2') ) {
-                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix ."v_resources_sub2(resource_id, name, capacity, parent_resource_id, gp_resource_id, path) AS
-                        SELECT resource_id, name, capacity, parent_resource_id, gp_resource_id, 
-                               CAST(CONCAT(CASE WHEN gp_resource_id IS NULL THEN '' ELSE CONCAT('/', gp_resource_id) END,
-                                           CASE WHEN parent_resource_id IS NULL THEN '' ELSE CONCAT('/', parent_resource_id) END,
-                                           '/', resource_id) AS CHAR) AS path
-                          FROM ".$wpdb->prefix."v_resources_sub1";
+            
+            if ( ! $this->is_table_exists('v_resources_sub1') ) {
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 as
+                        SELECT resource_id, name, capacity, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type
+                        FROM ".$wpdb->prefix."bookingresources";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
             if ( ! $this->is_table_exists('v_resources_by_path') ) {
-                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path(resource_id, name, capacity, path, lvl, number_children, parent_resource_id) AS
-                        SELECT resource_id, name, capacity, path, 
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path(resource_id, name, capacity, parent_resource_id, path, lvl, number_children) AS
+                        SELECT resource_id, name, capacity, parent_resource_id, path, resource_type,
                                LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
-                               (SELECT COUNT(*) FROM ".$wpdb->prefix."v_resources_sub2 s2 WHERE s2.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children,
-                               parent_resource_id
-                          FROM ".$wpdb->prefix."v_resources_sub2 s
+                               (SELECT SUM(capacity) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children
+                          FROM ".$wpdb->prefix."v_resources_sub1 s
                          ORDER BY path";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }

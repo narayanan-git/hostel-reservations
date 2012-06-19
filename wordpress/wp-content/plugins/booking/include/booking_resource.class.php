@@ -11,19 +11,21 @@ class BookingResource {
     var $level;
     var $path;
     var $numberChildren;
+    var $type;
     private $childResources;  // array of BookingResource (where this is a parent resource, ie numberChildren > 0)
     private $allocationCells;  // (optional) array of AllocationCell assigned to this resource (where this is a child node, ie. numberChildren = 0)
     
     /**
      * Default constructor.
      */
-    function BookingResource( $resourceId, $name, $capacity, $level, $path, $numberChildren ) {
+    function BookingResource( $resourceId, $name, $capacity, $level, $path, $numberChildren, $type ) {
         $this->resourceId = $resourceId;
         $this->name = $name;
         $this->capacity = $capacity;
         $this->level = $level;
         $this->path = $path;
         $this->numberChildren = $numberChildren;
+        $this->type = $type;
         $this->childResources = array();
         $this->allocationCells = array();
     }
@@ -63,6 +65,7 @@ class BookingResource {
         $parentElement->appendChild($domtree->createElement('path', $this->path));
         $parentElement->appendChild($domtree->createElement('level', $this->level));
         $parentElement->appendChild($domtree->createElement('numberChildren', $this->numberChildren));
+        $parentElement->appendChild($domtree->createElement('type', $this->type));
     
         foreach ($this->childResources as $res) {
             $res->addSelfToDocument($domtree, $parentElement);

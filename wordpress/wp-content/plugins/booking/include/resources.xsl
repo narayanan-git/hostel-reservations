@@ -21,6 +21,7 @@
                         <th style="width:15px;"><input id="resources_items_all" class="resources_items" type="checkbox" name="resources_items_all" onclick="javascript:jQuery('.resources_items').attr('checked', this.checked);"/></th>
                         <th style="width:10px; height:35px; border-left: 1px solid #BBBBBB;">ID</th>
                         <th style="height:35px;">Resource Name</th>
+                        <th style="width:50px;">Type</th>
                         <th class="tipcy" title="Max number of occupants" style="width:50px;">Capacity</th>
                     </tr>
                 </thead>
@@ -44,7 +45,7 @@
                                 <tbody>
                                     <tr>
                                         <td style="padding:0px; height:32px; font-weight:bold;">Name:</td>
-                                        <td style="padding:0px;"><input id="type_name_new" type="text" name="type_name_new" value="" maxlength="50" style="float:left; width:100%;"/></td>
+                                        <td style="padding:0px;"><input id="resource_name_new" type="text" name="resource_name_new" value="" maxlength="50" style="float:left; width:100%;"/></td>
                                     </tr>
                                     <tr>
                                         <td colspan="2" style="height:1px; padding:0px; border-top: 1px solid #ccc;"></td>
@@ -52,16 +53,26 @@
                                     <tr>
                                         <td style="padding:0px; height:32px;">Parent:</td>
                                         <td style="padding:0px;">
-                                            <select id="type_parent_new" name="type_parent_new" style="float:left; width:100%;">
+                                            <select id="resource_parent_new" name="resource_parent_new" style="float:left; width:100%;">
                                                 <option value="0"> - </option>
                                                 <xsl:apply-templates select="//resource" mode="parent_resource_selection"/>
                                             </select>
                                         </td>
                                     </tr>
                                     <tr>
+                                        <td style="padding:0px; height:32px;">Type:</td>
+                                        <td style="padding:0px;">
+                                            <select id="resource_type_new" name="resource_type_new" style="float:left; width:100%;">
+                                                <option value="bed">Bed</option>
+                                                <option value="room">Room</option>
+                                                <option value="group">Group</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td style="padding:0px; height:32px;">Capacity:</td>
                                         <td style="padding:0px;">
-                                            <select id="type_capacity_new" name="type_capacity_new" style="float:left; width:50px;">
+                                            <select id="resource_capacity_new" name="resource_capacity_new" style="float:left; width:50px;">
                                                 <option value="1">1</option>
                                                 <option value="2">2</option>
                                                 <option value="3">3</option>
@@ -112,7 +123,13 @@
             </xsl:otherwise>
         </xsl:choose>
         
+        <td style="font-size:10px; font-weight: bold; text-align: left; padding-left: 5px;"><xsl:value-of select="type"/></td>
+
         <xsl:choose>
+            <!-- if this is a bed, capacity is restricted to 1 -->
+            <xsl:when test="type = 'bed'">
+                <td style="text-align:center; font-weight:bold;"><xsl:value-of select="capacity"/></td>
+            </xsl:when>
             <!-- if this resource doesn't have any children, we can edit the capacity (not implied) -->
             <xsl:when test="numberChildren = 0">
                 <td style="font-size: 11px;"><input id="type_capacity{id}" type="text" name="type_capacity{id}" value="{capacity}" style="width:50px; font-size:11px;" maxlength="2"/></td>

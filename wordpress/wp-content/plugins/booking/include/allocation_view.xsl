@@ -5,19 +5,18 @@
 //*****************************************************************************
 // Distributed under the GNU General Public Licence
 //*****************************************************************************
+// View of allocations by group, room, beds...
 -->
 <xsl:template match="/view">
     <xsl:apply-templates select="resource"/>
 </xsl:template>
 
 <xsl:template match="resource">
-    <xsl:if test="count(cells/allocationcell) = 0">
-        <div class="allocation_view_resource_lvl{level}"><xsl:value-of select="name"/></div>
-    </xsl:if>
+    <div class="allocation_view_resource_lvl{level}"><xsl:value-of select="name"/></div>
 
     <xsl:choose>
         <!-- if this is the immediate parent (one level up from leaf node), then we generate a single table containing all children -->
-        <xsl:when test="resource/cells/allocationcell">
+        <xsl:when test="type = 'room' and resource/cells/allocationcell">
             <table width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tbody>
                     <tr valign="top">
@@ -35,6 +34,32 @@
                                 </thead>
                                 <tbody>
                                     <xsl:apply-templates select="resource/cells"/>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xsl:when>
+        <!-- if this is a room (as a single unit), then we generate a single table with only the beds in the room -->
+        <xsl:when test="type = 'room' and numberChildren = 0">
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tbody>
+                    <tr valign="top">
+                        <td width="180"></td>
+                        <td class="availability_header"><xsl:value-of select="/view/dateheaders/header"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2" width="{60 * count(/view/dateheaders/datecol)}" valign="top">
+                            <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
+                                <thead>
+                                    <tr>
+                                        <th class="alloc_resource_attrib"></th>
+                                        <xsl:apply-templates select="/view/dateheaders/datecol" mode="availability_date_header"/>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <xsl:apply-templates select="cells"/>
                                 </tbody>
                             </table>
                         </td>
@@ -68,7 +93,12 @@
 <!-- adds row for each resource in the availability table -->
 <xsl:template match="cells">
     <tr>
-        <td><xsl:value-of select="../name"/></td>
+        <xsl:if test="../type = 'bed'">
+            <td><xsl:value-of select="../name"/></td>
+        </xsl:if>
+        <xsl:if test="../type = 'room'">
+            <td>Room Bed</td>
+        </xsl:if>
         <xsl:apply-templates select="allocationcell"/>
     </tr>
 </xsl:template>

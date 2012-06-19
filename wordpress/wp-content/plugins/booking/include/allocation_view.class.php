@@ -35,9 +35,11 @@ class AllocationView {
             <resource>
                 <id>4</id>
                 <name>Room 10</name>
+                <type>room</type>
                 <resource>
                     <id>5</id>
                     <name>Bed A</name>
+                    <type>bed</type>
                     <cells> <!-- cells comprises one row on the allocation table -->
                         <allocationcell span="1"/>
                         <allocationcell span="4">

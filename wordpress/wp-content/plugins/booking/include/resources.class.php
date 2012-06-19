@@ -15,6 +15,7 @@ class Resources {
      *         <path>/1</path>
      *         <level>1</level>
      *         <numberChildren>2</numberChildren>
+     *         <type>room</type>
      *     </resource>
      *     <resource>
      *         <id>2</id>
@@ -23,6 +24,7 @@ class Resources {
      *         <path>/1/2</path>
      *         <level>2</level>
      *         <numberChildren>0</numberChildren>
+     *         <type>bed</type>
      *     </resource>
      *     <resource>
      *         <id>3</id>
@@ -31,6 +33,7 @@ class Resources {
      *         <path>/1/3</path>
      *         <level>2</level>
      *         <numberChildren>0</numberChildren>
+     *         <type>bed</type>
      *     </resource>
      *     ...
      * </resources>
@@ -49,6 +52,7 @@ class Resources {
             $resourceRow->appendChild($domtree->createElement('path', $res->path));
             $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
             $resourceRow->appendChild($domtree->createElement('numberChildren', $res->number_children));
+            $resourceRow->appendChild($domtree->createElement('type', $res->resource_type));
             $xmlRoot->appendChild($resourceRow);
         }
         return $domtree->saveXML();
