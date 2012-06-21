@@ -8,6 +8,7 @@ class Resources {
     /**
      * Fetches all resources in the following format:
      * <resources>
+     *     <editResource>14</editResource>
      *     <resource>
      *         <id>1</id>
      *         <name>8-Bed Dorm</name>
@@ -40,15 +41,20 @@ class Resources {
      */
     static function toXml() {
         $domtree = new DOMDocument('1.0', 'UTF-8');
+        
         // create the root element for this allocation row
         $xmlRoot = $domtree->createElement('resources');
         $xmlRoot = $domtree->appendChild($xmlRoot);
     
+        // if we are editing, then we create a new element
+        if( isset( $_GET['editResourceId'])) {
+            $xmlRoot->appendChild($domtree->createElement('editResource', $_GET['editResourceId']));
+        }
+        
         foreach (ResourceDBO::getAllResources() as $res) {
             $resourceRow = $domtree->createElement('resource');
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));
-            $resourceRow->appendChild($domtree->createElement('capacity', $res->capacity));
             $resourceRow->appendChild($domtree->createElement('path', $res->path));
             $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
             $resourceRow->appendChild($domtree->createElement('numberChildren', $res->number_children));

@@ -24,7 +24,7 @@ class ResourceDBO {
 
         // query all our resources (in order)
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT resource_id, name, capacity, lvl, path, number_children, parent_resource_id, resource_type
+            "SELECT resource_id, name, lvl, path, number_children, parent_resource_id, resource_type
                FROM ".$wpdb->prefix."v_resources_by_path
                     ". ($resourceId == null ? "" : "
                             WHERE ((path LIKE '%%/$resourceId' AND number_children = 0)
@@ -84,27 +84,146 @@ class ResourceDBO {
      * $name : name of new resource
      * $capacity : capacity of new resource (optional if parent resource)
      * $parentResourceId : id of parent resource (optional)
-     * resourceType : one of group, room, bed
+     * $resourceType : one of group, room, bed
      * Throws DatabaseException on insert error
      */
     static function insertResource($name, $capacity, $parentResourceId, $resourceType) {
-        global $wpdb;
+        $dblink = new DbTransaction();
+
+        // easiest way to represent a single unit is to create separate resources 
+        // for each individual bed in the room
+        try {
+            if ($resourceType == 'private') {
         
-        // https://core.trac.wordpress.org/ticket/15158   partial hack as null's aren't being set properly
-        if( false === $wpdb->query($wpdb->prepare(
-                "INSERT INTO ".$wpdb->prefix ."bookingresources (name, capacity, parent_resource_id, resource_type)
-                 VALUES (%s, %d, ".($parentResourceId == null ? "NULL" : $parentResourceId).", %s)", $name, $capacity, $resourceType))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            throw new DatabaseException("Error occurred inserting into resource :".$wpdb->last_error);
+                // first insert the parent record
+                $newId = ResourceDBO::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
+                
+                // insert a record for each 'bed' in the room
+                for($i = 0; $i < $capacity; $i++) {
+                    ResourceDBO::insertResourceDb($dblink->mysqli, 'Bed-'.($i+1), $newId, 'bed');
+                }
+            }
+            else {
+                $newId = ResourceDBO::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
+            }
+
+        } catch(Exception $ex) {
+            $dblink->mysqli->rollback();
+            $dblink->mysqli->close();
+            throw $e;
+        }
+        $dblink->mysqli->commit();
+        $dblink->mysqli->close();
+        
+        //ResourceDBO::cleanUpResources();
+    }
+    
+    /**
+     * Inserts a new resource to the db within the current transaction.
+     * $mysqli : current database connection
+     * $name : name of new resource
+     * $parentResourceId : id of parent resource (optional)
+     * $resourceType : one of group, room, private, bed
+     * Returns ID of inserted record
+     * Throws DatabaseException on insert error
+     */
+    static function insertResourceDb($mysqli, $name, $parentResourceId, $resourceType) {
+        global $wpdb;
+        $stmt = $mysqli->prepare(
+                "INSERT INTO ".$wpdb->prefix ."bookingresources (name, parent_resource_id, resource_type)
+                 VALUES(?, ?, ?)");
+        $stmt->bind_param('sis', $name, $parentResourceId, $resourceType);
+        if(false === $stmt->execute()) {
+            throw new DatabaseException("Error occurred inserting into resource :".$mysqli->error);
+        }
+        $newId = $stmt->insert_id;
+        $stmt->close();
+        return $newId;
+    }
+    
+    /**
+     * Deletes a resource by ID.
+     * If the resource has child resources, they will also be deleted.
+     * $resourceId : id of resource to delete
+     * Throws DatabaseException if there are underlying bookings linked to resource
+     */
+    static function deleteResource($resourceId) {
+        global $wpdb;
+
+        $arr_resource_ids = array();   // all resource ids we need to delete
+        $parentResourceIds = array();  // parent resource ids for current iteration
+        $parentResourceIds[] = $resourceId;
+        
+        // walk down the tree from $resourceId and collect those which share the same parent
+        while(sizeof($parentResourceIds) > 0) {
+            
+            array_push($arr_resource_ids, $parentResourceIds);
+            $resstr = '';
+            foreach ($parentResourceIds as $p_res) {
+                $resstr .= "$p_res,";
+            }
+            $resstr = rtrim($resstr, ',');
+
+            $resultset = $wpdb->get_results($wpdb->prepare(
+                    "SELECT resource_id 
+                       FROM ".$wpdb->prefix."bookingresources
+                      WHERE parent_resource_id IN ($resstr)"));
+            $parentResourceIds = array();
+            foreach ($resultset as $res) {
+                $parentResourceIds[] = $res->resource_id;
+            }
         }
         
-        ResourceDBO::cleanUpResources();
+        // then delete from child to parent because of FK constraints
+        $dblink = new DbTransaction();
+        while( sizeof($arr_resource_ids) > 0) {
+        
+            $resstr = '';
+            foreach (array_pop($arr_resource_ids) as $p_res) {
+                $resstr .= "$p_res,";
+            }
+            $resstr = rtrim($resstr, ',');
+
+            $stmt = $dblink->mysqli->prepare(
+                  "DELETE FROM ".$wpdb->prefix ."bookingresources 
+                    WHERE resource_id IN ($resstr)");
+            if(false === $stmt->execute()) {
+                $errormsg = $dblink->mysqli->error;
+                $stmt->close();
+                $dblink->mysqli->rollback();
+                $dblink->mysqli->close();
+                if(false === strpos($errormsg, "foreign key constraint fails")) { 
+                    throw new DatabaseException("Error occurred deleting resource : $errormsg");
+                } else {
+                    throw new DatabaseException("Resource cannot be deleted as there are linked bookings");
+                }
+            }
+            $stmt->close();
+        }
+        $dblink->mysqli->commit();
+        $dblink->mysqli->close();
     }
 
     /**
+     * Edits a resource by ID.
+     * $resourceId : id of resource to edit
+     * $resourceName : new name of resource
+     */
+    static function editResource($resourceId, $resourceName) {
+        global $wpdb;
+        if( false === $wpdb->query($wpdb->prepare(
+                "UPDATE ".$wpdb->prefix ."bookingresources
+                    SET name = %s
+                  WHERE resource_id = %d", $resourceName, $resourceId))) {
+            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            throw new DatabaseException("Error occurred updating resource :".$wpdb->last_error);
+        }
+    }
+    
+    /**
      * Cleans up references within the resources table.
      */
-    static function cleanUpResources() {
+    static function cleanUpResources_DEPRECATED() {
         global $wpdb;
         // for clarity, set parent resource capacity to NULL if there is at least one child resource
         if( false === $wpdb->query($wpdb->prepare(

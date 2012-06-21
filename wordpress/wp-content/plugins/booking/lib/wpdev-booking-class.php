@@ -1589,8 +1589,21 @@ if (!class_exists('wpdev_booking')) {
                         $_POST['resource_parent_new'] == 0 ? null : $_POST['resource_parent_new'],
                         $_POST['resource_type_new']);
                 }
+                
+                // if user has submitted delete request
+                if ( isset($_POST['resource_id_delete']) && trim($_POST['resource_id_delete']) != '') {
+                    ResourceDBO::deleteResource($_POST['resource_id_delete']);
+                }
+                
+                // if user has submitted a change in resource name
+                if ( isset($_GET['editResourceId'])) {
+                    $postvar_name = "resource_name".$_GET['editResourceId'];
+                    if ( isset($_POST[$postvar_name]) && trim($_POST[$postvar_name]) != '') {
+                        ResourceDBO::editResource($_GET['editResourceId'], $_POST[$postvar_name]);
+                    }
+                }
     
-            } catch (DatabaseException $de) {
+           } catch (DatabaseException $de) {
                 $msg = $de->getMessage();
             }
 
@@ -3783,15 +3796,15 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
             }
             
             if ( ! $this->is_table_exists('v_resources_sub1') ) {
-                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 as
-                        SELECT resource_id, name, capacity, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 AS
+                        SELECT resource_id, name, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type
                         FROM ".$wpdb->prefix."bookingresources";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
             if ( ! $this->is_table_exists('v_resources_by_path') ) {
-                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path(resource_id, name, capacity, parent_resource_id, path, lvl, number_children) AS
-                        SELECT resource_id, name, capacity, parent_resource_id, path, resource_type,
+                $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
+                        SELECT resource_id, name, parent_resource_id, path, resource_type,
                                LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
                                (SELECT SUM(capacity) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children
                           FROM ".$wpdb->prefix."v_resources_sub1 s
