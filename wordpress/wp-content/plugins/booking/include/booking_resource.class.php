@@ -7,7 +7,6 @@ class BookingResource {
 
     var $resourceId;
     var $name;
-    var $capacity;
     var $level;
     var $path;
     var $numberChildren;
@@ -18,10 +17,9 @@ class BookingResource {
     /**
      * Default constructor.
      */
-    function BookingResource( $resourceId, $name, $capacity, $level, $path, $numberChildren, $type ) {
+    function BookingResource( $resourceId, $name, $level, $path, $numberChildren, $type ) {
         $this->resourceId = $resourceId;
         $this->name = $name;
-        $this->capacity = $capacity;
         $this->level = $level;
         $this->path = $path;
         $this->numberChildren = $numberChildren;
@@ -61,7 +59,6 @@ class BookingResource {
 
         $parentElement->appendChild($domtree->createElement('id', $this->resourceId));
         $parentElement->appendChild($domtree->createElement('name', $this->name));
-        $parentElement->appendChild($domtree->createElement('capacity', $this->capacity));
         $parentElement->appendChild($domtree->createElement('path', $this->path));
         $parentElement->appendChild($domtree->createElement('level', $this->level));
         $parentElement->appendChild($domtree->createElement('numberChildren', $this->numberChildren));
@@ -83,7 +80,6 @@ class BookingResource {
      *     <resource>
      *         <id>1</id>
      *         <name>8-Bed Dorm</name>
-     *         <capacity></capacity>
      *         <path>/1</path>
      *         <level>1</level>
      *         <numberChildren>2</numberChildren>
@@ -95,7 +91,6 @@ class BookingResource {
      *     <resource>
      *         <id>2</id>
      *         <name>8-Bed Dorm</name>
-     *         <capacity></capacity>
      *         <path>/1/2</path>
      *         <level>2</level>
      *         <numberChildren>0</numberChildren>

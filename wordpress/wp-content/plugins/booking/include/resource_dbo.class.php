@@ -51,7 +51,7 @@ class ResourceDBO {
         $return_val = array();
         $return_val_map = array();  // map of all resource id => BookingResource in return_val
         foreach (ResourceDBO::getAllResources($resourceId) as $res) {
-            $br = new BookingResource($res->resource_id, $res->name, $res->capacity, $res->lvl, $res->path, $res->number_children, $res->resource_type);
+            $br = new BookingResource($res->resource_id, $res->name, $res->lvl, $res->path, $res->number_children, $res->resource_type);
             if ($br->level == 1) {  // root element
                 $return_val[] = $br;
             } else { // child of root
@@ -59,7 +59,7 @@ class ResourceDBO {
                 $return_val_map[$res->parent_resource_id]->addChildResource($br);
             }
             
-            if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId])) {
+            if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId]) && $br->type == 'bed') {
                 $br->setAllocationCells($allocationCellMap[$br->resourceId]);
             }
             $return_val_map[$res->resource_id] = $br;

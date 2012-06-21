@@ -194,10 +194,10 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
         $resourceToBookingDateAllocationMap = array();
 
         foreach ($resultset as $res) {
-            foreach (AllocationDBO::fetchBookingDatesForAllocation($res->allocation_id) as $bookingDate) {
-                $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = $res;
+                foreach (AllocationDBO::fetchBookingDatesForAllocation($res->allocation_id) as $bookingDate) {
+                    $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = $res;
+                }
             }
-        }
         
         return AllocationDBO::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
     }
@@ -220,7 +220,7 @@ debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format
         // another 2D map, to store the final allocation "cells"
         $resourceBookingDateMap = array();
         
-        foreach (array_keys($resourceToBookingDateAllocationMap) as $resourceId) {
+        foreach (array_keys(ResourceDBO::getAllResources($filteredResourceId)) as $resourceId) {
             $start = clone $startDate;  // we will incrementally move $start until $start = $endDate
             $lastrec = null;  // previous record one day behind so we can modify the previous date when calculating span
 

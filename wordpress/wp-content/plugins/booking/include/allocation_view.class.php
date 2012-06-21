@@ -90,7 +90,7 @@ class AllocationView {
             }
             
             $dt = clone $this->showMinDate;
-            while ($dt < $this->showMaxDate) {
+            while ($dt <= $this->showMaxDate) {
                 $dateElem = $dateHeaders->appendChild($domtree->createElement('datecol'));
                 $dateElem->appendChild($domtree->createElement('date', $dt->format('d')));
                 $dateElem->appendChild($domtree->createElement('day', $dt->format('D')));

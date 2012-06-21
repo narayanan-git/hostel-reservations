@@ -355,27 +355,11 @@ font-weight:normal;
     color:#000;
 }
 
-.allocation_view_resource_lvl1 {
+.allocation_view_resource_title {
     color:rgb(31,74,146);
     font:12px/1.5 Arial,Helvetica,sans-serif;
     font-weight:700;
     font-size: 14px;
-}
-
-.allocation_view_resource_lvl2 {
-    color:rgb(31,74,146);
-    font:12px/1.5 Arial,Helvetica,sans-serif;
-    font-weight:700;
-    font-size: 12px;
-    padding-left: 10px;
-}
-
-.allocation_view_resource_lvl3 {
-    color:rgb(31,74,146);
-    font:12px/1.5 Arial,Helvetica,sans-serif;
-    font-weight:700;
-    font-size: 10px;
-    padding-left: 20px;
 }
 
 table.allocation_view {
