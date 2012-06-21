@@ -5,6 +5,12 @@
  */
 class Resources {
 
+    // the current resource id that is being edited
+    var $editResourceId = '';
+
+    function Resources() {
+    }
+
     /**
      * Fetches all resources in the following format:
      * <resources>
@@ -39,7 +45,7 @@ class Resources {
      *     ...
      * </resources>
      */
-    static function toXml() {
+    function toXml() {
         $domtree = new DOMDocument('1.0', 'UTF-8');
         
         // create the root element for this allocation row
@@ -47,8 +53,8 @@ class Resources {
         $xmlRoot = $domtree->appendChild($xmlRoot);
     
         // if we are editing, then we create a new element
-        if( isset( $_GET['editResourceId'])) {
-            $xmlRoot->appendChild($domtree->createElement('editResource', $_GET['editResourceId']));
+        if( $this->editResourceId != '' ) {
+            $xmlRoot->appendChild($domtree->createElement('editResource', $this->editResourceId));
         }
         
         foreach (ResourceDBO::getAllResources() as $res) {
@@ -64,7 +70,7 @@ class Resources {
         return $domtree->saveXML();
     }
 
-    static function toHtml() {
+    function toHtml() {
         // create a DOM document and load the XSL stylesheet
         $xsl = new DomDocument;
         $xsl->load(WPDEV_BK_PLUGIN_DIR. '/include/resources.xsl');

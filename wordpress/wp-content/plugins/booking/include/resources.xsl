@@ -11,10 +11,28 @@
 
 <script language="javascript">
 function deleteResource(resourceId) {
+    resetHiddenFields();
     if (bk_are_you_sure('Are you sure you want to delete ' + document.getElementById('resource_name'+resourceId).innerHTML + '?')) {
         document.post_option_resources_action.resource_id_delete.value = resourceId;
         document.post_option_resources_action.submit();
     }
+}
+
+function editResource(resourceId) {
+    resetHiddenFields();
+    document.post_option_resources_action.resource_id_edit.value = resourceId;
+    document.post_option_resources_action.submit();
+}
+
+function saveResource(resourceId) {
+    resetHiddenFields();
+    document.post_option_resources_action.resource_id_edit.value = resourceId;
+    document.post_option_resources_action.submit();
+}
+
+function resetHiddenFields() {
+    document.post_option_resources_action.resource_id_edit.value = '';
+    document.post_option_resources_action.resource_id_delete.value = '';
 }
 </script>
 
@@ -26,11 +44,11 @@ function deleteResource(resourceId) {
         <div style="float:left;">
             <form id="post_option_resources_action" method="post" action="" name="post_option_resources_action">
                 <input type="hidden" id="resource_id_delete" name="resource_id_delete"/>
+                <input type="hidden" id="resource_id_edit" name="resource_id_edit"/>
                 <table class="resource_table0 booking_table" cellspacing="0" cellpadding="0" style="width:99%;">
                     <thead>
                         <tr>
-                            <th style="width:15px;"><input id="resources_items_all" class="resources_items" type="checkbox" name="resources_items_all" onclick="javascript:jQuery('.resources_items').attr('checked', this.checked);"/></th>
-                            <th style="width:10px; height:35px; border-left: 1px solid #BBBBBB;">ID</th>
+                            <th style="width:10px; height:35px;">ID</th>
                             <th style="height:35px;">Resource Name</th>
                             <th style="width:50px;">Type</th>
                             <th class="tipcy" title="Max number of occupants" style="width:50px;">Beds</th>
@@ -42,8 +60,6 @@ function deleteResource(resourceId) {
                     </tbody>
                 </table>
             </form>
-            <div class="clear" style="height:10px;"><xsl:comment/></div>
-            <input class="button-primary" type="submit" name="submit_resources" value="Save" style="float:left;"/>
             <div class="clear" style="height:10px;"><xsl:comment/></div>
         </div>
         <div style="width:320px; float:right;">
@@ -124,7 +140,6 @@ function deleteResource(resourceId) {
 
 <xsl:template match="resource">
     <tr>
-        <td><input id="resources_items_{id}" class="resources_items" type="checkbox" name="resources_items_{id}"/></td>
         <td style="font-size:10px; font-weight: bold; border-right: 0px solid #ddd; border-left: 1px solid #aaa; text-align: center;"><xsl:value-of select="id"/></td>
         
         <td>
@@ -171,13 +186,13 @@ function deleteResource(resourceId) {
             <xsl:choose>
                 <xsl:when test="/resources/editResource = id">
                     <div style="text-align:center;">
-                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:document.post_option_resources_action.submit();" href="javascript:;">
+                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:saveResource({id});" href="javascript:;">
                             <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
                         </a>
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:window.location.href='/wp-admin/admin.php?page=booking/wpdev-booking.phpwpdev-booking-resources&amp;editResourceId={id}';" href="javascript:;">
+                    <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:editResource({id});" href="javascript:;">
                         <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
                     </a>
                     <span style="padding-left: 10px;"></span>

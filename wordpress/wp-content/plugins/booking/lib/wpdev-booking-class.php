@@ -1582,6 +1582,7 @@ if (!class_exists('wpdev_booking')) {
         //content of resources management page
         function content_of_resource_page(){
 
+            $resources = new Resources();
             try {
                 // if the user has just submitted an "Add new resource" request
                 if ( isset($_POST['resource_name_new'])) {
@@ -1596,10 +1597,15 @@ if (!class_exists('wpdev_booking')) {
                 }
                 
                 // if user has submitted a change in resource name
-                if ( isset($_GET['editResourceId'])) {
-                    $postvar_name = "resource_name".$_GET['editResourceId'];
+                if ( isset($_POST['resource_id_edit']) && trim($_POST['resource_id_edit']) != '') {
+                    $postvar_name = "resource_name".$_POST['resource_id_edit'];
+                    
+                    // user clicked save
                     if ( isset($_POST[$postvar_name]) && trim($_POST[$postvar_name]) != '') {
-                        ResourceDBO::editResource($_GET['editResourceId'], $_POST[$postvar_name]);
+                        ResourceDBO::editResource($_POST['resource_id_edit'], $_POST[$postvar_name]);
+                        
+                    } else { // user clicked edit
+                        $resources->editResourceId = $_POST['resource_id_edit'];
                     }
                 }
     
@@ -1607,7 +1613,7 @@ if (!class_exists('wpdev_booking')) {
                 $msg = $de->getMessage();
             }
 
-            echo Resources::toHtml();
+            echo $resources->toHtml();
             
             if(isset($msg)) { // show error if defined as post jsscript
                 ?>
