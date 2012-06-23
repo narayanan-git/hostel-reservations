@@ -1204,15 +1204,15 @@ if (empty( $num_per_page_check)) {
     // B o o k i n g    L i s t i n g    P A G E
     function wpdevbk_show_booking_listings() {
 
-        wpdevbk_get_default_bk_listing_filter_set_to_params('default');         // Get saved filters set
+//        wpdevbk_get_default_bk_listing_filter_set_to_params('default');         // Get saved filters set
 
-        wpdevbk_booking_listings_interface_header();                            // Show Filters and Action tabs
+//        wpdevbk_booking_listings_interface_header();                            // Show Filters and Action tabs
 
         // If the booking resources is not set, and current user  is not superadmin, so then get only the booking resources of the current user
-        make_bk_action('check_for_resources_of_notsuperadmin_in_booking_listing' );
+//        make_bk_action('check_for_resources_of_notsuperadmin_in_booking_listing' );
 
-	$args = wpdev_get_args_from_request_in_bk_listing();                    // Get safy PARAMS from REQUEST
-        ?><textarea id="bk_request_params" style="display:none;"><?php echo  serialize($args) ; ?></textarea><?php
+//	$args = wpdev_get_args_from_request_in_bk_listing();                    // Get safy PARAMS from REQUEST
+/*        ?><textarea id="bk_request_params" style="display:none;"><?php echo  serialize($args) ; ?></textarea><?php */
 
 //        $bk_listing = wpdev_get_bk_listing_structure_engine( $args );           // Get Bookings structure
 //        $bookings       = $bk_listing[0];
@@ -1245,6 +1245,7 @@ if (empty( $num_per_page_check)) {
         $status = null;
         $name = null;
         $av->doSearch($minDate, $maxDate, $resourceId, $status, $name);
+        error_log($av->toXml());
         echo $av->toHtml();
     }
     
