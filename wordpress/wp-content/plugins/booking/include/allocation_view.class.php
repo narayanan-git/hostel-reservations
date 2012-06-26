@@ -5,74 +5,87 @@
  */
 class AllocationView {
     private $bookingResources = array();  // array of BookingResource
-    var $showMinDate;
-    var $showMaxDate;
+    var $showMinDate;   // earliest date to show (DateTime)
+    var $showMaxDate;   // latest date to show (DateTime)
     
     function AllocationView() {
+        // default dates to 2-week range from 2-days ago
+        $this->showMinDate = new DateTime();
+        $this->showMinDate->sub(new DateInterval('P2D'));
+        $this->showMaxDate = new DateTime();
+        $this->showMaxDate->add(new DateInterval('P12D'));
     }
     
     /**
      * Runs the search by allocation grouped by resource.
      * Saves the result in the current object.
-     * $minDate : min date to include bookings for (d.m.Y)
-     * $maxDate : max date to include bookings for (d.m.Y)
-     * $resourceId : id of resource to match (specifying a parent id will bring back its children) (optional)
-     * $status : allocation status (e.g. checkedin, checkedout) (optional)
-     * $name : guest name for allocation or booking name to match (optional)
      */
-    function doSearch($minDate, $maxDate, $resourceId, $status, $name) {
-        $this->showMinDate = DateTime::createFromFormat('!d.m.Y', $minDate, new DateTimeZone('UTC'));
-        $this->showMaxDate = DateTime::createFromFormat('!d.m.Y', $maxDate, new DateTimeZone('UTC'));
+    function doSearch() {
         $this->bookingResources = AllocationDBO::getAllocationsByResourceForDateRange(
-                $this->showMinDate, $this->showMaxDate, $resourceId, $status, $name);
+                $this->showMinDate, $this->showMaxDate, null /* resource id */, 
+                null /* status */, 
+                null /* name */);
     }
 
     /** 
       Generates the following xml:
-        <resource>
-            <id>1</id>
-            <name>Hostelworld 10 Bed Mixed Dorm</name>
+        <view>
+            <filter>
+                <checkindate1>2012-06-21</checkindate1>
+                <checkindate2>2012-06-28</checkindate2>
+            </filter>
             <resource>
-                <id>4</id>
-                <name>Room 10</name>
-                <type>room</type>
+                <id>1</id>
+                <name>Hostelworld 10 Bed Mixed Dorm</name>
                 <resource>
-                    <id>5</id>
-                    <name>Bed A</name>
-                    <type>bed</type>
-                    <cells> <!-- cells comprises one row on the allocation table -->
-                        <allocationcell span="1"/>
-                        <allocationcell span="4">
-                            <id>1</id>
-                            <name>Megan-1</name>
-                            <gender>Female</gender>
-                            <status>checkedin</status>
-                        </allocationcell>
-                        <allocationcell span="2"/>
-                        <allocationcell span="3">
-                            <id>2</id>
-                            <name>Romeo-1</name>
-                            <gender>Female</gender>
-                            <status>checkedin</status>
-                        <allocationcell>
-                    </cells>
+                    <id>4</id>
+                    <name>Room 10</name>
+                    <type>room</type>
+                    <resource>
+                        <id>5</id>
+                        <name>Bed A</name>
+                        <type>bed</type>
+                        <cells> <!-- cells comprises one row on the allocation table -->
+                            <allocationcell span="1"/>
+                            <allocationcell span="4">
+                                <id>1</id>
+                                <name>Megan-1</name>
+                                <gender>Female</gender>
+                                <status>checkedin</status>
+                            </allocationcell>
+                            <allocationcell span="2"/>
+                            <allocationcell span="3">
+                                <id>2</id>
+                                <name>Romeo-1</name>
+                                <gender>Female</gender>
+                                <status>checkedin</status>
+                            <allocationcell>
+                        </cells>
+                    </resource>
+                </resource>
+                <resource>
+                    ...
                 </resource>
             </resource>
             <resource>
                 ...
             </resource>
-        </resource>
-        <resource>
-            ...
-        </resource>
+            
+            <dateheaders>
+                ...
+            </dateheaders>
+        </view>
      */
     function toXml() {
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
         
-        $xmlRoot = $domtree->createElement('view');
-        $xmlRoot = $domtree->appendChild($xmlRoot);
+        $xmlRoot = $domtree->appendChild($domtree->createElement('view'));
 
+        // search criteria
+        $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
+        $filterRoot->appendChild($domtree->createElement('checkindate1', $this->showMinDate->format('Y-m-d')));
+        $filterRoot->appendChild($domtree->createElement('checkindate2', $this->showMaxDate->format('Y-m-d')));
         
         foreach ($this->bookingResources as $book) {
             $book->addSelfToDocument($domtree, $xmlRoot);
@@ -84,7 +97,7 @@ class AllocationView {
             
             // if spanning more than one month, print out both months
             if($this->showMinDate->format('F') !== $this->showMaxDate->format('F')) {
-                $dateHeaders->appendChild($domtree->createElement('header', $this->showMinDate->format('F') . '/' . $this->showMaxDate->format('F')));
+                $dateHeaders->appendChild($domtree->createElement('header', $this->showMinDate->format('F') . ' - ' . $this->showMaxDate->format('F')));
             } else {
                 $dateHeaders->appendChild($domtree->createElement('header', $this->showMinDate->format('F')));
             }

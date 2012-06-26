@@ -166,7 +166,7 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
         global $wpdb;
 
         // fetch all matching allocations; key => resource id, value => array[AllocationRow]
-        $nameToMatch = $name == null ? '__ALL__' : str_replace('*', '%', strtolower($name));
+        $nameToMatch = $name == null ? '__ALL__' : '%'.str_replace('*', '%', strtolower($name)).'%';
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT alloc.allocation_id, alloc.guest_name, alloc.gender, alloc.status, alloc.resource_id, bk.firstname, bk.lastname
                FROM ".$wpdb->prefix."allocation alloc
@@ -176,7 +176,7 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
                     ". ($resourceId == null ? "" : "
                             AND   ((path LIKE '%%/$resourceId' AND number_children = 0)
                                 OR (path LIKE '%%/$resourceId/%%' AND number_children = 0))") . "
-                AND (".($name == null ? "'__ALL__' =" : "LOWER(alloc.name) LIKE") ." %s
+                AND (".($name == null ? "'__ALL__' =" : "LOWER(alloc.guest_name) LIKE") ." %s
                         OR ".($name == null ? "'__ALL__' =" : "LOWER(bk.firstname) LIKE") ." %s
                         OR ".($name == null ? "'__ALL__' =" : "LOWER(bk.lastname) LIKE") ." %s
                     ) AND EXISTS (SELECT 1 from ".$wpdb->prefix."bookingdates bd
@@ -188,6 +188,10 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
             $status == null ? '__ALL__' : $status, 
             $nameToMatch, $nameToMatch, $nameToMatch,
             $startDate->format('d.m.Y'), $endDate->format('d.m.Y')));
+
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
             
         // best we put this into a 2D map, first by resource id, then date
         // value = row in resultset (above)
@@ -215,8 +219,8 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
     private static function buildResourceTree($startDate, $endDate, $filteredResourceId, $resourceToBookingDateAllocationMap) {
         // to make it easier to render the front-end table, we will create table "cells"
         // for all dates from $startDate to $endDate for each resource
-debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format('d.m.Y')." for $filteredResourceId ",
-                $resourceToBookingDateAllocationMap);
+//debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format('d.m.Y')." for $filteredResourceId ",
+//                $resourceToBookingDateAllocationMap);
         // another 2D map, to store the final allocation "cells"
         $resourceBookingDateMap = array();
         
@@ -249,10 +253,10 @@ debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format
                 $start->add(new DateInterval('P1D'));  // increment by day
             }
         }
-debuge("resourceBookingDateMap ", $resourceBookingDateMap);
+//debuge("resourceBookingDateMap ", $resourceBookingDateMap);
         // now get all the resources an bind the allocations above to them
         $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceBookingDateMap);
-debuge("bookingresources", $bookingResources);
+//debuge("bookingresources", $bookingResources);
         return $bookingResources;
     }
     

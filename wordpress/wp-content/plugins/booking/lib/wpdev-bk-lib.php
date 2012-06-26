@@ -1203,29 +1203,44 @@ if (empty( $num_per_page_check)) {
 
     // B o o k i n g    L i s t i n g    P A G E
     function wpdevbk_show_booking_listings() {
+        $av = new AllocationView();
 
-//        wpdevbk_get_default_bk_listing_filter_set_to_params('default');         // Get saved filters set
+        if (isset($_POST['checkindate1']) && trim($_POST['checkindate1']) != '') {
+            $av->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['checkindate1'], new DateTimeZone('UTC'));
+        }
+        
+        if (isset($_POST['checkindate2']) && trim($_POST['checkindate2']) != '') {
+            $av->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['checkindate2'], new DateTimeZone('UTC'));
+        }
 
-//        wpdevbk_booking_listings_interface_header();                            // Show Filters and Action tabs
+        $av->doSearch();
+
+        error_log($av->toXml());
+        echo $av->toHtml();
+    }
+
+    function wpdevbk_show_booking_listings_OLD() {
+
+        wpdevbk_get_default_bk_listing_filter_set_to_params('default');         // Get saved filters set
+
+        wpdevbk_booking_listings_interface_header();                            // Show Filters and Action tabs
 
         // If the booking resources is not set, and current user  is not superadmin, so then get only the booking resources of the current user
-//        make_bk_action('check_for_resources_of_notsuperadmin_in_booking_listing' );
+        make_bk_action('check_for_resources_of_notsuperadmin_in_booking_listing' );
 
-//	$args = wpdev_get_args_from_request_in_bk_listing();                    // Get safy PARAMS from REQUEST
-/*        ?><textarea id="bk_request_params" style="display:none;"><?php echo  serialize($args) ; ?></textarea><?php */
+	$args = wpdev_get_args_from_request_in_bk_listing();                    // Get safy PARAMS from REQUEST
+        ?><textarea id="bk_request_params" style="display:none;"><?php echo  serialize($args) ; ?></textarea><?php
 
-//        $bk_listing = wpdev_get_bk_listing_structure_engine( $args );           // Get Bookings structure
-//        $bookings       = $bk_listing[0];
-//        $booking_types  = $bk_listing[1];
-//        $bookings_count = $bk_listing[2];
-//        $page_num       = $bk_listing[3];
-//        $page_items_count= $bk_listing[4];
+        $bk_listing = wpdev_get_bk_listing_structure_engine( $args );           // Get Bookings structure
+        $bookings       = $bk_listing[0];
+        $booking_types  = $bk_listing[1];
+        $bookings_count = $bk_listing[2];
+        $page_num       = $bk_listing[3];
+        $page_items_count= $bk_listing[4];
         
-//        booking_listing_table($bookings , $booking_types);                      // Show the bookings listing table
-        booking_listing_table(0 , 0);                      // Show the bookings listing table
+        booking_listing_table($bookings , $booking_types);                      // Show the bookings listing table
 
-//        wpdevbk_show_pagination($bookings_count, $page_num, $page_items_count); // Show Pagination
-        wpdevbk_show_pagination(0, 1, 10); // Show Pagination
+        wpdevbk_show_pagination($bookings_count, $page_num, $page_items_count); // Show Pagination
         
         wpdevbk_booking_listing_write_js();                                     // Wtite inline  JS
         wpdevbk_booking_listing_write_css();                                    // Write inline  CSS
@@ -1238,18 +1253,6 @@ if (empty( $num_per_page_check)) {
 
     //   S H O W      B o o k i n g    L i s t i n g    T a b l e
     function booking_listing_table($bookings , $booking_types) {
-        $av = new AllocationView();
-        $minDate = '13.06.2012';
-        $maxDate = '30.06.2012';
-        $resourceId = null;
-        $status = null;
-        $name = null;
-        $av->doSearch($minDate, $maxDate, $resourceId, $status, $name);
-        error_log($av->toXml());
-        echo $av->toHtml();
-    }
-    
-    function booking_listing_table_OLD($bookings , $booking_types) {
 
         $user = wp_get_current_user(); $user_bk_id = $user->ID;
         

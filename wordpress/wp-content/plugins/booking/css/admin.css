@@ -1159,7 +1159,7 @@ text-align: center !important;
 #wh_booking_date, #wh_booking_date2, #wh_modification_date, #wh_modification_date2 {
     width:75px;
 }
-#wh_approved_selector {
+#status_selector {
     width: 75px;
 }
 #wh_booking_type {
