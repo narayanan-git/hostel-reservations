@@ -705,7 +705,7 @@ if (!class_exists('wpdev_booking')) {
 
         //Booking
         function on_show_booking_page_main() {
-            $this->on_show_page_adminmenu('wpdev-booking','/img/calendar-48x48.png', __('Bookings listing', 'wpdev-booking'),1);
+            $this->on_show_page_adminmenu('wpdev-booking','/img/calendar-48x48.png', __('Bookings View', 'wpdev-booking'),1);
         }
         //Add resrvation
         function on_show_booking_page_addbooking() {
@@ -3812,9 +3812,11 @@ echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
                 $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
                         SELECT resource_id, name, parent_resource_id, path, resource_type,
                                LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
-                               (SELECT SUM(capacity) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR)) AS number_children
+                               (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) AND resource_type = 'bed') AS number_children,
+                               (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE (s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) OR s1.path = s.path) AND resource_type = 'bed') AS capacity
                           FROM ".$wpdb->prefix."v_resources_sub1 s
                          ORDER BY path";
+// FIXME: remove number_children, capacity ==> number_beds
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
