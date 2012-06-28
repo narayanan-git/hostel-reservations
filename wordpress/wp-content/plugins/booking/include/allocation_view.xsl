@@ -15,8 +15,8 @@
         <div class="nav-tabs-wrapper">
             <div class="nav-tabs">
 
-                <a class="nav-tab  nav-tab-active " title=""  href="#" onclick="javascript:jQuery('.visibility_container').hide(); jQuery('#filter').show();jQuery('.nav-tab').removeClass('nav-tab-active');jQuery(this).addClass('nav-tab-active');"><img class="menuicons" src="/wp-content/plugins/booking/img/Season-64x64.png"/>Filter</a>
-                <a class="nav-tab " title=""  href="#" onclick="javascript:jQuery('.visibility_container').hide(); jQuery('#actions').show();jQuery('.nav-tab').removeClass('nav-tab-active');jQuery(this).addClass('nav-tab-active');"><img class="menuicons" src="/wp-content/plugins/booking/img/actionservices24x24.png"/>Actions</a>
+                <a class="nav-tab  nav-tab-active " title=""  href="#" onclick="javascript:jQuery('.visibility_container').hide(); jQuery('#filter').show();jQuery('#allocation_view').show();jQuery('.nav-tab').removeClass('nav-tab-active');jQuery(this).addClass('nav-tab-active');"><img class="menuicons" src="/wp-content/plugins/booking/img/Season-64x64.png"/>Allocations</a>
+                <a class="nav-tab " title=""  href="#" onclick="javascript:jQuery('.visibility_container').hide(); jQuery('#bookings').show();jQuery('#booking_view').show();jQuery('.nav-tab').removeClass('nav-tab-active');jQuery(this).addClass('nav-tab-active');"><img class="menuicons" src="/wp-content/plugins/booking/img/actionservices24x24.png"/>Bookings</a>
                                     
                 <span class="dropdown pull-right">
                     <a href="#" data-toggle="dropdown" class="dropdown-toggle nav-tab ">
@@ -37,14 +37,14 @@
         <div class="nav-tabs booking-submenu-tab-insidecontainer">
 
             <div class="visibility_container active" id="filter" style="display:block;">
-                <xsl:call-template name="show_booking_filters"/>
+                <xsl:call-template name="show_allocation_view"/>
 
                 <span id="show_link_advanced_booking_filter" class="tab-bottom tooltip_right" data-original-title="Expand Advanced Filter"  rel="tooltip"><a href="#" onclick="javascript:jQuery('.advanced_booking_filter').show();jQuery('#show_link_advanced_booking_filter').hide();jQuery('#hide_link_advanced_booking_filter').show();"><span class="icon-chevron-down"></span></a></span>
                 <span id="hide_link_advanced_booking_filter" style="display:none;" class="tab-bottom tooltip_right" data-original-title="Collapse Advanced Filter" rel="tooltip" ><a href="#"  onclick="javascript:jQuery('.advanced_booking_filter').hide(); jQuery('#hide_link_advanced_booking_filter').hide(); jQuery('#show_link_advanced_booking_filter').show();"><span class="icon-chevron-up"></span></a></span>
             </div>
 
-            <div class="visibility_container" id="actions"  style="display:none;">
-                <xsl:call-template name="show_booking_actions"/>
+            <div class="visibility_container" id="bookings"  style="display:none;">
+                <xsl:call-template name="show_booking_view"/>
             </div>
 
             <div class="visibility_container" id="help" style="display:none;"><xsl:comment/></div>
@@ -54,15 +54,20 @@
 
     <div style="height:1px;clear:both;margin-top:40px;"><xsl:comment/></div>
     
-    <xsl:apply-templates select="resource"/>
+    <div class="visibility_container" id="allocation_view" style="display:block;">
+        <xsl:apply-templates select="resource"/>
+    </div>
+    <div class="visibility_container" id="booking_view" style="display:none;">
+        This is the booking view
+    </div>
 
     <xsl:call-template name="write_inline_js"/>
     <xsl:call-template name="write_inline_css"/>
 
 </xsl:template>
 
-<!-- tabbed view for "Filter" -->
-<xsl:template name="show_booking_filters">
+<!-- tabbed view for "Allocations" -->
+<xsl:template name="show_allocation_view">
     <div style="clear:both;height:1px;"><xsl:comment/></div>
     <div class="wpdevbk-filters-section ">
 
@@ -73,45 +78,34 @@
             </form>
         </div>
 
-        <form  name="booking_filters_form" action="" method="post" id="booking_filters_form"  class="form-inline">
-            <a class="btn btn-primary" style="float: left; margin-right: 15px; margin-top: 5px;"
-                onclick="javascript:booking_filters_form.submit();">Apply <span class="icon-refresh icon-white"></span>
+        <form  name="allocation_view_form" action="" method="post" id="allocation_view_form"  class="form-inline">
+            <a class="btn btn-primary" style="float: left; margin-right: 15px;"
+                onclick="javascript:allocation_view_form.submit();">Apply <span class="icon-refresh icon-white"></span>
             </a>
 
             <div class="control-group" style="float:left;">
-                <label for="checkindate1" class="control-label"></label>
+                <label for="allocationmindate" class="control-label"><xsl:comment/></label>
                 <div class="inline controls">
                     <div class="btn-group">
                         <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                            value="{/view/filter/checkindate1}"  id="checkindate1"  name="checkindate1" />
+                            value="{/view/filter/allocationmindate}"  id="allocationmindate"  name="allocationmindate" />
                         <span class="add-on"><span class="icon-calendar"></span></span>
                     </div>
-                <p class="help-block" style="float:left;padding-left:5px;">Check-In Date (from)</p>
+                <p class="help-block" style="float:left;padding-left:5px;">Date (from)</p>
                 </div>
             </div>
     
             <div class="control-group" style="float:left;">
-                <label for="checkindate2" class="control-label"></label>
+                <label for="allocationmaxdate" class="control-label"><xsl:comment/></label>
                 <div class="inline controls">
                     <div class="btn-group">
                         <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                            value="{/view/filter/checkindate2}"  id="checkindate2"  name="checkindate2" />
+                            value="{/view/filter/allocationmaxdate}"  id="allocationmaxdate"  name="allocationmaxdate" />
                         <span class="add-on"><span class="icon-calendar"></span></span>
                     </div>
-                <p class="help-block" style="float:left;padding-left:5px;">Check-In Date (to)</p>
+                <p class="help-block" style="float:left;padding-left:5px;">Date (to)</p>
                 </div>
             </div>
-    
-            <!-- div class="control-group" style="float:left;">
-                <label for="filter_name" class="control-label"></label>
-                <div class="inline controls">
-                    <div class="btn-group">
-                        <input style="width:140px;" type="text" class="span2span2"  placeholder=""
-                            value="{/view/filter/name}"  id="filter_name"  name="filter_name" />
-                    </div>
-                    <p class="help-block" style="text-align:center">Search by Name</p>
-                </div>
-            </div -->
     
             <div class="clear"><xsl:comment/></div>
         </form>
@@ -121,66 +115,113 @@
 </xsl:template>
 
 
-<!-- tabbed view for "Actions" -->
-<xsl:template name="show_booking_actions">
+<!-- tabbed view for "Bookings" -->
+<xsl:template name="show_booking_view">
 
-    <div class="btn-toolbar" style="margin:0px;">
-        <div class="btn-group" style="margin-top: 2px; vertical-align: top;">
-            <a data-original-title="Approve selected bookings"  rel="tooltip" class="tooltip_top btn btn-primary"
-                onclick="javascript: approve_unapprove_booking( get_selected_bookings_id_in_booking_listing() , 1, 2, 'en_US' , 1);">
-                Approve <span class="icon-ok icon-white"></span></a>
-            <a data-original-title="Set selected bookings as pening"  rel="tooltip" class="tooltip_top btn"
-                onclick="javascript: if ( bk_are_you_sure('Are you really want to set booking as pending ?') ) approve_unapprove_booking( get_selected_bookings_id_in_booking_listing() , 0, 2, 'en_US' , 1);">
-                Unapprove <span class="icon-ban-circle"></span></a>
-        </div>
-            
-        <div class="btn-group" style="margin-top: 2px; vertical-align: top;">
-            <a data-original-title="Delete selected bookings"  rel="tooltip" class="tooltip_top btn btn-danger"
-                onclick="javascript: if ( bk_are_you_sure('Are you really want to delete selected booking(s) ?') ) delete_booking( get_selected_bookings_id_in_booking_listing() , 2, 'en_US' , 1  );">
-                Delete <span class="icon-trash icon-white"></span></a>
-            <input style="border-bottom-left-radius: 0; border-top-left-radius: 0; height: 28px; "
-                   type="text" placeholder="Reason of cancellation here"
-                   class="span3" value="" id="denyreason" name="denyreason" />
-        </div>
-
-        <!-- div class="control-group" style="float:left;">
-            <label for="filter_status" class="control-label"></label>
-            <div class="inline controls">
-                <div class="btn-group">
-                    <a href="#" data-toggle="dropdown" id="status_selector" class="btn dropdown-toggle">
-                        <xsl:choose>
-                            <xsl:when test="/view/filter/status = 'reserved'">Reserved</xsl:when>
-                            <xsl:when test="/view/filter/status = 'checkedin'">Checked-In</xsl:when>
-                            <xsl:when test="/view/filter/status = 'checkedout'">Checked-Out</xsl:when>
-                            <xsl:when test="/view/filter/status = 'cancelled'">Cancelled</xsl:when>
-                            <xsl:otherwise>All</xsl:otherwise>
-                        </xsl:choose>
-                        <span class="caret"></span></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('reserved');" >Reserved</a></li>
-                        <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('checkedin');" >Checked-In</a></li>
-                        <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('checkedout');" >Checked-Out</a></li>
-                        <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('cancelled');" >Cancelled</a></li>
-                        <li class="divider"></li>
-                        <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('all');" >All</a></li>
-                    </ul>
-                    <input type="hidden" value="{/view/filter/status}" id="filter_status" name="filter_status" />
+    <div style="clear:both;height:1px;"><xsl:comment/></div>
+    <div class="wpdevbk-filters-section ">
+        <form name="booking_view_form" action="" method="post" id="booking_view_form"  class="form-inline">
+            <div class="btn-toolbar" style="margin:0px;">
+                <div class="btn-group" style="float:left; margin-right: 15px; vertical-align: top;">
+                    <a data-original-title="Search for selected bookings"  rel="tooltip" class="tooltip_top btn btn-primary"
+                        onclick="javascript:booking_view_form.submit();">
+                        Search <span class="icon-refresh icon-white"></span></a>
                 </div>
-                <p class="help-block">Booking Status</p>
+                    
+                <div class="control-group" style="float:left;">
+                    <label for="filter_status" class="control-label"><xsl:comment/></label>
+                    <div class="inline controls">
+                        <div class="btn-group">
+                            <a href="#" data-toggle="dropdown" id="status_selector" class="btn dropdown-toggle">
+                                <xsl:choose>
+                                    <xsl:when test="/view/filter/status = 'reserved'">Reserved</xsl:when>
+                                    <xsl:when test="/view/filter/status = 'checkedin'">Checked-In</xsl:when>
+                                    <xsl:when test="/view/filter/status = 'checkedout'">Checked-Out</xsl:when>
+                                    <xsl:when test="/view/filter/status = 'cancelled'">Cancelled</xsl:when>
+                                    <xsl:otherwise>All <xml:text> </xml:text></xsl:otherwise>
+                                </xsl:choose>
+                                <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('reserved');" >Reserved</a></li>
+                                <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('checkedin');" >Checked-In</a></li>
+                                <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('checkedout');" >Checked-Out</a></li>
+                                <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('cancelled');" >Cancelled</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('all');" >All</a></li>
+                            </ul>
+                            <input type="hidden" value="{/view/filter/status}" id="filter_status" name="filter_status" />
+                        </div>
+                        <p class="help-block" style="margin-top:0px">Booking Status</p>
+                    </div>
+                </div>
+    
+                <div class="control-group" style="float:left;">
+                    <label for="bookingmindate" class="control-label"><xsl:comment/></label>
+                    <div class="inline controls">
+                        <div class="btn-group">
+                            <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
+                                value="{/view/filter/bookingmindate}"  id="bookingmindate"  name="bookingmindate" />
+                            <span class="add-on"><span class="icon-calendar"></span></span>
+                        </div>
+                    <p class="help-block" style="text-align:left;padding-left:15px;">Date (from)</p>
+                    </div>
+                </div>
+        
+                <div class="control-group" style="float:left;">
+                    <label for="bookingmaxdate" class="control-label"><xsl:comment/></label>
+                    <div class="inline controls">
+                        <div class="btn-group">
+                            <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
+                                value="{/view/filter/bookingmaxdate}"  id="bookingmaxdate"  name="bookingmaxdate" />
+                            <span class="add-on"><span class="icon-calendar"></span></span>
+                        </div>
+                    <p class="help-block" style="text-align:left;padding-left:15px;">Date (to)</p>
+                    </div>
+                </div>
+    
+                <div class="control-group" style="float:left;">
+                    <label for="filter_datetype" class="control-label"><xsl:comment/></label>
+                    <div class="inline controls">
+                        <div class="btn-group">
+                            <a href="#" data-original-title="Match from/to dates by:&lt;br&gt; Check-In Date: earliest date of any booking &lt;br&gt; Reservation Date (Any): any booking that overlaps the dates given &lt;br&gt; Date Added: date booking was created" rel="tooltip" data-toggle="dropdown" id="datetype_selector" class="btn dropdown-toggle tooltip_top">
+                                <xsl:choose>
+                                    <xsl:when test="/view/filter/datetype = 'reserved'">Reservation Date (Any)</xsl:when>
+                                    <xsl:when test="/view/filter/datetype = 'creation'">Date Added</xsl:when>
+                                    <xsl:otherwise>Check-In Date<xml:text> </xml:text></xsl:otherwise>
+                                </xsl:choose>
+                                <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('checkin');" >Check-In Date</a></li>
+                                <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('reserved');" >Reservation Date (Any)</a></li>
+                                <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('creation');" >Date Added</a></li>
+                            </ul>
+                            <input type="hidden" value="{/view/filter/datetype}" id="filter_datetype" name="filter_datetype" />
+                        </div>
+                        <p class="help-block" style="margin-top:0px; text-align:center">Match Dates By</p>
+                    </div>
+                </div>
+                
+                <div class="control-group" style="float:left;">
+                    <label for="filter_name" class="control-label"><xsl:comment/></label>
+                    <div class="inline controls">
+                        <div class="btn-group">
+                            <input style="width:140px;" type="text" class="span2span2"  placeholder=""
+                                value="{/view/filter/name}"  id="filter_name"  name="filter_name" />
+                        </div>
+                        <p class="help-block" style="text-align:center">Search by Name</p>
+                    </div>
+                </div>
+        
+                <div class="btn-group" style="margin-top: 2px; vertical-align: top;">
+                    <a  data-original-title="Print bookings listing"  rel="tooltip"
+                        class="tooltip_top btn" onclick="javascript:print_booking_listing();">
+                        Print <span class="icon-print"></span></a>
+                    <a data-original-title="Export only current page of bookings to CSV format"  rel="tooltip" class="tooltip_top btn" onclick="javascript:export_booking_listing('page');">
+                        Export <span class="icon-list"></span></a>
+                </div>
+                <xsl:comment/>
             </div>
-        </div -->
-
-        <div class="btn-group" style="margin-top: 2px; vertical-align: top;">
-            <a  data-original-title="Print bookings listing"  rel="tooltip"
-                class="tooltip_top btn" onclick="javascript:print_booking_listing();">
-                Print <span class="icon-print"></span></a>
-            <a data-original-title="Export only current page of bookings to CSV format"  rel="tooltip" class="tooltip_top btn" onclick="javascript:export_booking_listing('page');">
-                Export <span class="icon-list"></span></a>
-            <a data-original-title="Export All bookings to CSV format"  rel="tooltip"
-               class="tooltip_top btn" onclick="javascript:export_booking_listing('all');">
-                Export All <span class="icon-list"></span></a>
-        </div>
-        <xsl:comment/>
+        </form>
     </div>
     <div class="clear" style="height:1px;"><xsl:comment/></div>
     <div id="admin_bk_messages" style="margin:0px;"><xsl:comment/></div>

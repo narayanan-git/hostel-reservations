@@ -1203,20 +1203,33 @@ if (empty( $num_per_page_check)) {
 
     // B o o k i n g    L i s t i n g    P A G E
     function wpdevbk_show_booking_listings() {
+
         $av = new AllocationView();
-
-        if (isset($_POST['checkindate1']) && trim($_POST['checkindate1']) != '') {
-            $av->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['checkindate1'], new DateTimeZone('UTC'));
+        // if allocation date is defined, we are on the allocations view
+        if (isset($_POST['allocationmindate']) && trim($_POST['allocationmindate']) != '') {
+            $av->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
+            $av->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
         }
-        
-        if (isset($_POST['checkindate2']) && trim($_POST['checkindate2']) != '') {
-            $av->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['checkindate2'], new DateTimeZone('UTC'));
-        }
-
         $av->doSearch();
-
-        error_log($av->toXml());
         echo $av->toHtml();
+        
+debuge($_POST);
+        // if filter_status is defined, we are on the bookings view
+        if (isset($_POST['filter_status']) && trim($_POST['filter_status']) != '') {
+error_log("filter status is defined");
+            $bv = new BookingsView();
+            $av->minDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC'));
+            $av->maxDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC'));
+            $bv->status = $_POST['filter_status'] == 'all' ? null : $_POST['filter_status'];
+            $bv->matchName = trim($_POST['filter_name']) == '' ? null : $_POST['filter_name'];
+            $bv->dateMatchType = $_POST['filter_datetype'];
+//            $bv->resourceId = $_POST['filter_resource_id'];
+            $bv->doSearch();
+debuge($bv->toXml());
+            error_log($bv->toXml());
+        } else {
+error_log("filter status is not defined");
+        }
     }
 
     function wpdevbk_show_booking_listings_OLD() {

@@ -31,8 +31,8 @@ class AllocationView {
       Generates the following xml:
         <view>
             <filter>
-                <checkindate1>2012-06-21</checkindate1>
-                <checkindate2>2012-06-28</checkindate2>
+                <allocationmindate>2012-06-21</allocationmindate>
+                <allocationmaxdate>2012-06-28</allocationmaxdate>
             </filter>
             <resource>
                 <id>1</id>
@@ -84,8 +84,8 @@ class AllocationView {
 
         // search criteria
         $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
-        $filterRoot->appendChild($domtree->createElement('checkindate1', $this->showMinDate->format('Y-m-d')));
-        $filterRoot->appendChild($domtree->createElement('checkindate2', $this->showMaxDate->format('Y-m-d')));
+        $filterRoot->appendChild($domtree->createElement('allocationmindate', $this->showMinDate->format('Y-m-d')));
+        $filterRoot->appendChild($domtree->createElement('allocationmaxdate', $this->showMaxDate->format('Y-m-d')));
         
         foreach ($this->bookingResources as $book) {
             $book->addSelfToDocument($domtree, $xmlRoot);
