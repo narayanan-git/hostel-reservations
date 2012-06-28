@@ -31,6 +31,10 @@ class ResourceDBO {
                                 OR (path LIKE '%%/$resourceId/%%' AND number_children = 0))") . "
               ORDER BY path"));
         
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
         $result = array();
         foreach ($resultset as $res) {
             $result[$res->resource_id] = $res;
