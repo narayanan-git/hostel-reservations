@@ -1135,4 +1135,108 @@ function save_bk_listing_filter(us_id,  filter_name, filter_value ){
                 }
         });
 }
+
+//Print
+function print_booking_listing(){
+    jQuery("#print_loyout_content").html( jQuery("#booking_print_loyout").html() ) ;
+    jQuery("#printLoyoutModal").modal("show");
+}
+
+jQuery.fn.print = function(){
+    // NOTE: We are trimming the jQuery collection down to the
+    // first element in the collection.
+    if (this.size() > 1){
+        this.eq( 0 ).print();
+        return;
+    } else if (!this.size()){
+        return;
+    }
+
+    // ASSERT: At this point, we know that the current jQuery
+    // collection (as defined by THIS), contains only one
+    // printable element.
+    // Create a random name for the print frame.
+    var strFrameName = ("printer-" + (new Date()).getTime());
+    // Create an iFrame with the new name.
+    var jFrame = jQuery( "<iframe name='" + strFrameName + "'>" );
+    // Hide the frame (sort of) and attach to the body.
+    jFrame.css( "width", "1px" )
+        .css( "height", "1px" )
+        .css( "position", "absolute" )
+        .css( "left", "-9999px" )
+        .appendTo( jQuery( "body:first" ) );
+
+    // Get a FRAMES reference to the new frame.
+    var objFrame = window.frames[ strFrameName ];
+
+    // Get a reference to the DOM in the new frame.
+    var objDoc = objFrame.document;
+    // Grab all the style tags and copy to the new
+    // document so that we capture look and feel of
+    // the current document.
+    // Create a temp document DIV to hold the style tags.
+    // This is the only way I could find to get the style
+    // tags into IE.
+    var jStyleDiv = jQuery( "<div>" ).append(
+        jQuery( "style" ).clone()
+    );
+
+    // Write the HTML for the document. In this, we will
+    // write out the HTML of the current element.
+    objDoc.open();
+    objDoc.write( "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">" );
+    objDoc.write( "<html>" );
+    objDoc.write( "<head>" );
+    objDoc.write( "<title>" );
+    objDoc.write( document.title );
+    objDoc.write( "</title>" );
+    // objDoc.write( jStyleDiv.html() );
+    objDoc.write( "<link href='" + wpdev_bk_plugin_url + "/interface/bs/css/bs.min.css' rel='stylesheet' type='text/css' />" );
+    objDoc.write( "<link href='" + wpdev_bk_plugin_url + "/css/admin.css' rel='stylesheet' type='text/css' />" );
+    objDoc.write( "</head>" );
+    objDoc.write( "<body>" );
+    objDoc.write( this.html() );
+    objDoc.write( "</body>" );
+    objDoc.write( "</html>" );
+    objDoc.close();
+    // Print the document.
+    objFrame.focus();
+    objFrame.print();
+    // Have the frame remove itself in about a minute so that
+    // we don't build up too many of these frames.
+    setTimeout(
+        function(){
+            jFrame.remove();
+        },
+        (60 * 1000));
+}
+
+// Export
+function export_booking_listing(export_type){
+    var wpdev_ajax_path = wpdev_bk_plugin_url+'/' + wpdev_bk_plugin_filename ;
+    var ajax_type_action = 'EXPORT_BOOKINGS_TO_CSV';
+    var ajax_bk_message = 'Start exporting...';
+    var bk_request_params = document.getElementById('bk_request_params').value;
+    document.getElementById('ajax_working').innerHTML =
+        '<div class="info_message ajax_message" id="ajax_message">\n\
+            <div style="float:left;">'+ajax_bk_message+'</div> \n\
+            <div style="float:left;width:80px;margin-top:-3px;">\n\
+                <img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif">\n\
+            </div>\n\
+            </div>';
+    // Ajax POST here
+    jQuery.ajax({ // Start Ajax Sending
+        url: wpdev_ajax_path,
+        type:'POST',
+        success: function (data, textStatus){ if( textStatus == 'success') jQuery('#ajax_respond').html( data );},
+        error:function (XMLHttpRequest, textStatus, errorThrown){ window.status = 'Ajax sending Error status:'+ textStatus; alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText); if (XMLHttpRequest.status == 500) { alert('Please check at this page according this error:' + ' http://wpbookingcalendar.com/faq/#ajax-sending-error'); } },
+        // beforeSend: someFunction,
+        data:{
+            ajax_action : ajax_type_action,
+            csv_data:bk_request_params,
+            export_type:export_type
+        }
+    });
+}
+
 //]]>
