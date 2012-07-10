@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
 <!--
@@ -55,10 +55,10 @@
     <div style="height:1px;clear:both;margin-top:40px;"><xsl:comment/></div>
     
     <div class="visibility_container" id="allocation_view" style="display:block;">
-        <xsl:apply-templates select="resource"/>
+        <xsl:apply-templates select="allocationview/resource"/>
     </div>
     <div class="visibility_container" id="booking_view" style="display:none;">
-        This is the booking view
+        <xsl:apply-templates select="bookingview"/>
     </div>
 
     <xsl:call-template name="write_inline_js"/>
@@ -88,7 +88,7 @@
                 <div class="inline controls">
                     <div class="btn-group">
                         <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                            value="{/view/filter/allocationmindate}"  id="allocationmindate"  name="allocationmindate" />
+                            value="{/view/allocationview/filter/allocationmindate}"  id="allocationmindate"  name="allocationmindate" />
                         <span class="add-on"><span class="icon-calendar"></span></span>
                     </div>
                 <p class="help-block" style="float:left;padding-left:5px;">Date (from)</p>
@@ -100,7 +100,7 @@
                 <div class="inline controls">
                     <div class="btn-group">
                         <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                            value="{/view/filter/allocationmaxdate}"  id="allocationmaxdate"  name="allocationmaxdate" />
+                            value="{/view/allocationview/filter/allocationmaxdate}"  id="allocationmaxdate"  name="allocationmaxdate" />
                         <span class="add-on"><span class="icon-calendar"></span></span>
                     </div>
                 <p class="help-block" style="float:left;padding-left:5px;">Date (to)</p>
@@ -134,10 +134,10 @@
                         <div class="btn-group">
                             <a href="#" data-toggle="dropdown" id="status_selector" class="btn dropdown-toggle">
                                 <xsl:choose>
-                                    <xsl:when test="/view/filter/status = 'reserved'">Reserved</xsl:when>
-                                    <xsl:when test="/view/filter/status = 'checkedin'">Checked-In</xsl:when>
-                                    <xsl:when test="/view/filter/status = 'checkedout'">Checked-Out</xsl:when>
-                                    <xsl:when test="/view/filter/status = 'cancelled'">Cancelled</xsl:when>
+                                    <xsl:when test="/view/bookingview/filter/status = 'reserved'">Reserved</xsl:when>
+                                    <xsl:when test="/view/bookingview/filter/status = 'checkedin'">Checked-In</xsl:when>
+                                    <xsl:when test="/view/bookingview/filter/status = 'checkedout'">Checked-Out</xsl:when>
+                                    <xsl:when test="/view/bookingview/filter/status = 'cancelled'">Cancelled</xsl:when>
                                     <xsl:otherwise>All <xml:text> </xml:text></xsl:otherwise>
                                 </xsl:choose>
                                 <span class="caret"></span></a>
@@ -149,7 +149,7 @@
                                 <li class="divider"></li>
                                 <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('all');" >All</a></li>
                             </ul>
-                            <input type="hidden" value="{/view/filter/status}" id="filter_status" name="filter_status" />
+                            <input type="hidden" value="{/view/bookingview/filter/status}" id="filter_status" name="filter_status" />
                         </div>
                         <p class="help-block" style="margin-top:0px">Booking Status</p>
                     </div>
@@ -160,7 +160,7 @@
                     <div class="inline controls">
                         <div class="btn-group">
                             <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                                value="{/view/filter/bookingmindate}"  id="bookingmindate"  name="bookingmindate" />
+                                value="{/view/bookingview/filter/bookingmindate}"  id="bookingmindate"  name="bookingmindate" />
                             <span class="add-on"><span class="icon-calendar"></span></span>
                         </div>
                     <p class="help-block" style="text-align:left;padding-left:15px;">Date (from)</p>
@@ -172,7 +172,7 @@
                     <div class="inline controls">
                         <div class="btn-group">
                             <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                                value="{/view/filter/bookingmaxdate}"  id="bookingmaxdate"  name="bookingmaxdate" />
+                                value="{/view/bookingview/filter/bookingmaxdate}"  id="bookingmaxdate"  name="bookingmaxdate" />
                             <span class="add-on"><span class="icon-calendar"></span></span>
                         </div>
                     <p class="help-block" style="text-align:left;padding-left:15px;">Date (to)</p>
@@ -185,8 +185,8 @@
                         <div class="btn-group">
                             <a href="#" data-original-title="Match from/to dates by:&lt;br&gt; Check-In Date: earliest date of any booking &lt;br&gt; Reservation Date (Any): any booking that overlaps the dates given &lt;br&gt; Date Added: date booking was created" rel="tooltip" data-toggle="dropdown" id="datetype_selector" class="btn dropdown-toggle tooltip_top">
                                 <xsl:choose>
-                                    <xsl:when test="/view/filter/datetype = 'reserved'">Reservation Date (Any)</xsl:when>
-                                    <xsl:when test="/view/filter/datetype = 'creation'">Date Added</xsl:when>
+                                    <xsl:when test="/view/bookingview/filter/datetype = 'reserved'">Reservation Date (Any)</xsl:when>
+                                    <xsl:when test="/view/bookingview/filter/datetype = 'creation'">Date Added</xsl:when>
                                     <xsl:otherwise>Check-In Date<xml:text> </xml:text></xsl:otherwise>
                                 </xsl:choose>
                                 <span class="caret"></span></a>
@@ -195,7 +195,7 @@
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('reserved');" >Reservation Date (Any)</a></li>
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('creation');" >Date Added</a></li>
                             </ul>
-                            <input type="hidden" value="{/view/filter/datetype}" id="filter_datetype" name="filter_datetype" />
+                            <input type="hidden" value="{/view/bookingview/filter/datetype}" id="filter_datetype" name="filter_datetype" />
                         </div>
                         <p class="help-block" style="margin-top:0px; text-align:center">Match Dates By</p>
                     </div>
@@ -206,7 +206,7 @@
                     <div class="inline controls">
                         <div class="btn-group">
                             <input style="width:140px;" type="text" class="span2span2"  placeholder=""
-                                value="{/view/filter/name}"  id="filter_name"  name="filter_name" />
+                                value="{/view/bookingview/filter/matchname}"  id="filter_name"  name="filter_name" />
                         </div>
                         <p class="help-block" style="text-align:center">Search by Name</p>
                     </div>
@@ -228,6 +228,7 @@
     <div class="clear" style="height:1px;"><xsl:comment/></div>
 </xsl:template>
 
+<!-- this template is only used for AllocationView -->
 <xsl:template match="resource">
     <xsl:if test="level = 1"> <!-- add extra space at root level -->
         <br/>
@@ -244,15 +245,15 @@
                 <tbody>
                     <tr valign="top">
                         <td width="180"></td>
-                        <td class="availability_header"><xsl:value-of select="/view/dateheaders/header"/></td>
+                        <td class="availability_header"><xsl:value-of select="/view/allocationview/dateheaders/header"/></td>
                     </tr>
                     <tr valign="top">
-                        <td colspan="2" width="{60 * count(/view/dateheaders/datecol)}" valign="top">
+                        <td colspan="2" width="{60 * count(/view/allocationview/dateheaders/datecol)}" valign="top">
                             <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
                                 <thead>
                                     <tr>
                                         <th class="alloc_resource_attrib"><xsl:value-of select="name"/></th>
-                                        <xsl:apply-templates select="/view/dateheaders/datecol" mode="availability_date_header"/>
+                                        <xsl:apply-templates select="/view/allocationview/dateheaders/datecol" mode="availability_date_header"/>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -316,6 +317,84 @@
             <a class="booking_item status_{status}"><xsl:value-of select="name"/></a>
         </xsl:if>
     </td>
+</xsl:template>
+
+<!-- this is the main template for BookingView -->
+<xsl:template match="bookingview">
+    <div id="listing_visible_bookings">
+        <div class="row-fluid booking-listing-header">
+            <div class="booking-listing-collumn span1">ID</div>
+            <div class="booking-listing-collumn span2">Labels</div>
+            <div class="booking-listing-collumn span4">Booking Details</div>
+            <div class="booking-listing-collumn span3">Booking Dates</div>
+            <div class="booking-listing-collumn span2">Actions</div>
+            <div id="booking_row_1" class="row-fluid booking-listing-row clearfix-height">
+    
+                <div class="booking-listing-collumn span1 bktextcenter">
+                    <span class="field-id">1</span>
+                    <div class="field-date"> 07 / 10 / 2012, Tue</div>
+                    <span class="field-time">03:03 am</span>
+                </div>
+    
+                <div class="booking-listing-collumn span2 bktextleft booking-labels">
+                    <span class="label label-resource label-info">Default</span>
+                    <span class="label label-pending  ">Pending</span>
+                    <span class="label label-approved  hidden_items ">Approved</span>
+                </div>
+    
+                <div class="booking-listing-collumn span4 bktextjustify">
+                    <div style="text-align:left">
+                        <strong>First Name</strong>:<span class="fieldvalue">Victoria</span>
+                        <strong>Last Name</strong>:<span class="fieldvalue">Smith</span>
+                        <strong>Email</strong>:<span class="fieldvalue">victoria@wpdevelop.com</span>
+                        <strong>Phone</strong>:<span class="fieldvalue">(044)458-77-88</span>
+                        <strong>Number of visitors</strong>:<span class="fieldvalue"> 2</span>
+                        <strong>Children</strong>:<span class="fieldvalue"> no</span>
+                        <strong>Details</strong>:<span class="fieldvalue"> Please, reserve an appartment with fresh flowers.</span>
+                    </div>
+                </div>
+    
+                <div class="booking-listing-collumn span3 bktextleft booking-dates">
+                    <div class="booking_dates_small "><span class="field-booking-date ">July 16, 2012</span><span class="date_tire"> - </span><span class="field-booking-date ">July 18, 2012</span></div>
+                </div>
+                
+                <div class="booking-listing-collumn span2 bktextcenter  booking-actions">
+                    <div class="actions-fields-group">
+                        <a href="admin.php?page=booking/wpdev-booking.phpwpdev-booking-reservation&amp;booking_type=1&amp;booking_hash=7ca1fcf39e7e50620d7c397eee5cc9a3&amp;parent_res=1" onclick="" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
+                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
+                        </a>
+                        <a href="javascript:;" data-original-title="Here can be some note about this booking..." rel="tooltip" class="remark_bk_link tooltip_top" onclick='javascript: if (document.getElementById("remark_row1").style.display=="block") document.getElementById("remark_row1").style.display="none"; else document.getElementById("remark_row1").style.display="block"; '>
+                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/notes_rd.png" style="width:16px; height:16px;"/>
+                        </a>
+                        <a href="javascript:;" data-original-title="Change Resource" rel="tooltip" class="tooltip_bottom" onclick='javascript:
+                            document.getElementById("new_booking_resource_booking_id").value = "1";
+                            setSelectBoxByValue("new_booking_resource", 1 );
+                            var cbr;
+                            cbr = jQuery("#change_booking_resource_controll_elements").detach();
+                            cbr.appendTo(jQuery("#changing_bk_res_in_booking1"));
+                            cbr = null;
+                            jQuery(".booking_row_modification_element_changing_resource").hide();
+                            jQuery("#changing_bk_res_in_booking1").show();
+                    '>
+                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/exchange.png" style="width:16px; height:16px;"/>
+                        </a>
+                
+                        <a href="javascript:;" class="tooltip_bottom approve_bk_link   " onclick="javascript:approve_unapprove_booking(1,1, 2, 'en_US' , 1  );" data-original-title="Approve" rel="tooltip">
+                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/accept-24x24.gif" style="width:14px; height:14px;"/>
+                        </a>
+                            
+                        <a href="javascript:;" class="tooltip_bottom pending_bk_link   hidden_items  " onclick="javascript:if ( bk_are_you_sure('Are you really want to set booking as pending ?') ) approve_unapprove_booking(1,0, 2, 'en_US' , 1  );" data-original-title="Unapprove" rel="tooltip">
+                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/remove-16x16.png" style="width:15px; height:15px;"/>
+                        </a>
+                            
+                        <a href="javascript:;" onclick="javascript:if ( bk_are_you_sure('Are you really want to delete this booking ?') ) delete_booking(1, 2, 'en_US' , 1   );" data-original-title="Delete" rel="tooltip" class="tooltip_bottom">
+                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/delete_type.png" style="width:13px; height:13px;"/>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </xsl:template>
 
 <xsl:template name="write_inline_js">

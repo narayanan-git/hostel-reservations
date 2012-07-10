@@ -981,7 +981,7 @@ html[xmlns] .clearfix-height.hidden_items {
     white-space: nowrap;
 	float:right;
 	margin-top:-3px;
-	margin-right:-63px;
+	margin-right:5px;
 }
 .booking-listing-row .booking-labels, .booking-listing-row .booking-dates {
 text-align: center !important;

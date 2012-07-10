@@ -67,7 +67,7 @@ class BookingDBO {
                           JOIN wp_bookingdates bd ON bd.allocation_id = al.allocation_id
                          WHERE 1 = 1 
                                ".($resourceId == null ? "" : " AND al.resource_id = %d")."
-                               ".($status == null ? "" : " AND al.status = %s")."
+                               ".($status == 'all' ? "" : " AND al.status = %s")."
                                ".($matchNameSql == null ? "" : 
                                     " AND (LOWER(bk.firstname) LIKE %s OR
                                            LOWER(bk.lastname) LIKE %s OR
@@ -87,7 +87,7 @@ class BookingDBO {
                     JOIN wp_bookingdates bd ON bd.allocation_id = al.allocation_id
                    WHERE 1 = 1
                          ".($resourceId == null ? "" : "AND al.resource_id = %d")."
-                         ".($status == null ? "" : "AND al.status = %s")."
+                         ".($status == 'all' ? "" : "AND al.status = %s")."
                          ".($matchNameSql == null ? "" : 
                             " AND (LOWER(bk.firstname) LIKE %s OR
                                    LOWER(bk.lastname) LIKE %s OR
@@ -103,7 +103,7 @@ class BookingDBO {
                       JOIN wp_allocation al ON bk.booking_id = al.booking_id
                      WHERE 1 = 1
                            ".($resourceId == null ? "" : "AND al.resource_id = %d")."
-                           ".($status == null ? "" : "AND al.status = %s")."
+                           ".($status == 'all' ? "" : "AND al.status = %s")."
                            ".($matchNameSql == null ? "" : 
                              " AND (LOWER(bk.firstname) LIKE %s OR
                                     LOWER(bk.lastname) LIKE %s OR
@@ -121,7 +121,7 @@ class BookingDBO {
         if ($resourceId != null) {
             $sqlparams[] = $resourceId;
         }
-        if ($status != null) {
+        if ($status != 'all') {
             $sqlparams[] = $status;
         }
         if ($matchNameSql != null) {

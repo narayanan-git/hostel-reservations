@@ -3,22 +3,22 @@
 /**
  * Encapsulates and renders a view of selected bookings.
  */
-class BookingsView {
+class BookingView {
     private $bookings = array();  // array of BookingSummary
     var $minDate;   // earliest date (DateTime)
     var $maxDate;   // latest date (DateTime)
     var $resourceId; // match this resource, null for any
     var $dateMatchType;  // one of 'checkin', 'reserved', 'creation'
-    var $status;     // one of 'reserved', 'checkedin', 'checkedout', 'cancelled', null for any
+    var $status;     // one of 'reserved', 'checkedin', 'checkedout', 'cancelled', 'all'
     var $matchName;  // (partial) name to match (not case sensitive), null for any
     
-    function BookingsView() {
+    function BookingView() {
         // default date to today
         $this->minDate = new DateTime();
         $this->maxDate = new DateTime();
         $this->dateMatchType = 'checkin';
         $this->resourceId = null;
-        $this->status = null;
+        $this->status = 'all';
         $this->matchName = null;
     }
     
@@ -32,6 +32,29 @@ class BookingsView {
                 $this->resourceId, 
                 $this->status, 
                 $this->matchName);
+    }
+
+    /**
+     * Adds this BookingView to the DOMDocument/XMLElement specified.
+     * See toXml() for details.
+     * $domtree : DOM document root
+     * $parentElement : DOM element where this object will be added
+     */
+    function addSelfToDocument($domtree, $parentElement) {
+        $xmlRoot = $parentElement->appendChild($domtree->createElement('bookingview'));
+
+        // search criteria
+        $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
+        $filterRoot->appendChild($domtree->createElement('bookingmindate', $this->minDate->format('Y-m-d')));
+        $filterRoot->appendChild($domtree->createElement('bookingmaxdate', $this->maxDate->format('Y-m-d')));
+        $filterRoot->appendChild($domtree->createElement('datetype', $this->dateMatchType));
+        $filterRoot->appendChild($domtree->createElement('resourceId', $this->resourceId));
+        $filterRoot->appendChild($domtree->createElement('status', $this->status));
+        $filterRoot->appendChild($domtree->createElement('matchname', $this->matchName));
+        
+        foreach ($this->bookings as $book) {
+            $book->addSelfToDocument($domtree, $xmlRoot);
+        }
     }
 
     /** 
@@ -58,11 +81,13 @@ class BookingsView {
                         <name>john smith</name>
                         <status>reserved</status>
                         <gender>male</gender>
+                        <room>Room 18</room>
                     </guest>
                     <guest>
                         <name>amanda innis</name>
                         <status>checkedin</status>
                         <gender>female</gender>
+                        <room>Room 19</room>
                     </guest>
                 </guests>
                 <dates>
@@ -70,10 +95,6 @@ class BookingsView {
                     <daterange>July 24, 2012</daterange>
                     <daterange>August 2, 2012 - August 6, 2012</daterange>
                 </dates>
-                <resources>
-                    <name>Room 18</name>
-                    <name>Room 19</name>
-                </resources>
             </booking>
             <booking>
                 ...
@@ -83,46 +104,10 @@ class BookingsView {
     function toXml() {
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
-        
-        $xmlRoot = $domtree->appendChild($domtree->createElement('view'));
-
-        // search criteria
-        $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
-        $filterRoot->appendChild($domtree->createElement('mindate', $this->minDate->format('Y-m-d')));
-        $filterRoot->appendChild($domtree->createElement('maxdate', $this->maxDate->format('Y-m-d')));
-        $filterRoot->appendChild($domtree->createElement('datetype', $this->dateMatchType));
-        $filterRoot->appendChild($domtree->createElement('resourceId', $this->resourceId));
-        $filterRoot->appendChild($domtree->createElement('status', $this->status));
-        $filterRoot->appendChild($domtree->createElement('matchname', $this->matchName));
-        
-        foreach ($this->bookings as $book) {
-            $book->addSelfToDocument($domtree, $xmlRoot);
-        }
-
+        addSelfToDocument($domtree, $domtree);
         return $domtree->saveXML();
     }
     
-    function toHtml() {
-        // create a DOM document and load the XSL stylesheet
-        $xsl = new DomDocument;
-        $xsl->load(WPDEV_BK_PLUGIN_DIR. '/include/bookings_view.xsl');
-        
-        // import the XSL styelsheet into the XSLT process
-        $xp = new XsltProcessor();
-        $xp->importStylesheet($xsl);
-        
-        // create a DOM document and load the XML datat
-        $xml_doc = new DomDocument;
-        $xml_doc->loadXML($this->toXml());
-        
-        // transform the XML into HTML using the XSL file
-        if ($html = $xp->transformToXML($xml_doc)) {
-            return $html;
-        } else {
-            trigger_error('XSL transformation failed.', E_USER_ERROR);
-        } // if 
-        return 'XSL transformation failed.';
-    }
 }
 
 ?>

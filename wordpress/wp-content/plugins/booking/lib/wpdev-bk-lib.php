@@ -1122,7 +1122,7 @@ if (empty( $num_per_page_check)) {
 
             $bk_list_type = (isset($booking->booking_type))?$booking->booking_type:'1';
             $cont = get_form_content($booking->form, $bk_list_type);
-            $search = array ("'(<br[ ]?[/]?>)+'si","'(<p[ ]?[/]?>)+'si","'(<div[ ]?[/]?>)+'si");
+            // $search = REPLACED LINE HERE!!
             $replace = array ("&nbsp;&nbsp;"," &nbsp; "," &nbsp; ");
             $cont['content'] = preg_replace($search, $replace, $cont['content']);
             $bookings[$booking->booking_id]->form_show = $cont['content'];
@@ -1204,29 +1204,30 @@ if (empty( $num_per_page_check)) {
     // B o o k i n g    L i s t i n g    P A G E
     function wpdevbk_show_booking_listings() {
 
-        $av = new AllocationView();
+        $bav = new BookingAllocationView();
         // if allocation date is defined, we are on the allocations view
         if (isset($_POST['allocationmindate']) && trim($_POST['allocationmindate']) != '') {
-            $av->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
-            $av->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
+            $bav->allocationView->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
+            $bav->allocationView->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
         }
-        $av->doSearch();
-        echo $av->toHtml();
+        $bav->allocationView->doSearch();
+error_log($bav->toXml());
+        echo $bav->toHtml();
         
 debuge($_POST);
         // if filter_status is defined, we are on the bookings view
         if (isset($_POST['filter_status']) && trim($_POST['filter_status']) != '') {
 error_log("filter status is defined");
-            $bv = new BookingsView();
-            $av->minDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC'));
-            $av->maxDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC'));
-            $bv->status = $_POST['filter_status'] == 'all' ? null : $_POST['filter_status'];
-            $bv->matchName = trim($_POST['filter_name']) == '' ? null : $_POST['filter_name'];
-            $bv->dateMatchType = $_POST['filter_datetype'];
+//            $bv = new BookingsView();
+            $bav->bookingView->minDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC'));
+            $bav->bookingView->maxDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC'));
+            $bav->bookingView->status = $_POST['filter_status'];
+            $bav->bookingView->matchName = trim($_POST['filter_name']) == '' ? null : $_POST['filter_name'];
+            $bav->bookingView->dateMatchType = $_POST['filter_datetype'];
 //            $bv->resourceId = $_POST['filter_resource_id'];
-            $bv->doSearch();
-debuge($bv->toXml());
-            error_log($bv->toXml());
+            $bav->bookingView->doSearch();
+debuge($bav->toXml());
+            error_log($bav->toXml());
         } else {
 error_log("filter status is not defined");
         }
