@@ -1204,17 +1204,18 @@ if (empty( $num_per_page_check)) {
     // B o o k i n g    L i s t i n g    P A G E
     function wpdevbk_show_booking_listings() {
 
-        $bav = new BookingAllocationView();
+        if( false === isset($_SESSION['BOOKING_ALLOCATION_VIEW'])) {
+            $_SESSION['BOOKING_ALLOCATION_VIEW'] = new BookingAllocationView();
+        }
+        $bav = $_SESSION['BOOKING_ALLOCATION_VIEW'];
+
         // if allocation date is defined, we are on the allocations view
         if (isset($_POST['allocationmindate']) && trim($_POST['allocationmindate']) != '') {
             $bav->allocationView->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
             $bav->allocationView->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
+            $bav->allocationView->doSearch();
         }
-        $bav->allocationView->doSearch();
-error_log($bav->toXml());
-        echo $bav->toHtml();
         
-debuge($_POST);
         // if filter_status is defined, we are on the bookings view
         if (isset($_POST['filter_status']) && trim($_POST['filter_status']) != '') {
 error_log("filter status is defined");
@@ -1226,11 +1227,12 @@ error_log("filter status is defined");
             $bav->bookingView->dateMatchType = $_POST['filter_datetype'];
 //            $bv->resourceId = $_POST['filter_resource_id'];
             $bav->bookingView->doSearch();
-debuge($bav->toXml());
-            error_log($bav->toXml());
         } else {
 error_log("filter status is not defined");
         }
+debuge($_POST);
+error_log($bav->toXml());
+        echo $bav->toHtml();
     }
 
     function wpdevbk_show_booking_listings_OLD() {
