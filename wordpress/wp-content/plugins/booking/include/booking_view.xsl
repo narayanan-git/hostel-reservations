@@ -123,77 +123,80 @@
 
 <!-- this is the main template for BookingView -->
 <xsl:template match="bookingview">
-    <div id="listing_visible_bookings">
-        <div class="row-fluid booking-listing-header">
-            <div class="booking-listing-collumn span1">ID</div>
-            <div class="booking-listing-collumn span2">Labels</div>
-            <div class="booking-listing-collumn span4">Booking Details</div>
-            <div class="booking-listing-collumn span3">Booking Dates</div>
-            <div class="booking-listing-collumn span2">Actions</div>
-            <div id="booking_row_1" class="row-fluid booking-listing-row clearfix-height">
-    
-                <div class="booking-listing-collumn span1 bktextcenter">
-                    <span class="field-id">1</span>
-                    <div class="field-date"> 07 / 10 / 2012, Tue</div>
-                    <span class="field-time">03:03 am</span>
-                </div>
-    
-                <div class="booking-listing-collumn span2 bktextleft booking-labels">
-                    <span class="label label-resource label-info">Default</span>
-                    <span class="label label-pending  ">Pending</span>
-                    <span class="label label-approved  hidden_items ">Approved</span>
-                </div>
-    
-                <div class="booking-listing-collumn span4 bktextjustify">
-                    <div style="text-align:left">
-                        <strong>First Name</strong>:<span class="fieldvalue">Victoria</span>
-                        <strong>Last Name</strong>:<span class="fieldvalue">Smith</span>
-                        <strong>Email</strong>:<span class="fieldvalue">victoria@wpdevelop.com</span>
-                        <strong>Phone</strong>:<span class="fieldvalue">(044)458-77-88</span>
-                        <strong>Number of visitors</strong>:<span class="fieldvalue"> 2</span>
-                        <strong>Children</strong>:<span class="fieldvalue"> no</span>
-                        <strong>Details</strong>:<span class="fieldvalue"> Please, reserve an appartment with fresh flowers.</span>
-                    </div>
-                </div>
-    
-                <div class="booking-listing-collumn span3 bktextleft booking-dates">
-                    <div class="booking_dates_small "><span class="field-booking-date ">July 16, 2012</span><span class="date_tire"> - </span><span class="field-booking-date ">July 18, 2012</span></div>
-                </div>
-                
-                <div class="booking-listing-collumn span2 bktextcenter  booking-actions">
-                    <div class="actions-fields-group">
-                        <a href="admin.php?page=booking/wpdev-booking.phpwpdev-booking-reservation&amp;booking_type=1&amp;booking_hash=7ca1fcf39e7e50620d7c397eee5cc9a3&amp;parent_res=1" onclick="" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
-                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
-                        </a>
-                        <a href="javascript:;" data-original-title="Here can be some note about this booking..." rel="tooltip" class="remark_bk_link tooltip_top" onclick='javascript: if (document.getElementById("remark_row1").style.display=="block") document.getElementById("remark_row1").style.display="none"; else document.getElementById("remark_row1").style.display="block"; '>
-                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/notes_rd.png" style="width:16px; height:16px;"/>
-                        </a>
-                        <a href="javascript:;" data-original-title="Change Resource" rel="tooltip" class="tooltip_bottom" onclick='javascript:
-                            document.getElementById("new_booking_resource_booking_id").value = "1";
-                            setSelectBoxByValue("new_booking_resource", 1 );
-                            var cbr;
-                            cbr = jQuery("#change_booking_resource_controll_elements").detach();
-                            cbr.appendTo(jQuery("#changing_bk_res_in_booking1"));
-                            cbr = null;
-                            jQuery(".booking_row_modification_element_changing_resource").hide();
-                            jQuery("#changing_bk_res_in_booking1").show();
-                    '>
-                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/exchange.png" style="width:16px; height:16px;"/>
-                        </a>
-                
-                        <a href="javascript:;" class="tooltip_bottom approve_bk_link   " onclick="javascript:approve_unapprove_booking(1,1, 2, 'en_US' , 1  );" data-original-title="Approve" rel="tooltip">
-                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/accept-24x24.gif" style="width:14px; height:14px;"/>
-                        </a>
-                            
-                        <a href="javascript:;" class="tooltip_bottom pending_bk_link   hidden_items  " onclick="javascript:if ( bk_are_you_sure('Are you really want to set booking as pending ?') ) approve_unapprove_booking(1,0, 2, 'en_US' , 1  );" data-original-title="Unapprove" rel="tooltip">
-                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/remove-16x16.png" style="width:15px; height:15px;"/>
-                        </a>
-                            
-                        <a href="javascript:;" onclick="javascript:if ( bk_are_you_sure('Are you really want to delete this booking ?') ) delete_booking(1, 2, 'en_US' , 1   );" data-original-title="Delete" rel="tooltip" class="tooltip_bottom">
-                            <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/delete_type.png" style="width:13px; height:13px;"/>
-                        </a>
-                    </div>
-                </div>
+    <xsl:if test="booking">
+        <div id="listing_visible_bookings">
+            <div class="row-fluid booking-listing-header">
+                <div class="booking-listing-collumn span1">ID</div>
+                <div class="booking-listing-collumn span2">Labels</div>
+                <div class="booking-listing-collumn span4">Booking Details</div>
+                <div class="booking-listing-collumn span3">Booking Dates</div>
+                <div class="booking-listing-collumn span2">Actions</div>
+            </div>
+            <xsl:apply-templates select="booking"/>
+        </div>
+    </xsl:if>
+</xsl:template>
+
+<xsl:template match="booking">
+    <div id="booking_row_{id}" class="row-fluid booking-listing-row clearfix-height">
+
+        <div class="booking-listing-collumn span1 bktextcenter">
+            <span class="field-id"><xsl:value-of select="id"/></span>
+            <div class="field-date"><xsl:value-of select="createdDate"/></div>
+            <span class="field-time"><xsl:value-of select="createdBy"/></span>
+        </div>
+
+        <div class="booking-listing-collumn span2 bktextleft booking-labels">
+            <span class="label label-resource label-info">Default</span>
+            <span class="label label-pending  ">Pending</span>
+            <span class="label label-approved  hidden_items ">Approved</span>
+        </div>
+
+        <div class="booking-listing-collumn span4 bktextjustify">
+            <div style="text-align:left">
+                <strong>First Name</strong>:<span class="fieldvalue"><xsl:value-of select="firstname"/></span><br/>
+                <strong>Last Name</strong>:<span class="fieldvalue"><xsl:value-of select="lastname"/></span><br/>
+                <strong>Number of visitors</strong>:<span class="fieldvalue"> 2</span><br/>
+                <strong>Details</strong>:<span class="fieldvalue"> Please, reserve an appartment with fresh flowers.</span>
+            </div>
+        </div>
+
+        <div class="booking-listing-collumn span3 bktextleft booking-dates">
+            <div class="booking_dates_small "><span class="field-booking-date ">July 16, 2012</span><span class="date_tire"> - </span><span class="field-booking-date ">July 18, 2012</span></div>
+        </div>
+        
+        <div class="booking-listing-collumn span2 bktextcenter  booking-actions">
+            <div class="actions-fields-group">
+                <a href="admin.php?page=booking/wpdev-booking.phpwpdev-booking-reservation&amp;booking_type=1&amp;booking_hash=7ca1fcf39e7e50620d7c397eee5cc9a3&amp;parent_res=1" onclick="" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
+                    <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
+                </a>
+                <a href="javascript:;" data-original-title="Here can be some note about this booking..." rel="tooltip" class="remark_bk_link tooltip_top" onclick='javascript: if (document.getElementById("remark_row1").style.display=="block") document.getElementById("remark_row1").style.display="none"; else document.getElementById("remark_row1").style.display="block"; '>
+                    <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/notes_rd.png" style="width:16px; height:16px;"/>
+                </a>
+                <a href="javascript:;" data-original-title="Change Resource" rel="tooltip" class="tooltip_bottom" onclick='javascript:
+                    document.getElementById("new_booking_resource_booking_id").value = "1";
+                    setSelectBoxByValue("new_booking_resource", 1 );
+                    var cbr;
+                    cbr = jQuery("#change_booking_resource_controll_elements").detach();
+                    cbr.appendTo(jQuery("#changing_bk_res_in_booking1"));
+                    cbr = null;
+                    jQuery(".booking_row_modification_element_changing_resource").hide();
+                    jQuery("#changing_bk_res_in_booking1").show();
+            '>
+                    <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/exchange.png" style="width:16px; height:16px;"/>
+                </a>
+        
+                <a href="javascript:;" class="tooltip_bottom approve_bk_link   " onclick="javascript:approve_unapprove_booking(1,1, 2, 'en_US' , 1  );" data-original-title="Approve" rel="tooltip">
+                    <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/accept-24x24.gif" style="width:14px; height:14px;"/>
+                </a>
+                    
+                <a href="javascript:;" class="tooltip_bottom pending_bk_link   hidden_items  " onclick="javascript:if ( bk_are_you_sure('Are you really want to set booking as pending ?') ) approve_unapprove_booking(1,0, 2, 'en_US' , 1  );" data-original-title="Unapprove" rel="tooltip">
+                    <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/remove-16x16.png" style="width:15px; height:15px;"/>
+                </a>
+                    
+                <a href="javascript:;" onclick="javascript:if ( bk_are_you_sure('Are you really want to delete this booking ?') ) delete_booking(1, 2, 'en_US' , 1   );" data-original-title="Delete" rel="tooltip" class="tooltip_bottom">
+                    <img src="http://personal.wpbookingcalendar.com/wp-content/plugins/booking/img/delete_type.png" style="width:13px; height:13px;"/>
+                </a>
             </div>
         </div>
     </div>
