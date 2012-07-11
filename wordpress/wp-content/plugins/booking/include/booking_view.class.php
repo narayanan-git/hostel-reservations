@@ -77,23 +77,27 @@ class BookingView {
                 <createdby>admin</createdby>
                 <details>requested bottom bunk</details>
                 <guests>
-                    <guest>
-                        <name>john smith</name>
-                        <status>reserved</status>
-                        <gender>male</gender>
-                        <room>Room 18</room>
-                    </guest>
-                    <guest>
-                        <name>amanda innis</name>
-                        <status>checkedin</status>
-                        <gender>female</gender>
-                        <room>Room 19</room>
-                    </guest>
+                    <guest>john smith</guest>
+                    <guest>amanda knox</guest>
                 </guests>
+                <statuses>
+                    <status>reserved</status>
+                    <status>checkedin</status>
+                </statuses>
+                <resources>
+                    <resource>Room 12</resource>
+                    <resource>Room 14</resource>
+                </resources>
                 <dates>
-                    <daterange>July 5, 2012 - July 20, 2012</daterange>
-                    <daterange>July 24, 2012</daterange>
-                    <daterange>August 2, 2012 - August 6, 2012</daterange>
+                    <daterange>
+                        <from>July 5, 2012</from>
+                        <to>July 20, 2012</to>
+                    </daterange>
+                    <date>July 24, 2012</date>
+                    <daterange>
+                        <from>August 2, 2012</from>
+                        <to>August 6, 2012</to>
+                    </daterange>
                 </dates>
             </booking>
             <booking>

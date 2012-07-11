@@ -274,9 +274,39 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
               WHERE allocation_id = $allocationId
               ORDER BY booking_date"));
         
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
         $return_val = array();
         foreach ($resultset as $res) {
             $return_val[] = $res->booking_date;
+        }
+        return $return_val;
+    }
+
+    /**
+     * Returns all guest names for the given bookingId
+     * $bookingId : valid booking id
+     * Returns array() of String
+     */
+    function fetchGuestNamesForBookingId($bookingId) {
+        // find all allocations for this booking
+        global $wpdb;
+
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT a.guest_name
+               FROM ".$wpdb->prefix."booking b
+               JOIN ".$wpdb->prefix."allocation a ON b.booking_id = a.booking_id
+               WHERE b.booking_id = %d", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        $return_val = array();
+        foreach ($resultset as $res) {
+            $return_val[] = $res->guest_name;
         }
         return $return_val;
     }

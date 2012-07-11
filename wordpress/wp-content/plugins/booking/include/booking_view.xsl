@@ -148,15 +148,16 @@
 
         <div class="booking-listing-collumn span2 bktextleft booking-labels">
             <span class="label label-resource label-info">Default</span>
-            <span class="label label-pending  ">Pending</span>
-            <span class="label label-approved  hidden_items ">Approved</span>
+            <span class="label label-pending  ">Reserved</span>
+            <span class="label label-approved ">Room 18</span>
         </div>
 
         <div class="booking-listing-collumn span4 bktextjustify">
             <div style="text-align:left">
                 <strong>First Name</strong>:<span class="fieldvalue"><xsl:value-of select="firstname"/></span><br/>
-                <strong>Last Name</strong>:<span class="fieldvalue"><xsl:value-of select="lastname"/></span><br/>
-                <strong>Number of visitors</strong>:<span class="fieldvalue"> 2</span><br/>
+                <strong>Last Name</strong>:<span class="fieldvalue"><xsl:value-of select="lastname"/><xsl:comment/></span><br/>
+                <strong>Name of Guests</strong>:<xsl:apply-templates select="guests/guest"/><br/>
+                <strong>Number of Guests</strong>:<span class="fieldvalue"><xsl:value-of select="count(guests/guest)"/></span><br/>
                 <strong>Details</strong>:<span class="fieldvalue"> Please, reserve an appartment with fresh flowers.</span>
             </div>
         </div>
@@ -200,6 +201,10 @@
             </div>
         </div>
     </div>
+</xsl:template>
+
+<xsl:template match="guest">
+    <span class="fieldvalue"><xsl:value-of select="."/></span>
 </xsl:template>
 
 </xsl:stylesheet>

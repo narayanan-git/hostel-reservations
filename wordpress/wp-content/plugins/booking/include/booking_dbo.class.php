@@ -62,9 +62,9 @@ class BookingDBO {
                         SELECT bk.booking_id, bk.firstname, bk.lastname, bk.referrer, bk.created_by, bk.created_date,
                                al.allocation_id,
                                MIN(bd.booking_date) checkin_date
-                          FROM wp_booking bk
-                          JOIN wp_allocation al ON bk.booking_id = al.booking_id
-                          JOIN wp_bookingdates bd ON bd.allocation_id = al.allocation_id
+                          FROM ".$wpdb->prefix."booking bk
+                          JOIN ".$wpdb->prefix."allocation al ON bk.booking_id = al.booking_id
+                          JOIN ".$wpdb->prefix."bookingdates bd ON bd.allocation_id = al.allocation_id
                          WHERE 1 = 1 
                                ".($resourceId == null ? "" : " AND al.resource_id = %d")."
                                ".($status == 'all' ? "" : " AND al.status = %s")."
@@ -82,9 +82,9 @@ class BookingDBO {
         // any booking_date falls within the given date range
         if ($dateMatchType == 'reserved') {
             $sql = "SELECT DISTINCT bk.booking_id, bk.firstname, bk.lastname, bk.referrer, bk.created_by, bk.created_date
-                    FROM wp_booking bk
-                    JOIN wp_allocation al ON bk.booking_id = al.booking_id
-                    JOIN wp_bookingdates bd ON bd.allocation_id = al.allocation_id
+                    FROM ".$wpdb->prefix."booking bk
+                    JOIN ".$wpdb->prefix."allocation al ON bk.booking_id = al.booking_id
+                    JOIN ".$wpdb->prefix."bookingdates bd ON bd.allocation_id = al.allocation_id
                    WHERE 1 = 1
                          ".($resourceId == null ? "" : "AND al.resource_id = %d")."
                          ".($status == 'all' ? "" : "AND al.status = %s")."
@@ -99,8 +99,8 @@ class BookingDBO {
         
         if ($dateMatchType == 'creation') {
             $sql = "SELECT bk.booking_id, bk.firstname, bk.lastname, bk.referrer, bk.created_by, bk.created_date
-                      FROM wp_booking bk
-                      JOIN wp_allocation al ON bk.booking_id = al.booking_id
+                      FROM ".$wpdb->prefix."booking bk
+                      JOIN ".$wpdb->prefix."allocation al ON bk.booking_id = al.booking_id
                      WHERE 1 = 1
                            ".($resourceId == null ? "" : "AND al.resource_id = %d")."
                            ".($status == 'all' ? "" : "AND al.status = %s")."
@@ -150,10 +150,13 @@ debuge($sql, $sqlparams);
                 $res->referrer, 
                 $res->created_by, 
                 new DateTime($res->created_date));
+            $result[$res->booking_id]->guests = 
+                AllocationDBO::fetchGuestNamesForBookingId($res->booking_id);
         }
 debuge($result);
         return $result;
     }
+    
 }
 
 ?>
