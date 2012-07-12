@@ -138,18 +138,23 @@
 </xsl:template>
 
 <xsl:template match="booking">
-    <div id="booking_row_{id}" class="row-fluid booking-listing-row clearfix-height">
+          
+    <div id="booking_row_{id}">
+        <xsl:attribute name="class">
+            row-fluid booking-listing-row clearfix-height
+            <xsl:if test="position() mod 2 = 0">row_alternative_color</xsl:if>
+        </xsl:attribute>
 
         <div class="booking-listing-collumn span1 bktextcenter">
-            <span class="field-id"><xsl:value-of select="id"/></span>
+            <span class="field-id"><xsl:value-of select="id"/></span><br/><br/>
             <div class="field-date"><xsl:value-of select="createdDate"/></div>
-            <span class="field-time"><xsl:value-of select="createdBy"/></span>
+            <div class="field-time"><xsl:value-of select="createdBy"/></div>
         </div>
 
         <div class="booking-listing-collumn span2 bktextleft booking-labels">
-            <span class="label label-resource label-info">Default</span>
-            <span class="label label-pending  ">Reserved</span>
-            <span class="label label-approved ">Room 18</span>
+            <xsl:apply-templates select="resources/resource" mode="label_room"/>
+            <xsl:apply-templates select="statuses/status" mode="label_status"/>
+            <span class="label label-approved">Blank</span>
         </div>
 
         <div class="booking-listing-collumn span4 bktextjustify">
@@ -163,7 +168,14 @@
         </div>
 
         <div class="booking-listing-collumn span3 bktextleft booking-dates">
-            <div class="booking_dates_small "><span class="field-booking-date ">July 16, 2012</span><span class="date_tire"> - </span><span class="field-booking-date ">July 18, 2012</span></div>
+            <xsl:for-each select="dates/*">
+                <xsl:if test="name() = 'date'">
+                    <div class="booking_dates_small"><span class="field-booking-date"><xsl:value-of select="."/></span></div>
+                </xsl:if>
+                <xsl:if test="name() = 'daterange'">
+                    <div class="booking_dates_small "><span class="field-booking-date "><xsl:value-of select="from"/></span><span class="date_tire"> - </span><span class="field-booking-date "><xsl:value-of select="to"/></span></div>
+                </xsl:if>
+            </xsl:for-each>
         </div>
         
         <div class="booking-listing-collumn span2 bktextcenter  booking-actions">
@@ -205,6 +217,14 @@
 
 <xsl:template match="guest">
     <span class="fieldvalue"><xsl:value-of select="."/></span>
+</xsl:template>
+
+<xsl:template match="resource" mode="label_room">
+    <span class="label label-resource label-info"><xsl:value-of select="."/></span>
+</xsl:template>
+
+<xsl:template match="status" mode="label_status">
+    <span class="label label-pending"><xsl:value-of select="."/></span>
 </xsl:template>
 
 </xsl:stylesheet>

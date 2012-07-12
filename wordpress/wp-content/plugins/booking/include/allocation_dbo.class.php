@@ -310,6 +310,60 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
         }
         return $return_val;
     }
+
+    /**
+     * Returns all statuses for the given bookingId
+     * $bookingId : valid booking id
+     * Returns array() of String
+     */
+    function fetchStatusesForBookingId($bookingId) {
+        // find all statuses for this booking
+        global $wpdb;
+
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT DISTINCT a.status
+               FROM ".$wpdb->prefix."booking b
+               JOIN ".$wpdb->prefix."allocation a ON b.booking_id = a.booking_id
+               WHERE b.booking_id = %d", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        $return_val = array();
+        foreach ($resultset as $res) {
+            $return_val[] = $res->status;
+        }
+        return $return_val;
+    }
+
+    /**
+     * Returns all dates for the given bookingId
+     * $bookingId : valid booking id
+     * Returns array() of DateTime
+     */
+    function fetchDatesForBookingId($bookingId) {
+        // find all statuses for this booking
+        global $wpdb;
+
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT DISTINCT DATE_FORMAT(d.booking_date, '%%d.%%m.%%Y') AS booking_date
+               FROM ".$wpdb->prefix."booking b
+               JOIN ".$wpdb->prefix."allocation a ON b.booking_id = a.booking_id
+               JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
+              WHERE b.booking_id = %d
+              ORDER BY d.booking_date", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        $return_val = array();
+        foreach ($resultset as $res) {
+            $return_val[] = DateTime::createFromFormat('!d.m.Y', $res->booking_date, new DateTimeZone('UTC'));
+        }
+        return $return_val;
+    }
 }
 
 ?>

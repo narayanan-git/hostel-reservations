@@ -152,6 +152,12 @@ debuge($sql, $sqlparams);
                 new DateTime($res->created_date));
             $result[$res->booking_id]->guests = 
                 AllocationDBO::fetchGuestNamesForBookingId($res->booking_id);
+            $result[$res->booking_id]->statuses = 
+                AllocationDBO::fetchStatusesForBookingId($res->booking_id);
+            $result[$res->booking_id]->resources = 
+                ResourceDBO::fetchResourcesForBookingId($res->booking_id);
+            $result[$res->booking_id]->bookingDates = 
+                AllocationDBO::fetchDatesForBookingId($res->booking_id);
         }
 debuge($result);
         return $result;

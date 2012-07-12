@@ -13,6 +13,7 @@ class BookingSummary {
     var $guests;  // array of String (one for each guest name) for this booking
     var $statuses; // unique array of String (one for each status) for this booking
     var $resources; // unique array of String (one for each resource) for this booking
+    var $bookingDates; // unique array of DateTime (one for each day an allocation exists)
 
     function BookingSummary($id = 0, $firstname = null, $lastname = null, $referrer = null, $createdBy = null, $createdDate = null) {
         $this->id = $id;
@@ -24,6 +25,7 @@ class BookingSummary {
         $this->guests = array();
         $this->statuses = array();
         $this->resources = array();
+        $this->bookingDates = array();
     }
     
     /**
@@ -49,7 +51,7 @@ class BookingSummary {
         foreach($this->guests as $guest) {
             $guestRoot->appendChild($domtree->createElement('guest', $guest));
         }
-/*
+
         $statusesRoot = $xmlRoot->appendChild($domtree->createElement('statuses'));
         foreach($this->statuses as $status) {
             $statusesRoot->appendChild($domtree->createElement('status', $status));
@@ -59,7 +61,64 @@ class BookingSummary {
         foreach($this->resources as $resource) {
             $resourcesRoot->appendChild($domtree->createElement('resource', $resource));
         }
-*/
+
+        $datesRoot = $xmlRoot->appendChild($domtree->createElement('dates'));
+        $this->appendDatesToXmlElement($domtree, $datesRoot);
+    }
+    
+    /**
+     * Adds the booking dates to the DOMDocument/XMLElement specified.
+     * Ranges are added as <daterange> elements and single dates are added as <date> elements.
+     * $domtree : DOM document root
+     * $parentElement : DOM element where this row will be added
+     */
+    function appendDatesToXmlElement($domtree, $parentElement) {
+        // dates should be in order, so iterate over dates
+        $startDate = null;
+        $currentDate = null;
+        foreach($this->bookingDates as $dt) {
+            // we are looking at the first element
+            if($startDate == null) {
+                $startDate = $dt;
+                $currentDate = $dt;
+
+            } else {
+                // if we are continuing the current range
+                $datediff = $currentDate->diff($dt);
+                if($datediff->d == 1) {
+                    $currentDate = $dt;
+    
+                // if we are jumping more than 1 day, end the current range
+                } else if($datediff->d > 1) {
+                
+                    // not a range, just add the single date
+                    if ($startDate == $currentDate) {
+                        $parentElement->appendChild($domtree->createElement('date', $startDate->format('F d, Y')));
+    
+                    } else { // add the range
+                        $rangeElement = $parentElement->appendChild($domtree->createElement('daterange'));
+                        $rangeElement->appendChild($domtree->createElement('from', $startDate->format('F d, Y')));
+                        $rangeElement->appendChild($domtree->createElement('to', $currentDate->format('F d, Y')));
+                    }
+                    // reset range
+                    $startDate = $dt;
+                    $currentDate = $dt;
+                }
+            }
+        }
+        
+        // we missed the last element in the list, so add it now
+        if (sizeof($this->bookingDates) > 0) {
+            // not a range, just add the single date
+            if ($startDate == $currentDate) {
+                $parentElement->appendChild($domtree->createElement('date', $startDate->format('F d, Y')));
+    
+            } else { // add the range
+                $rangeElement = $parentElement->appendChild($domtree->createElement('daterange'));
+                $rangeElement->appendChild($domtree->createElement('from', $startDate->format('F d, Y')));
+                $rangeElement->appendChild($domtree->createElement('to', $currentDate->format('F d, Y')));
+            }
+        }
     }
     
     /** 

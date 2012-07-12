@@ -225,29 +225,33 @@ class ResourceDBO {
     }
     
     /**
-     * Cleans up references within the resources table.
+     * Returns all resources for the given bookingId
+     * $bookingId : valid booking id
+     * Returns array() of String indexed by resourceId
      */
-    static function cleanUpResources_DEPRECATED() {
+    function fetchResourcesForBookingId($bookingId) {
+        // find all "parent" resources (rooms) for this booking
         global $wpdb;
-        // for clarity, set parent resource capacity to NULL if there is at least one child resource
-        if( false === $wpdb->query($wpdb->prepare(
-                "UPDATE ".$wpdb->prefix ."bookingresources br_p
-                  INNER JOIN ".$wpdb->prefix."v_resources_by_path br_c
-                     ON br_c.resource_id = br_p.resource_id
-                    SET br_p.capacity = NULL 
-                  WHERE br_c.number_children > 0"))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            throw new DatabaseException("Error occurred updating resource :".$wpdb->last_error);
+
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT DISTINCT p.resource_id, p.name
+               FROM ".$wpdb->prefix."booking b
+               JOIN ".$wpdb->prefix."allocation a ON b.booking_id = a.booking_id
+               JOIN ".$wpdb->prefix."bookingresources r ON a.resource_id = r.resource_id
+               JOIN ".$wpdb->prefix."bookingresources p ON r.parent_resource_id = p.resource_id
+              WHERE p.resource_type = 'room'
+                AND b.booking_id = %d
+              ORDER BY p.resource_id", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
         }
- 
-        // capacity for bed cannot be anything other than 1
-        if( false === $wpdb->query($wpdb->prepare(
-                "UPDATE ".$wpdb->prefix ."bookingresources 
-                    SET capacity = 1
-                  WHERE resource_type = 'bed'"))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            throw new DatabaseException("Error occurred updating resource :".$wpdb->last_error);
+
+        $return_val = array();
+        foreach ($resultset as $res) {
+            $return_val[$res->resource_id] = $res->name;
         }
+        return $return_val;
     }
     
 }
