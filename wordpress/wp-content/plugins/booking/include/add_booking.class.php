@@ -3,7 +3,7 @@
 /**
  * Controller for Add Booking form.
  */
-class AddBooking {
+class AddBooking extends XslTransform {
 
     var $id;
     var $firstname;
@@ -162,27 +162,11 @@ error_log("inserted booking id $bookingId");
         return $domtree->saveXML();
     }
     
-    function toHtml() {
-        // create a DOM document and load the XSL stylesheet
-        $xsl = new DomDocument;
-        $xsl->load(WPDEV_BK_PLUGIN_DIR. '/include/add_booking.xsl');
-        
-        // import the XSL styelsheet into the XSLT process
-        $xp = new XsltProcessor();
-        $xp->importStylesheet($xsl);
-        
-        // create a DOM document and load the XML datat
-        $xml_doc = new DomDocument;
-        $xml_doc->loadXML($this->toXml());
-error_log($this->toXml());
-
-        // transform the XML into HTML using the XSL file
-        if ($html = $xp->transformToXML($xml_doc)) {
-            return $html;
-        } else {
-            trigger_error('XSL transformation failed.', E_USER_ERROR);
-        } // if 
-        return 'XSL transformation failed.';
+    /**
+     * Returns the filename for the stylesheet to use during transform.
+     */
+    function getXslFilename() {
+        return WPDEV_BK_PLUGIN_DIR. '/include/add_booking.xsl';
     }
 }
 

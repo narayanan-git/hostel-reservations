@@ -332,6 +332,9 @@ Change Log and Features for Future Releases :
         { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php' ); }
 
     //////////////////////// BEGIN CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/xsl_transform.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/xsl_transform.class.php' ); }
+
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_row.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_row.class.php' ); }
 

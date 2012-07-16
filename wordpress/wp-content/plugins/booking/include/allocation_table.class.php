@@ -3,7 +3,7 @@
 /**
  * Encapsulates and renders a table containing all allocations for a booking.
  */
-class AllocationTable {
+class AllocationTable extends XslTransform {
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $allocationRows = array();  // array of AllocationRow
@@ -233,26 +233,11 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
         return $domtree->saveXML();
     }
     
-    function toHtml() {
-        // create a DOM document and load the XSL stylesheet
-        $xsl = new DomDocument;
-        $xsl->load(WPDEV_BK_PLUGIN_DIR. '/include/allocation_table.xsl');
-        
-        // import the XSL styelsheet into the XSLT process
-        $xp = new XsltProcessor();
-        $xp->importStylesheet($xsl);
-        
-        // create a DOM document and load the XML datat
-        $xml_doc = new DomDocument;
-        $xml_doc->loadXML($this->toXml());
-        
-        // transform the XML into HTML using the XSL file
-        if ($html = $xp->transformToXML($xml_doc)) {
-            return $html;
-        } else {
-            trigger_error('XSL transformation failed.', E_USER_ERROR);
-        } // if 
-        return 'XSL transformation failed.';
+    /**
+     * Returns the filename for the stylesheet to use during transform.
+     */
+    function getXslFilename() {
+        return WPDEV_BK_PLUGIN_DIR. '/include/allocation_table.xsl';
     }
 }
 
