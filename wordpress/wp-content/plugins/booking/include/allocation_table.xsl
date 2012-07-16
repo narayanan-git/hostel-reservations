@@ -7,7 +7,7 @@
 //*****************************************************************************
 -->
 
-<xsl:template match="/allocations">
+<xsl:template match="allocations">
 
 <!-- table visible only if we have at least one -->
 <xsl:if test="allocation"> 
@@ -24,8 +24,8 @@
                         <thead>
                             <tr>
                                 <th class="avail_attrib">Name</th>
-                                <th class="avail_attrib">Gender</th>
-                                <th class="avail_attrib">Room Type</th>
+                                <th class="avail_attrib">Room</th>
+                                <th class="avail_attrib">Bed</th>
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
                                 <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
@@ -39,6 +39,23 @@
             </tr>
         </tbody>
     </table>
+
+    <!-- legend -->
+    <div class="block_hints datepick">
+        <div class="wpdev_hint_with_text">
+            <div class="block_free datepick-days-cell"><a>#</a></div>
+            <div class="block_text">- Available</div>
+        </div>
+        <div class="wpdev_hint_with_text">
+            <div class="block_booked date_approved">#</div>
+            <div class="block_text">- Booked</div>
+        </div>
+        <div class="wpdev_hint_with_text">
+            <div class="block_pending date2approve">#</div>
+            <div class="block_text">- Reserved</div>
+        </div>
+    </div>
+    <div class="wpdev_clear_hint"><xsl:comment/></div>
 </xsl:if>  
 </xsl:template>
 
@@ -66,8 +83,11 @@
                 <xsl:attribute name="class">highlight_cell_red</xsl:attribute>
             </xsl:if>
             <xsl:value-of select="name"/>
+            <xsl:if test="gender = 'M' or gender = 'F'">
+                (<xsl:value-of select="gender"/>)
+            </xsl:if>
         </td>
-        <td class="avail_attrib"><xsl:value-of select="gender"/></td>
+        <td class="avail_attrib"><xsl:value-of select="parentresource"/></td>
         <td class="avail_attrib"><xsl:value-of select="resource"/></td>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
         <xsl:apply-templates select="dates/date" mode="allocation_date"/>

@@ -6,6 +6,41 @@
 class BookingDBO {
 
     /**
+     * Creates and initialises a new EditBooking controller for the given booking id.
+     * $bookingId : existing booking id to edit
+     * Returns EditBooking controller loaded with existing booking details/allocations
+     */
+    static function fetchBookingControllerByBookingId($bookingId) {
+    
+        global $wpdb;
+        $return_val = new AddBooking();
+        
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT booking_id, firstname, lastname, referrer
+               FROM ".$wpdb->prefix."booking b
+              WHERE b.booking_id = %d", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        if(empty($resultset)) {
+            throw new DatabaseException("$bookingId doesn't exist!");
+        }
+        
+        // there should only be one match by primary key
+        foreach ($resultset as $res) {
+            $return_val->id = $res->booking_id;
+            $return_val->firstname = $res->firstname;
+            $return_val->lastname = $res->lastname;
+            $return_val->referrer = $res->referrer;
+            $return_val->allocationTable = AllocationDBO::fetchAllocationTableForBookingId($res->booking_id);
+            $return_val->allocationTable->setDefaultMinMaxDates();
+        }
+        return $return_val;
+    }
+
+    /**
      * Inserts a new booking entry into the booking table.
      * $mysqli : manual db connection (for transaction handling)
      * $firstname : first name (required)

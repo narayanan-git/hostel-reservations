@@ -1502,7 +1502,13 @@ if (!class_exists('wpdev_booking')) {
 
         //Content of the Add reservation page
         function content_of_reservation_page() {
+            do_action('wpdev_bk_add_form', 
+                1, //$bk_type, 
+                1 // get_bk_option( 'booking_client_cal_count')
+            );
+        }
 
+        function content_of_reservation_page_OLD() {
 
             $is_can = apply_bk_filter('multiuser_is_user_can_be_here', true, 'check_for_active_users');
 
@@ -3212,38 +3218,20 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 
         function add_booking_form_action($bk_type =1, $cal_count =1, $is_echo = 1, $my_booking_form = 'standard', $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
   
-        // if we are here, then the URI should be correct
-//            if( strpos($_SERVER['REQUEST_URI'],'wpdev-booking-reservation')) {
-//            }
+            // if we are editing an existing booking...
+            if(isset($_REQUEST['bookingid'])) {
+                // TODO: rename "ADD_BOOKING_CONTROLLER" to "EDIT_BOOKING_CONTROLLER", AddBooking to EditBooking
+                $_SESSION['ADD_BOOKING_CONTROLLER'] = BookingDBO::fetchBookingControllerByBookingId($_REQUEST['bookingid']);
+        
+            } else {
+                ///// REMOVE PREVIOUS SESSION DATA IF SET //////////
+                unset($_SESSION['ADD_BOOKING_CONTROLLER']); 
+                ////////////////////////////////////////////////////
+                
+                $_SESSION['ADD_BOOKING_CONTROLLER'] = new AddBooking();
+            }
+            echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
 
-///// REMOVE PREVIOUS SESSION DATA IF SET //////////
-unset($_SESSION['ADD_BOOKING_CONTROLLER']); 
-////////////////////////////////////////////////////
-
-$_SESSION['ADD_BOOKING_CONTROLLER'] = new AddBooking();
-echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
-//return $addbook->toHtml();            
-/*
-            $start_script_code = $this->get_script_for_calendar(
-                1, // $bk_type, 
-                array(), // $additional_bk_types 
-                '', //$my_selected_dates_without_calendar, 
-                1, //$cal_count, 
-                false //$start_month_calendar 
-            );
-
-            $my_result =  ' ' . $this->get__client_side_booking_content_v2(
-                1, //$bk_type, 
-                'standard', //$my_booking_form, 
-                '' //$my_selected_dates_without_calendar 
-            ) . ' ' . $start_script_code . $comment_insert;
-            
-//            $my_result = apply_filters('wpdev_booking_form', $my_result , $bk_type);
-            //return $my_result . $comment_insert;
-
-            if ( $is_echo )            echo $my_result;
-            else                       return $my_result;
-*/
         }
 //////////////////////// END CUSTOM CODE ////////////////////////////
         

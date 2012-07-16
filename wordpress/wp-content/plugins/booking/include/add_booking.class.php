@@ -5,19 +5,17 @@
  */
 class AddBooking {
 
-    // contains a comma-delimited list of currently selected dates?? may be useful later for edit booking
-    var $my_selected_dates_without_calendar;
-    
+    var $id;
     var $firstname;
     var $lastname;
     var $referrer;
     var $details;
     
     // all allocations for this booking (type AllocationTable)
-    private $allocationTable;
+    var $allocationTable;
 
-    function AddBooking($my_selected_dates_without_calendar = '') {
-        $this->my_selected_dates_without_calendar = $my_selected_dates_without_calendar;
+    function AddBooking() {
+        $this->id = 0;
         $this->allocationTable = new AllocationTable();
     }
     
@@ -29,6 +27,7 @@ class AddBooking {
      * dates : comma-delimited list of dates in format dd.MM.yyyy
      */
     function addAllocation($numVisitors, $gender, $resourceId, $dates) {
+error_log("addAllocation $numVisitors, $gender, $resourceId");
         $this->allocationTable->addAllocation($this->firstname, $numVisitors, $gender, $resourceId, $dates);
         
         if($this->allocationTable->showMinDate == null || $this->allocationTable->showMaxDate == null) {
@@ -110,8 +109,15 @@ error_log("inserted booking id $bookingId");
 
     /** 
       Generates the following xml:
-        <addbooking>
-            <selectedDates>15.08.2012, 16.08.2012</selectedDates>
+        <editbooking>
+            <id>25</id>
+            <firstname>Megan</firstname>
+            <lastname>Fox</lastname>
+            <referrer>telephone</referrer>
+            <allocations>
+                <bookingName>Megan-1</bookingName>
+                ...
+            </allocations>
             <resources>
                 <resource>
                     <id>1</id>
@@ -125,17 +131,24 @@ error_log("inserted booking id $bookingId");
                 </resource>
                 ...
             </resources>
-        </addbooking>
+        </editbooking>
      */
     function toXml() {
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
     
         // create the root element of the xml tree
-        $xmlRoot = $domtree->createElement('addbooking');
+        $xmlRoot = $domtree->createElement('editbooking');
         $xmlRoot = $domtree->appendChild($xmlRoot);
     
-        $xmlRoot->appendChild($domtree->createElement('selectedDates', $this->my_selected_dates_without_calendar));
+        $xmlRoot->appendChild($domtree->createElement('id', $this->id));
+        $xmlRoot->appendChild($domtree->createElement('firstname', $this->firstname));
+        $xmlRoot->appendChild($domtree->createElement('lastname', $this->lastname));
+        $xmlRoot->appendChild($domtree->createElement('referrer', $this->referrer));
+        
+        // add current allocations
+        $this->allocationTable->addSelfToDocument($domtree, $xmlRoot);
+
         $resourcesRoot = $domtree->createElement('resources');
         $xmlRoot = $xmlRoot->appendChild($resourcesRoot);
 
@@ -161,7 +174,8 @@ error_log("inserted booking id $bookingId");
         // create a DOM document and load the XML datat
         $xml_doc = new DomDocument;
         $xml_doc->loadXML($this->toXml());
-        
+error_log($this->toXml());
+
         // transform the XML into HTML using the XSL file
         if ($html = $xp->transformToXML($xml_doc)) {
             return $html;

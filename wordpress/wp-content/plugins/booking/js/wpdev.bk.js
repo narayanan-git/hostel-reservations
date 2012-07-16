@@ -575,7 +575,12 @@
             showErrorMessage( submit_form.firstname, message_verif_requred );
             return;
         }
-        else if(document.getElementById('calendar_booking1').value === '') {
+        else if(submit_form.booking_resource.value === '0') {
+            showErrorMessage( submit_form.booking_resource, message_verif_requred );
+            return;
+        }
+        else if(typeof document.getElementById('calendar_booking1').value === "undefined" || 
+                document.getElementById('calendar_booking1').value === '') {
             jQuery('#ajax_respond').html("Select a date or date-range for the booking.")
                 .css( {'color' : 'red'} );
             return;
@@ -591,7 +596,7 @@
                 dates: document.getElementById('calendar_booking1').value,
                 firstname: submit_form.firstname.value,
                 num_visitors : submit_form.num_visitors.value,
-                gender : submit_form.gender[0].checked ? submit_form.gender[0].value : submit_form.gender[1].value,
+                gender : submit_form.gender.value,
                 booking_resource : submit_form.booking_resource.value,
                 wpdev_active_locale:wpdev_active_locale
             }
@@ -644,7 +649,7 @@
         for (i=0; i<submit_form.elements.length; i++)   {
             var element = submit_form.elements[i];
             
-            if ( (element.type !=='button') && (element.type !=='hidden') && ( element.name !== ('date_booking1') )   ) {           // Skip buttons and hidden element - type
+            if ( (element.type !=='button') && (element.type !=='hidden') && ( element.name !== ('calendar_booking1') )   ) {           // Skip buttons and hidden element - type
 
                 // Validation Check --- Requred fields
                 if ( element.className.indexOf('wpdev-validates-as-required') !== -1 ){             
@@ -666,13 +671,13 @@
         jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
-            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond_insert').html( data ) ;},
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
             error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
             data:{
-                ajax_action : 'INSERT_INTO_TABLE',
+                ajax_action : 'SAVE_BOOKING',
                 firstname: submit_form.firstname.value,
                 lastname: submit_form.lastname.value,
-                details: submit_form.details.value
+                referrer: submit_form.referrer.value
             }
         });
     }

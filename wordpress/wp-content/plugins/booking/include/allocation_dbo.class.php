@@ -49,7 +49,7 @@ error_log("fetch availability $bookingDatesString");
      * $resourceIds : set of leaf nodes (beds)
      * $numGuests : number of guests to fit 
      * Returns : array() of resource ids with the same parent from $resourceIds
-     *           or null if no parent can fit $numGuests
+     *           or empty array if no parent can fit $numGuests
      */
     static function fetchResourcesUnderOneParentResource($resourceIds, $numGuests) {
 
@@ -64,8 +64,8 @@ error_log("fetchResourcesUnderOneParentResource ".implode(',', $resourceIds)." a
         // if this returns a non-empty result, assign everyone to the first parent resource
         // otherwise if this is empty, then we assign individually using the resources from the first query
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT br.resource_id, br.parent_resource_id, avail_capacity, br.capacity
-               FROM (SELECT parent_resource_id, SUM(capacity) AS avail_capacity 
+            "SELECT br.resource_id, br.parent_resource_id, avail_capacity
+               FROM (SELECT parent_resource_id, SUM(1) AS avail_capacity 
                        FROM ".$wpdb->prefix."bookingresources
                       WHERE resource_id IN (".implode(',', $resourceIds).") 
                       GROUP BY parent_resource_id
@@ -73,11 +73,11 @@ error_log("fetchResourcesUnderOneParentResource ".implode(',', $resourceIds)." a
                JOIN ".$wpdb->prefix."bookingresources br 
                  ON br.parent_resource_id = available_rooms.parent_resource_id AND br.resource_id IN (".implode(',', $resourceIds).")
               WHERE avail_capacity >= $numGuests
-              ORDER BY avail_capacity, br.resource_id"));
+              ORDER BY avail_capacity, br.parent_resource_id, br.resource_id"));
         
         $result = array();
         foreach ($resultset as $res) {
-            $result[$res->resource_id] = $res->capacity;
+            $result[$res->resource_id] = 1;  // TODO: this is always 1, should we change this?
         }
 error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         return $result;
@@ -140,7 +140,7 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
                 AND ra.resource_id = ?");
         $stmt->bind_param('si', $bookingDate, $resourceId);
         
-        if(FALSE === $stmt->execute()) {
+        if(false === $stmt->execute()) {
             throw new DatabaseException("Error during SELECT: " . $mysqli->error);
         }
         
@@ -284,13 +284,58 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
         }
         return $return_val;
     }
+    
+    /**
+     * This will fetch all allocations for the given booking and prepopulate the AllocationTable.
+     * $bookingId : existing booking id
+     * Returns AllocationTable for booking id
+     */
+    static function fetchAllocationTableForBookingId($bookingId) {
+        global $wpdb;
+        $return_val = new AllocationTable();
+        
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT a.allocation_id, a.guest_name, a.gender, a.status, a.resource_id
+               FROM ".$wpdb->prefix."allocation a
+              WHERE a.booking_id = %d
+              ORDER BY a.resource_id, a.guest_name", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+        
+        if(empty($resultset)) {
+            throw new DatabaseException("No allocations found for $bookingId");
+        }
+
+        $resourceMap = ResourceDBO::getAllResources();   // avoid hitting db, do this only once
+        foreach ($resultset as $res) {
+            $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $res->status, $resourceMap);
+            $ar->bookingDatePayment = AllocationDBO::fetchBookingDatePayments($res->allocation_id);
+            $return_val->allocationRows[] = $ar;
+        }
+        return $return_val;
+    }
+    
+    /**
+     * Returns a map of booking date -> payment amount for the given allocation id.
+     * $allocationId : existing allocation id
+     * Returns array() of payment indexed by booking date (String in format d.m.Y)
+     */
+    static function fetchBookingDatePayments($allocationId) {
+        $return_val = array();
+        foreach( AllocationDBO::fetchBookingDatesForAllocation($allocationId) as $bookingDate) {
+            $return_val[$bookingDate] = 15;  // TODO: hard-coded payment value of 15
+        }
+        return $return_val;
+    }
 
     /**
      * Returns all guest names for the given bookingId
      * $bookingId : valid booking id
      * Returns array() of String
      */
-    function fetchGuestNamesForBookingId($bookingId) {
+    static function fetchGuestNamesForBookingId($bookingId) {
         // find all allocations for this booking
         global $wpdb;
 
@@ -316,7 +361,7 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
      * $bookingId : valid booking id
      * Returns array() of String
      */
-    function fetchStatusesForBookingId($bookingId) {
+    static function fetchStatusesForBookingId($bookingId) {
         // find all statuses for this booking
         global $wpdb;
 
@@ -342,7 +387,7 @@ error_log("allocation $allocationId on $bookingDate complies with avaiability: $
      * $bookingId : valid booking id
      * Returns array() of DateTime
      */
-    function fetchDatesForBookingId($bookingId) {
+    static function fetchDatesForBookingId($bookingId) {
         // find all statuses for this booking
         global $wpdb;
 

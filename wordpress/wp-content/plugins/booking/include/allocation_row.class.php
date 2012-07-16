@@ -7,22 +7,34 @@
 class AllocationRow {
     var $rowid;  // unique id for this row prior to creation
     var $name;
-    var $status;  // checkedin, checkedout, pending, etc
+    var $status;  // checkedin, checkedout, reserved, etc
     var $gender;
     var $resourceId;
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
     var $editMode;  // either 'edit' or 'add'
-    private $bookingDatePayment = array();  // key = booking date, value = payment amount
-    private $resourceMap;  // array of resource_id -> resource_name
+    var $bookingDatePayment = array();  // key = booking date, value = payment amount
+    private $resourceMap;  // array of resource_id -> resource recordset
 
-    function AllocationRow($name, $gender, $resourceId, $status = 'pending') {
+    /**
+     * Default constructor.
+     * $name : guest name
+     * $gender : guest gender
+     * $resourceId : resource to assign to guest
+     * $status : current status of allocation (default: reserved)
+     * $resourceMap : array() of resource id -> resource recordset (if not specified, query db for all resources)
+     */
+    function AllocationRow($name, $gender, $resourceId, $status = 'reserved', $resourceMap = null) {
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
         $this->status = $status;
-        $this->resourceMap = ResourceDBO::getResourceMap();
+        if($resourceMap == null) {
+            $this->resourceMap = ResourceDBO::getAllResources();
+        } else {
+            $this->resourceMap = $resourceMap;
+        }
     }
 
     /**
@@ -160,7 +172,7 @@ class AllocationRow {
         
         // create the allocation
         $allocationId = AllocationDBO::insertAllocation(
-            $mysqli, $bookingId, $this->resourceId, $this->name, $this->status, substr($this->gender, 0, 1));
+            $mysqli, $bookingId, $this->resourceId, $this->name, $this->status, $this->gender);
 error_log("inserted allocation $allocationId");
         // then create the booking dates for the allocation
         $this->isAvailable = true;
@@ -190,7 +202,8 @@ error_log("to insert $bookingDate");
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
-        $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]));
+        $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]->name));
+        $xmlRoot->appendChild($domtree->createElement('parentresource', $this->resourceMap[$this->resourceId]->parent_name));
 
         $dateRow = $domtree->createElement('dates');
         $attrTotal = $domtree->createAttribute('total');
@@ -224,7 +237,7 @@ error_log("to insert $bookingDate");
                 $dateElem->appendChild($attrPayment);
 
                 $attrState = $domtree->createAttribute('state');
-                $attrState->value = 'pending';
+                $attrState->value = 'reserved';
                 $dateElem->appendChild($attrState);
             
             // TODO: different state when date is in the past?

@@ -6,7 +6,7 @@
 class AllocationTable {
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
-    private $allocationRows = array();  // array of AllocationRow
+    var $allocationRows = array();  // array of AllocationRow
     private $allocationStrategy;
     
     function AllocationTable() {
@@ -27,8 +27,9 @@ class AllocationTable {
         $datearr = explode(",", $dates);
         $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
         $newAllocationRows = array();  // the new allocations we will be adding
+        $resourceMap = ResourceDBO::getAllResources();   // avoid hitting db, do this only once
         for($i = 0; $i < $numVisitors; $i++) {
-            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId);
+            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId, 'reserved', $resourceMap);
             foreach ($datearr as $dt) {
                 $allocationRow->addPaymentForDate(trim($dt), 15); // FIXME: price fixed at 15
             }
@@ -109,7 +110,7 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
         } else {
             // if it doesn't exist, then add it
             $ar->addPaymentForDate($dt, 15); // FIXME: price fixed at 15
-            return 'pending';
+            return 'reserved';
         }
     }
     
@@ -156,35 +157,15 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
 
     }
     
-    /** 
-      Generates the following xml:
-        <allocations total="49.50">
-            <bookingName>Megan</bookingName>
-            <showMinDate>25.08.2012</showMinDate>
-            <showMaxDate>04.09.2012</showMaxDate>
-            <allocation>...</allocation>
-            <allocation>...</allocation>
-            <dateheaders>
-                <header>August/September</header>
-                <datecol>
-                    <date>25</date>
-                    <day>Sun</day>
-                <datecol>
-                <datecol>
-                    <date>26</date>
-                    <day>Mon</day>
-                <datecol>
-                ...
-            </dateheaders>
-        </allocations>
+    /**
+     * Adds this allocation table to the DOMDocument/XMLElement specified.
+     * See toXml() for details.
+     * $domtree : DOM document root
+     * $parentElement : DOM element where this row will be added
      */
-    function toXml() {
-        // create a dom document with encoding utf8
-        $domtree = new DOMDocument('1.0', 'UTF-8');
-    
+    function addSelfToDocument($domtree, $parentElement) {
         // create the root element of the xml tree
-        $xmlRoot = $domtree->createElement('allocations');
-        $xmlRoot = $domtree->appendChild($xmlRoot);
+        $xmlRoot = $parentElement->appendChild($domtree->createElement('allocations'));
     
         if($this->showMinDate != null) {
             $xmlRoot->appendChild($domtree->createElement('showMinDate', $this->showMinDate->format('d.m.Y')));
@@ -221,6 +202,34 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
                 $dt->add(new DateInterval('P1D'));  // increment by day
             }
         }
+    }
+    
+    /** 
+      Generates the following xml:
+        <allocations total="49.50">
+            <bookingName>Megan</bookingName>
+            <showMinDate>25.08.2012</showMinDate>
+            <showMaxDate>04.09.2012</showMaxDate>
+            <allocation>...</allocation>
+            <allocation>...</allocation>
+            <dateheaders>
+                <header>August/September</header>
+                <datecol>
+                    <date>25</date>
+                    <day>Sun</day>
+                <datecol>
+                <datecol>
+                    <date>26</date>
+                    <day>Mon</day>
+                <datecol>
+                ...
+            </dateheaders>
+        </allocations>
+     */
+    function toXml() {
+        // create a dom document with encoding utf8
+        $domtree = new DOMDocument('1.0', 'UTF-8');
+        $this->addSelfToDocument($domtree, $domtree);
         return $domtree->saveXML();
     }
     

@@ -45,7 +45,7 @@ function wpdev_bk_ajax_responder() {
 
     switch ( $action ) :
 
-        case  'INSERT_INTO_TABLE':
+        case  'SAVE_BOOKING':
             wpdev_bk_insert_new_booking_v2();
             die();
             break;
@@ -265,6 +265,7 @@ function wpdev_bk_ajax_responder() {
 
         default:
             if (function_exists ('wpdev_pro_bk_ajax')) wpdev_pro_bk_ajax();
+            error_log("ERROR: Undefined AJAX action  $action");
             die();
 
         endswitch;
@@ -274,11 +275,13 @@ function wpdev_bk_ajax_responder() {
 ///////////////////////// BEGIN CUSTOM CODE //////////////////////////////
 function wpdev_bk_insert_new_booking_v2(){
 
+error_log("wpdev_bk_insert_new_booking_v2 : begin");
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
         $booking->firstname = $_POST['firstname'];
         $booking->lastname = $_POST['lastname'];
-        $booking->details = $_POST['details'];
+        $booking->referrer = $_POST['referrer'];
+//        $booking->details = $_POST['details'];
     } else {
         ?> <script type="text/javascript">
             document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Add some allocations first!"; ?></div>';
@@ -288,6 +291,7 @@ function wpdev_bk_insert_new_booking_v2(){
         <?php
         return;
     }
+error_log("wpdev_bk_insert_new_booking_v2 : pre validate");
 
     // validate form
     $errors = $booking->doValidate();
@@ -307,9 +311,11 @@ function wpdev_bk_insert_new_booking_v2(){
         return;
     }
     
+error_log("wpdev_bk_insert_new_booking_v2 : validate OK, doing SAVE");
     // validates ok, save to db
     try {
         $booking->save();
+error_log("wpdev_bk_insert_new_booking_v2 : SAVE complete");
         $msg = "Updated successfully";
     } catch(DatabaseException $ex) {
         $msg = $ex->getMessage();

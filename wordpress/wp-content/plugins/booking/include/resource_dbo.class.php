@@ -24,12 +24,13 @@ class ResourceDBO {
 
         // query all our resources (in order)
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT resource_id, name, lvl, path, number_children, parent_resource_id, resource_type
-               FROM ".$wpdb->prefix."v_resources_by_path
+            "SELECT r.resource_id, r.name, r.lvl, r.path, r.number_children, r.parent_resource_id, rp.name AS parent_name, r.resource_type
+               FROM ".$wpdb->prefix."v_resources_by_path r
+               LEFT OUTER JOIN ".$wpdb->prefix."bookingresources rp ON r.parent_resource_id = rp.resource_id
                     ". ($resourceId == null ? "" : "
-                            WHERE ((path LIKE '%%/$resourceId' AND number_children = 0)
-                                OR (path LIKE '%%/$resourceId/%%' AND number_children = 0))") . "
-              ORDER BY path"));
+                            WHERE ((r.path LIKE '%%/$resourceId' AND r.number_children = 0)
+                                OR (r.path LIKE '%%/$resourceId/%%' AND r.number_children = 0))") . "
+              ORDER BY r.path"));
         
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);

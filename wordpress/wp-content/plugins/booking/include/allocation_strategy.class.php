@@ -34,6 +34,10 @@ error_log("assignResourcesForAllocations ".sizeof($allocationRows));
         $RESOURCE_MAP = ResourceDBO::getAllResources();
         foreach ($allocationRows as $alloc) {
 error_log("number of children : ".$RESOURCE_MAP[$alloc->resourceId]->number_children);
+            if ($RESOURCE_MAP[$alloc->resourceId]->number_children == 0) {
+error_log("Resource $alloc->resourceId is a leaf node, continuing...");
+                continue;
+            }
             // collect all dates for all allocations sharing this resourceId
             // (we should only need to check one as they *should* all be the same but just in case)
 error_log("found resource $alloc->resourceId");
@@ -43,8 +47,13 @@ error_log("found resource $alloc->resourceId");
 error_log("after collectDatesWithResourceId numberOfAllocationsSharingThisParent:$numberOfAllocationsSharingThisParent bookingDates : ".sizeof($bookingDates));
 
             // resourceIds : Map of key = resourceId, value = capacity
+            // these are all resources that have availability across ALL $bookingDates
+            // TODO: actually, all resources should be beds so capacity = 1 always??
             $resourceIds = $this->fetchAvailableCapacity($alloc->resourceId, $bookingDates, $existingAllocationRows);
-error_log("after availableCapacity ".sizeof($resourceIds));
+error_log("available capacity:");
+foreach ($resourceIds as $k => $v) {
+    error_log("resource_id $k => $v");
+}
             
             // if "parent" node, we need to assign a specific leaf (bed)
             // first, try to fit everyone into the same room
@@ -71,11 +80,13 @@ error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
      * $parentResourceId : resource id of parent to calculate availability for
      * $bookingDates : array() of booking dates in format d.M.y
      * $existingAllocationRows : current array() of (uncommitted) AllocationRow
+     * Returns map of key => $resourceId, value => $availableCapacity
      */
     function fetchAvailableCapacity($parentResourceId, $bookingDates, $existingAllocationRows) {
         // map of resourceId => capacity from db
+error_log(var_export(array("begin fetchAvailableCapacity", $parentResourceId, $bookingDates), true));
         $resultMap = AllocationDBO::fetchAvailability($parentResourceId, $bookingDates);
-error_log("begin fetchAvailableCapacity ".sizeof($resultMap));
+error_log(var_export($resultMap, true));
         
         // adjust against those currently in this allocation (as these haven't been committed yet)
         foreach ($existingAllocationRows as $existingAllocRow) {
@@ -118,7 +129,7 @@ error_log("returning bookingDates ".sizeof($bookingDates)." and number allocatio
      * depending on whether we run out of resource ids or not.
      * $allocationRows : array() of AllocationRow to assign
      * $parentResourceId : resource id to assign child resource id to
-     * $resourceIds : resource ids to assign from
+     * $resourceIds : resource id => capacity map to assign from
      */
     function doAssignAllocations($allocationRows, $parentResourceId, $resourceIds) {
 error_log("doAssignAllocations");
