@@ -95,49 +95,58 @@
             <xsl:if test="isAvailable != 'true'">
                 <xsl:attribute name="class">highlight_cell_red</xsl:attribute>
             </xsl:if>
-            <xsl:if test="mode = 'edit'">
-                <input type="text" id="allocation_name{rowid}" name="allocation_name{rowid}" value="{name}" size="5"/>
-            </xsl:if>
-            <xsl:if test="mode = 'view'">
-                <xsl:value-of select="name"/>
-            </xsl:if>
+            <xsl:choose>
+                <xsl:when test="../editingRowId = rowid">
+                    <input type="text" id="allocation_name{rowid}" name="allocation_name{rowid}" value="{name}" size="5"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:value-of select="name"/>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:if test="gender = 'M' or gender = 'F'">
                 (<xsl:value-of select="gender"/>)
             </xsl:if>
         </td>
-        <xsl:if test="mode = 'view'">
-            <td class="avail_attrib"><xsl:value-of select="parentresource"/></td>
-            <td class="avail_attrib"><xsl:value-of select="resource"/></td>
-        </xsl:if>
-        <xsl:if test="mode = 'edit'">
-            <td colspan="2">
-                <select id="booking_resource{rowid}" name="booking_resource{rowid}">
-                    <xsl:apply-templates select="../resources/resource" mode="resource_selection">
-                        <xsl:with-param name="resource_id"><xsl:value-of select="resourceid"/></xsl:with-param>
-                    </xsl:apply-templates>
-                </select>
-            </td>
-        </xsl:if>
+            <xsl:choose>
+                <xsl:when test="../editingRowId = rowid">
+                    <td colspan="2">
+                        <select id="booking_resource{rowid}" name="booking_resource{rowid}">
+                            <xsl:apply-templates select="../resources/resource" mode="resource_selection">
+                                <xsl:with-param name="resource_id"><xsl:value-of select="resourceid"/></xsl:with-param>
+                            </xsl:apply-templates>
+                        </select>
+                    </td>
+                </xsl:when>
+                <xsl:otherwise>
+                    <td class="avail_attrib"><xsl:value-of select="parentresource"/></td>
+                    <td class="avail_attrib"><xsl:value-of select="resource"/></td>
+                </xsl:otherwise>
+            </xsl:choose>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
         <xsl:apply-templates select="dates/date" mode="allocation_date"/>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate > 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
         <td class="avail_attrib">
-            <xsl:if test="mode = 'edit'">
-                <div style="text-align:center;">
-                    <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:save_allocation({rowid});" href="javascript:;">
-                        <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
-                    </a>
-                </div>
-            </xsl:if>
-            <xsl:if test="mode = 'view'">
-                <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:edit_allocation({rowid});" href="javascript:;">
-                    <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
-                </a>
-                <span style="padding-left: 10px;"></span>
-                <a class="tooltip_bottom" rel="tooltip" data-original-title="Delete" onclick="javascript:delete_allocation({rowid});" href="javascript:;">
-                    <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
-                </a>
-            </xsl:if>
+            <xsl:choose>
+                <xsl:when test="../editingRowId = rowid">
+                    <div style="text-align:center;">
+                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:save_allocation({rowid});" href="javascript:;">
+                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
+                        </a>
+                    </div>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- only show edit/delete buttons on remainder of rows if we aren't editing a row already -->
+                    <xsl:if test="not(../editingRowId)">
+                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:edit_allocation({rowid});" href="javascript:;">
+                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
+                        </a>
+                        <span style="padding-left: 10px;"></span>
+                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Delete" onclick="javascript:delete_allocation({rowid});" href="javascript:;">
+                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
+                        </a>
+                    </xsl:if>
+                </xsl:otherwise>
+            </xsl:choose>
         </td>
     </tr>
 </xsl:template>

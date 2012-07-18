@@ -6,6 +6,7 @@
 class AllocationTable extends XslTransform {
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
+    var $editingRowId;  // row id of allocation currently being edited
     var $allocationRows = array();  // array of AllocationRow
     private $allocationStrategy;
     private $resourceMap;   // const map of resources 
@@ -105,7 +106,7 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
      */
     function enableEditOnAllocation($rowid) {
         if (isset($this->allocationRows[$rowid])) {
-            $this->allocationRows[$rowid]->mode = 'edit';
+            $this->editingRowId = $rowid;
         }
     }
     
@@ -115,7 +116,7 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
      */
     function disableEditOnAllocation($rowid) {
         if (isset($this->allocationRows[$rowid])) {
-            $this->allocationRows[$rowid]->mode = 'view';
+            $this->editingRowId = null;
         }
     }
     
@@ -190,6 +191,9 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
         }
         if($this->showMaxDate != null) {
             $xmlRoot->appendChild($domtree->createElement('showMaxDate', $this->showMaxDate->format('d.m.Y')));
+        }
+        if($this->editingRowId != null) {
+            $xmlRoot->appendChild($domtree->createElement('editingRowId', $this->editingRowId));
         }
 
         foreach ($this->allocationRows as $allocation) {

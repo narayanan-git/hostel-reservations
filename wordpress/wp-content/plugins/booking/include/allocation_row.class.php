@@ -12,9 +12,7 @@ class AllocationRow {
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
-    var $editMode;  // either 'edit' or 'add'
     var $bookingDateStatus = array();  // key = booking date, value = status
-    var $mode = 'view';   // either 'view' or 'edit'
     private $resourceMap;  // array of resource_id -> resource recordset
     private $STATUSES = array('reserved', 'paid', 'free', 'hours', 'cancelled'); 
 
@@ -197,7 +195,6 @@ error_log("to insert $bookingDate , $status");
         $xmlRoot = $parentElement->appendChild($xmlRoot);
     
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
-        $xmlRoot->appendChild($domtree->createElement('mode', $this->mode));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
         $xmlRoot->appendChild($domtree->createElement('resourceid', $this->resourceId));
@@ -244,7 +241,6 @@ error_log("to insert $bookingDate , $status");
       Generates the following xml:
         <allocation>
             <rowid>3</rowid>
-            <mode>view</mode>
             <name>Megan-1</name>
             <gender>Female</gender>
             <resourceid>21</resourceid>
