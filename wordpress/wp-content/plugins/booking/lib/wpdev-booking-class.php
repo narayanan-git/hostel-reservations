@@ -3741,7 +3741,6 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             booking_id bigint(20) unsigned NOT NULL,
                             resource_id bigint(20) unsigned NOT NULL,
                             guest_name varchar(50) NOT NULL,
-                            status varchar(10) NOT NULL,
                             gender varchar(1) NOT NULL,
                             created_by varchar(20) NOT NULL,
                             created_date datetime NOT NULL,
@@ -3756,6 +3755,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                 $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingdates (
                             allocation_id bigint(20) unsigned NOT NULL,
                             booking_date date NOT NULL,
+                            status varchar(10) NOT NULL,
                             FOREIGN KEY (allocation_id) REFERENCES ".$wpdb->prefix ."allocation(allocation_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));

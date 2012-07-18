@@ -34,10 +34,10 @@ error_log("assignResourcesForAllocations ".sizeof($allocationRows));
         $RESOURCE_MAP = ResourceDBO::getAllResources();
         foreach ($allocationRows as $alloc) {
 error_log("number of children : ".$RESOURCE_MAP[$alloc->resourceId]->number_children);
-            if ($RESOURCE_MAP[$alloc->resourceId]->number_children == 0) {
-error_log("Resource $alloc->resourceId is a leaf node, continuing...");
-                continue;
-            }
+//            if ($RESOURCE_MAP[$alloc->resourceId]->number_children == 0) {
+error_log("Resource $alloc->resourceId is a leaf node...");
+//                continue;
+//            }
             // collect all dates for all allocations sharing this resourceId
             // (we should only need to check one as they *should* all be the same but just in case)
 error_log("found resource $alloc->resourceId");

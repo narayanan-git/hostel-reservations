@@ -209,19 +209,17 @@ font-weight:normal;
 
 
 
-.datepick  .date2approve, .block_hints .block_pending {
+.datepick  .date2approve {
  color:#ea5 !important; background-color: #DF9A00 !important ;   color:#fff !important; }
-.datepick  .date_approved,.block_hints .block_booked {
+.datepick  .date_approved {
  color:#79c !important; background-color: #C60B0B !important;   color:#fff !important; text-decoration:line-through; }
-.block_hints .block_pending {color:#a6d3ea !important; }
-.block_hints .block_booked  {color:#0080c1 !important; }
 
 .datepick .date2approve.timespartly a  { background-color: transparent !important; border:none !important; color:#FFFFFF !important;font-weight:normal; }
 .datepick .date_approved.timespartly a { background-color: transparent !important; border:none !important; color:#FFFFFF !important;font-weight:normal; }
 
 
  
-.block_hints .block_free    { background-color: #f3f3f3 !important;   color:#99f !important; }
+/* .block_hints .block_free    { background-color: #f3f3f3 !important;   color:#99f !important; } */
 .block_time.timespartly { background:#F2F2F2 url('../../img/clock_fill.png') no-repeat 100% 100% !important;   color:#99f !important; }
 
 
@@ -333,6 +331,11 @@ font-weight:normal;
     border:2px solid rgb(224,21,21); 
 }
 
+.legend_date_status_reserved {
+    color:#fff;
+    background-color: rgb(223,154,0);
+}
+
 .date_status_reserved {
     background:none repeat scroll 0% 0% rgb(223,154,0);
 }
@@ -342,6 +345,85 @@ font-weight:normal;
     font-weight:bold;
     text-decoration:none;
     color:#fff;
+    display: block;
+    padding: 10px 10px;
+}
+
+.legend_date_status_paid {
+    color:#fff;
+    background-color: rgb(146,209,140);
+}
+
+.date_status_paid {
+    background:none repeat scroll 0% 0% rgb(146,209,140);
+}
+
+.date_status_paid a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#fff;
+    display: block;
+    padding: 10px 10px;
+}
+
+.legend_date_status_free {
+    color:#fff;
+    background-color:rgb(141,200,213);
+}
+
+.date_status_free {
+    background:none repeat scroll 0% 0% rgb(141,200,213);
+}
+
+.date_status_free a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#fff;
+    display: block;
+    padding: 10px 10px;
+}
+
+.legend_date_status_hours {
+    color:#888;
+    background-color: rgb(219,235,109);
+}
+
+.date_status_hours {
+    background:none repeat scroll 0% 0% rgb(219,235,109);
+}
+
+.date_status_hours a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#888;
+    display: block;
+    padding: 10px 10px;
+}
+
+.legend_date_status_cancelled {
+    color:#fff;
+    background-color: rgb(190,190,190);
+}
+
+.date_status_cancelled {
+    background:none repeat scroll 0% 0% rgb(190,190,190);
+}
+
+.date_status_cancelled a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#fff;
+    display: block;
+    padding: 10px 10px;
+}
+
+.legend_date_status_available {
+    color:#000;
+    background-color: rgb(249,247,247);
 }
 
 .date_status_available {
@@ -353,6 +435,8 @@ font-weight:normal;
     font-weight:normal;
     text-decoration:none;
     color:#000;
+    display: block;
+    padding: 10px 10px;
 }
 
 .allocation_view_resource_title {

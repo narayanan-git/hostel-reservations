@@ -62,11 +62,12 @@
                         </select>
                         </span>
                     </p>
-                    <p>Room/Bed:<br />  <span class="wpdev-form-control-wrap"> 
-                        <select id="booking_resource" name="booking_resource">
-                            <option value="0"> - </option>
-                            <xsl:apply-templates select="resources/resource" mode="resource_selection"/>
-                        </select>
+                    <p>Room/Bed:<br />  
+                        <span class="wpdev-form-control-wrap"> 
+                            <select id="booking_resource" name="booking_resource">
+                                <option value="0"> - </option>
+                                <xsl:apply-templates select="allocations/resources/resource" mode="resource_selection"/>
+                            </select>
                         </span>
                     </p>
                     <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form,'en_US');" /></p>
@@ -105,30 +106,6 @@
           });
     </script>
     
-</xsl:template>
-
-<!-- builds drill-down of resource id, name -->
-<xsl:template mode="resource_selection" match="resource">
-    <option value="{id}">
-        <xsl:call-template name ="indent">
-            <xsl:with-param name="i">1</xsl:with-param>
-            <xsl:with-param name="value"><xsl:value-of select="level"/></xsl:with-param>
-        </xsl:call-template>
-        <xsl:value-of select ="name"/>
-    </option>
-</xsl:template>
-
-<!-- adds non-breaking spaces -->
-<xsl:template name="indent">
-    <xsl:param name="i"/>
-    <xsl:param name="value"/>
-    <xsl:if test="$i &lt; $value">
-        &#160;&#160;&#160;&#160;
-        <xsl:call-template name ="indent">
-            <xsl:with-param name="i"><xsl:value-of select ="$i+1"/></xsl:with-param>
-            <xsl:with-param name="value"><xsl:value-of select="level"/></xsl:with-param>
-        </xsl:call-template>
-    </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>

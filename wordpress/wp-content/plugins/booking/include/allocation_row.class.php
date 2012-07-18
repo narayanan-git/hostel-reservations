@@ -7,15 +7,16 @@
 class AllocationRow {
     var $rowid;  // unique id for this row prior to creation
     var $name;
-    var $status;  // checkedin, checkedout, reserved, etc
     var $gender;
     var $resourceId;
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
     var $editMode;  // either 'edit' or 'add'
-    var $bookingDatePayment = array();  // key = booking date, value = payment amount
+    var $bookingDateStatus = array();  // key = booking date, value = status
+    var $mode = 'view';   // either 'view' or 'edit'
     private $resourceMap;  // array of resource_id -> resource recordset
+    private $STATUSES = array('reserved', 'paid', 'free', 'hours', 'cancelled'); 
 
     /**
      * Default constructor.
@@ -25,11 +26,10 @@ class AllocationRow {
      * $status : current status of allocation (default: reserved)
      * $resourceMap : array() of resource id -> resource recordset (if not specified, query db for all resources)
      */
-    function AllocationRow($name, $gender, $resourceId, $status = 'reserved', $resourceMap = null) {
+    function AllocationRow($name, $gender, $resourceId, $resourceMap = null) {
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
-        $this->status = $status;
         if($resourceMap == null) {
             $this->resourceMap = ResourceDBO::getAllResources();
         } else {
@@ -38,23 +38,32 @@ class AllocationRow {
     }
 
     /**
-     * Adds a date/payment entry for this allocation row
+     * Toggles the status for this allocation row.
      * $dt  date string in format dd.MM.yyyy
-     * $payment  value of payment for specified date
      */
-    function addPaymentForDate($dt, $payment) {
-        $this->bookingDatePayment[$dt] = $payment;
+    function toggleStatusForDate($dt) {
+error_log("in toggleStatusForDate $dt");
+        if(false === isset($this->bookingDateStatus[$dt])) {
+error_log("$dt not set, setting to ".$this->STATUSES[0]);
+            $this->bookingDateStatus[$dt] = $this->STATUSES[0];
+
+        } else {
+error_log("$dt set");
+            $key = array_search($this->bookingDateStatus[$dt], $this->STATUSES);
+error_log("key is $key");
+            
+            // if we are at the end of STATUSES, unset the date so it's "available"
+            if ($key === sizeof($this->STATUSES) - 1) {
+error_log("end of the line, unsetting $dt");
+                unset($this->bookingDateStatus[$dt]);
+            }
+            $this->bookingDateStatus[$dt] = $this->STATUSES[$key + 1];
+error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);            
+            //TODO: if 'C' check if is @ start of block and cancel all subsequent dates
+        }
+        return $this->bookingDateStatus[$dt];
     }
 
-    /**
-     * Removes the booking for a date.
-     * $dt  date string in format dd.MM.yyyy
-     */
-    function removePaymentForDate($dt) {
-        // if payment doesn't exist, the booking doesn't exist
-        unset($this->bookingDatePayment[$dt]);
-    }
-    
     /**
      * Checks whether a booking exists on a particular date.
      * If no date is specified, checks whether a booking exists on *any* date.
@@ -62,9 +71,9 @@ class AllocationRow {
      */
     function isExistsBooking($dt = '') {
         if($dt == '') {
-            return sizeof($this->bookingDatePayment) > 0;
+            return sizeof($this->bookingDateStatus) > 0;
         }
-        return isset($this->bookingDatePayment[$dt]);
+        return isset($this->bookingDateStatus[$dt]);
     }
     
     /**
@@ -86,7 +95,7 @@ class AllocationRow {
      */
     function getMinDate() {
         $result = null;
-        foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+        foreach ($this->bookingDateStatus as $bookingDate => $status) {
             $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
             if($result == null || $bd < $result) {
                 $result = $bd;
@@ -100,7 +109,7 @@ class AllocationRow {
      */
     function getMaxDate() {
         $result = null;
-        foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+        foreach ($this->bookingDateStatus as $bookingDate => $status) {
             $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
             if($result == null || $bd > $result) {
                 $result = $bd;
@@ -113,28 +122,16 @@ class AllocationRow {
      * Returns array of booking dates (string) for this AllocationRow.
      */
     function getBookingDates() {
-        return array_keys($this->bookingDatePayment);
+        return array_keys($this->bookingDateStatus);
     }
     
-    /**
-     * Calculates total payment by summing bookingDatePayment
-     * Returns: numeric value
-     */
-    function getTotalPayment() {
-        $result = 0;
-        foreach ($this->bookingDatePayment as $bookingDate => $payment) {
-            $result += $payment;
-        }
-        return $result;
-    }
-
     /**
      * Returns the number of bookings for this allocation before showMinDate.
      */
     function getNumBookingsBeforeMinDate() {
         $result = 0;
         if($this->showMinDate != null) {
-            foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+            foreach ($this->bookingDateStatus as $bookingDate => $status) {
                 $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
                 if($bd < $this->showMinDate) {
                     $result++;
@@ -150,7 +147,7 @@ class AllocationRow {
     function getNumBookingsAfterMaxDate() {
         $result = 0;
         if($this->showMaxDate != null) {
-            foreach ($this->bookingDatePayment as $bookingDate => $payment) {
+            foreach ($this->bookingDateStatus as $bookingDate => $status) {
                 $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
                 if($bd > $this->showMaxDate) {
                     $result++;
@@ -172,15 +169,15 @@ class AllocationRow {
         
         // create the allocation
         $allocationId = AllocationDBO::insertAllocation(
-            $mysqli, $bookingId, $this->resourceId, $this->name, $this->status, $this->gender);
+            $mysqli, $bookingId, $this->resourceId, $this->name, $this->gender);
 error_log("inserted allocation $allocationId");
         // then create the booking dates for the allocation
         $this->isAvailable = true;
-        foreach (array_keys($this->bookingDatePayment) as $bookingDate) {
-error_log("to insert $bookingDate");
+        foreach ($this->bookingDateStatus as $bookingDate => $status) {
+error_log("to insert $bookingDate , $status");
             // any booking date that breaks availability will flag it up at the row level
             // TODO: should move this onto the booking date field
-            if( ! AllocationDBO::insertBookingDate($mysqli, $this->resourceId, $allocationId, $bookingDate)) {
+            if( false === AllocationDBO::insertBookingDate($mysqli, $this->resourceId, $allocationId, $bookingDate, $status)) {
                 $this->isAvailable = false;
             }
         }
@@ -200,15 +197,14 @@ error_log("to insert $bookingDate");
         $xmlRoot = $parentElement->appendChild($xmlRoot);
     
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
+        $xmlRoot->appendChild($domtree->createElement('mode', $this->mode));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
+        $xmlRoot->appendChild($domtree->createElement('resourceid', $this->resourceId));
         $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]->name));
         $xmlRoot->appendChild($domtree->createElement('parentresource', $this->resourceMap[$this->resourceId]->parent_name));
 
         $dateRow = $domtree->createElement('dates');
-        $attrTotal = $domtree->createAttribute('total');
-        $attrTotal->value = $this->getTotalPayment();
-        $dateRow->appendChild($attrTotal);
         $xmlRoot->appendChild($dateRow);
         
         // initialise min/max dates if not set
@@ -230,23 +226,12 @@ error_log("to insert $bookingDate");
         while ($dt < $this->showMaxDate) {
             $dateElem = $dateRow->appendChild($domtree->createElement('date', $dt->format('d.m.Y')));
             
-            if(isset($this->bookingDatePayment[$dt->format('d.m.Y')])) {   // also means that booking exists on this date
-                $payment = $this->bookingDatePayment[$dt->format('d.m.Y')];
-                $attrPayment = $domtree->createAttribute('payment');
-                $attrPayment->value = $payment;
-                $dateElem->appendChild($attrPayment);
-
+            if(isset($this->bookingDateStatus[$dt->format('d.m.Y')])) {   // also means that booking exists on this date
                 $attrState = $domtree->createAttribute('state');
-                $attrState->value = 'reserved';
+                $attrState->value = $this->bookingDateStatus[$dt->format('d.m.Y')];
                 $dateElem->appendChild($attrState);
-            
-            // TODO: different state when date is in the past?
 
             } else { // booking doesn't exist
-                $attrPayment = $domtree->createAttribute('payment');
-                $attrPayment->value = 15;  // TODO: add payment rules
-                $dateElem->appendChild($attrPayment);
-                
                 $attrState = $domtree->createAttribute('state');
                 $attrState->value = 'available';
                 $dateElem->appendChild($attrState);
@@ -258,16 +243,19 @@ error_log("to insert $bookingDate");
     /** 
       Generates the following xml:
         <allocation>
-            <id>3</id>
+            <rowid>3</rowid>
+            <mode>view</mode>
             <name>Megan-1</name>
             <gender>Female</gender>
+            <resourceid>21</resourceid>
             <resource>Bed A</resource>
+            <parentresource>Room 12</parentresource>
             <bookingsBeforeMinDate>0</bookingsBeforeMinDate>
             <bookingsAfterMaxDate>3</bookingsAfterMaxDate>
             <isAvailable>true</isAvailable>
-            <dates total="24.90">
-                <date payment="12.95" state="checkedin">15.08.2012</date>
-                <date payment="12.95" state="pending">16.08.2012</date>
+            <dates>
+                <date state="reserved">15.08.2012</date>
+                <date state="reserved">16.08.2012</date>
             </dates>
         </allocation>
      */

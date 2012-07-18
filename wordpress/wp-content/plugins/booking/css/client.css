@@ -140,6 +140,7 @@
                 .wpdev_hint_with_text{
                   float:left;
                   white-space: nowrap;
+                  width: 150px;
                 }
                 .block_hints {
                     clear: both;

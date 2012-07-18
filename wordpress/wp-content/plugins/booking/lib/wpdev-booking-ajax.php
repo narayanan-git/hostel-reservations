@@ -57,6 +57,24 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
             
+        // enable editing of the fields in the current allocation row
+        case  'EDIT_ALLOCATION':
+            wpdev_edit_allocation();
+            die();
+            break;
+
+        // save the editing fields in the current allocation row
+        case  'SAVE_ALLOCATION':
+            wpdev_save_allocation();
+            die();
+            break;
+
+        // delete the current allocation row
+        case  'DELETE_ALLOCATION':
+            wpdev_delete_allocation();
+            die();
+            break;
+
         // toggle the state of a booking date in the availability table
         case  'TOGGLE_BOOKING_DATE':
             wpdev_toggle_booking_date();
@@ -342,6 +360,9 @@ error_log("db save: $msg");
     <?php
 }
 
+/**
+ * Adds a number of new allocations to the current booking.
+ */
 function wpdev_add_booking_allocation() {
 
     $firstname = $_POST['firstname'];
@@ -388,21 +409,65 @@ function wpdev_add_booking_allocation() {
     <?php
 }
 
-function wpdev_toggle_booking_date() {
+/**
+ * Enables the editing fields for the given allocation.
+ */
+function wpdev_edit_allocation() {
     $rowid = $_POST['rowid'];
-    $dt = $_POST['booking_date'];
-    $element_response_id = $_POST['element_response_id'];
+
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
-        $bookingState = $booking->toggleBookingStateAt($rowid, $dt);
+        $booking->enableEditOnAllocation($rowid);
         ?> 
         <script type="text/javascript">
-            document.getElementById('<?php echo $element_response_id;?>').className = "avail_date_attrib date_status_<?php echo $bookingState; ?>";
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
         </script>
         <?php
     }
 }
 
+/**
+ * Saves the fields for the given allocation.
+ */
+function wpdev_save_allocation() {
+    $rowid = $_POST['rowid'];
+    $resourceId = $_POST['resource_id'];
+    $name = $_POST['allocation_name'];
+error_log(var_export($_POST, true));
+
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $booking->updateAllocationRow($rowid, $name, $resourceId);
+        $booking->disableEditOnAllocation($rowid);
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+        </script>
+        <?php
+    }
+}
+
+/**
+ * Toggles the status of the allocation on the given booking date.
+ */
+function wpdev_toggle_booking_date() {
+    $rowid = $_POST['rowid'];
+    $dt = $_POST['booking_date'];
+
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $bookingState = $booking->toggleBookingStateAt($rowid, $dt);
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+        </script>
+        <?php
+    }
+}
+
+/**
+ * Shifts the allocation view calendar to the right or to the left.
+ */
 function wpdev_page_availability_table_left_right() {
     $direction = $_POST['direction'];
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {

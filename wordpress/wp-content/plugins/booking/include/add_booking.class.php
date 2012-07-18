@@ -13,10 +13,12 @@ class AddBooking extends XslTransform {
     
     // all allocations for this booking (type AllocationTable)
     var $allocationTable;
+    private $resourceMap;   // const map of resources 
 
     function AddBooking() {
         $this->id = 0;
-        $this->allocationTable = new AllocationTable();
+        $this->resourceMap = ResourceDBO::getAllResources();
+        $this->allocationTable = new AllocationTable($this->resourceMap);
     }
     
     /**
@@ -70,6 +72,32 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
         return $this->allocationTable->toggleBookingStateAt($rowid, $dt);
     }
     
+    /**
+     * Enables editing fields on the given allocation row.
+     * $rowid : unique id of allocation row
+     */
+    function enableEditOnAllocation($rowid) {
+        $this->allocationTable->enableEditOnAllocation($rowid);
+    }
+    
+    /**
+     * Disables editing fields on the given allocation row.
+     * $rowid : unique id of allocation row
+     */
+    function disableEditOnAllocation($rowid) {
+        $this->allocationTable->disableEditOnAllocation($rowid);
+    }
+    
+    /**
+     * Updates the name, resource fields on the given allocation row.
+     * $rowid : unique id of allocation row
+     * $allocationName : name of guest
+     * $resourceId : valid resource id (can be parent)
+     */
+    function updateAllocationRow($rowid, $allocationName, $resourceId) {
+        $this->allocationTable->updateAllocationRow($rowid, $allocationName, $resourceId);
+    }
+
     /**
      * Moves the reference dates to the right
      */
@@ -152,7 +180,7 @@ error_log("inserted booking id $bookingId");
         $resourcesRoot = $domtree->createElement('resources');
         $xmlRoot = $xmlRoot->appendChild($resourcesRoot);
 
-        foreach (ResourceDBO::getAllResources() as $res) {
+        foreach ($this->resourceMap as $res) {
             $resourceRow = $domtree->createElement('resource');
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));

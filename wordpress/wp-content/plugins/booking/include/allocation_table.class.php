@@ -8,9 +8,16 @@ class AllocationTable extends XslTransform {
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $allocationRows = array();  // array of AllocationRow
     private $allocationStrategy;
+    private $resourceMap;   // const map of resources 
     
-    function AllocationTable() {
+    /**
+     * Default constructor.
+     * $resourceMap : (optional) map of resource id -> resource recordset
+     *                if not set, all resources will be fetched from dbo
+     */
+    function AllocationTable($resourceMap = null) {
         $this->allocationStrategy = new AllocationStrategy();
+        $this->resourceMap = $resourceMap == null ? ResourceDBO::getAllResources() : $resourceMap;
     }
 
     /**
@@ -27,11 +34,10 @@ class AllocationTable extends XslTransform {
         $datearr = explode(",", $dates);
         $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
         $newAllocationRows = array();  // the new allocations we will be adding
-        $resourceMap = ResourceDBO::getAllResources();   // avoid hitting db, do this only once
         for($i = 0; $i < $numVisitors; $i++) {
-            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId, 'reserved', $resourceMap);
+            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId, $this->resourceMap);
             foreach ($datearr as $dt) {
-                $allocationRow->addPaymentForDate(trim($dt), 15); // FIXME: price fixed at 15
+                $allocationRow->toggleStatusForDate(trim($dt));
             }
             $newAllocationRows[] = $allocationRow;
         }
@@ -81,18 +87,6 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
     }
     
     /**
-     * Calculates total payment by summing all allocation rows.
-     * Returns: numeric value
-     */
-    function getTotalPayment() {
-        $result = 0;
-        foreach ($this->allocationRows as $allocation) {
-            $result += $allocation->getTotalPayment();
-        }
-        return $result;
-    }
-    
-    /**
      * This will update the state of a booking allocation.
      * Rules:
      *    if date is in the future, this will add/remove the current allocation at this date
@@ -102,15 +96,39 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
      */
     function toggleBookingStateAt($rowid, $dt) {
         $ar = $this->allocationRows[$rowid];
-        // do we need a null check?
-        // TODO: toggle status on current date
-        if($ar != null && $ar->isExistsBooking($dt)) {
-            $ar->removePaymentForDate($dt);
-            return 'available';
-        } else {
-            // if it doesn't exist, then add it
-            $ar->addPaymentForDate($dt, 15); // FIXME: price fixed at 15
-            return 'reserved';
+        return $ar->toggleStatusForDate($dt);
+    }
+    
+    /**
+     * Enables editing fields on the given allocation row.
+     * $rowid : unique id of allocation row
+     */
+    function enableEditOnAllocation($rowid) {
+        if (isset($this->allocationRows[$rowid])) {
+            $this->allocationRows[$rowid]->mode = 'edit';
+        }
+    }
+    
+    /**
+     * Disables editing fields on the given allocation row.
+     * $rowid : unique id of allocation row
+     */
+    function disableEditOnAllocation($rowid) {
+        if (isset($this->allocationRows[$rowid])) {
+            $this->allocationRows[$rowid]->mode = 'view';
+        }
+    }
+    
+    /**
+     * Updates the name, resource fields on the given allocation row.
+     * $rowid : unique id of allocation row
+     * $allocationName : name of guest
+     * $resourceId : valid resource id (can be parent)
+     */
+    function updateAllocationRow($rowid, $allocationName, $resourceId) {
+        if (isset($this->allocationRows[$rowid])) {
+            $this->allocationRows[$rowid]->name = $allocationName;
+            $this->allocationRows[$rowid]->resourceId = $resourceId;
         }
     }
     
@@ -125,7 +143,7 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
             $errors[] = 'No allocations have been added';
         }
         foreach ($this->allocationRows as $row) {
-            if(! $row->isExistsBooking()) {
+            if(false === $row->isExistsBooking()) {
                 $errors[] = $row->name . ' does not have any dates selected';
             }
         }
@@ -174,15 +192,22 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
             $xmlRoot->appendChild($domtree->createElement('showMaxDate', $this->showMaxDate->format('d.m.Y')));
         }
 
-        $attrTotal = $domtree->createAttribute('total');
-        $attrTotal->value = $this->getTotalPayment();
-        $xmlRoot->appendChild($attrTotal);
         foreach ($this->allocationRows as $allocation) {
             $allocation->showMinDate = $this->showMinDate;
             $allocation->showMaxDate = $this->showMaxDate;
             $allocation->addSelfToDocument($domtree, $xmlRoot);
         }
 
+        // resources are required for dropdown when editing an allocation row
+        $resourcesRoot = $xmlRoot->appendChild($domtree->createElement('resources'));
+        foreach ($this->resourceMap as $res) {
+            $resourceRow = $domtree->createElement('resource');
+            $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
+            $resourceRow->appendChild($domtree->createElement('name', $res->name));
+            $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
+            $resourcesRoot->appendChild($resourceRow);
+        }
+        
         // build dateheaders to be used to display availability table
         if($this->showMinDate != null && $this->showMaxDate != null) {
             $dateHeaders = $xmlRoot->appendChild($domtree->createElement('dateheaders'));
@@ -206,12 +231,15 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
     
     /** 
       Generates the following xml:
-        <allocations total="49.50">
+        <allocations>
             <bookingName>Megan</bookingName>
             <showMinDate>25.08.2012</showMinDate>
             <showMaxDate>04.09.2012</showMaxDate>
             <allocation>...</allocation>
             <allocation>...</allocation>
+            <resources>
+                ...
+            </resources>
             <dateheaders>
                 <header>August/September</header>
                 <datecol>
@@ -230,6 +258,7 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
         $this->addSelfToDocument($domtree, $domtree);
+error_log($domtree->saveXML());
         return $domtree->saveXML();
     }
     

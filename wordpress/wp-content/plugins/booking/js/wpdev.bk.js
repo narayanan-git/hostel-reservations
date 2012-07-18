@@ -585,7 +585,7 @@
                 .css( {'color' : 'red'} );
             return;
         }
-
+        
         jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
@@ -603,12 +603,45 @@
         });
     }
 
+    // this will enable editing of the fields on the given allocation row.
+    // rowid : row id in allocation table
+    function edit_allocation(rowid) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'EDIT_ALLOCATION',
+                rowid : rowid
+            }
+        });
+    }
+
+    // this will save the fields on the given allocation row.
+    // rowid : row id in allocation table
+    function save_allocation(rowid) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'SAVE_ALLOCATION',
+                rowid : rowid,
+                allocation_name : document.getElementById('allocation_name' + rowid).value,
+                resource_id : document.getElementById('booking_resource' + rowid).value
+            }
+        });
+    }
+
     // this will toggle the status of a booking date from pending/available
     // or pending/checked out/checked in/no show if on current day
     // rowid : row id in allocation table
     // booking_date : date in format dd.MM.yyyy
-    // cell_id : element id of cell to update
-    function toggle_booking_date(rowid, booking_date, cell_id) {
+    function toggle_booking_date(rowid, booking_date) {
 
         jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
@@ -618,8 +651,7 @@
             data:{
                 ajax_action : 'TOGGLE_BOOKING_DATE',
                 rowid : rowid,
-                booking_date : booking_date,
-                element_response_id : cell_id
+                booking_date : booking_date
             }
         });
     }

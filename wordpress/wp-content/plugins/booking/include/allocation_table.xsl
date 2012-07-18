@@ -29,6 +29,7 @@
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
                                 <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
+                                <th class="avail_attrib"><xsl:comment>action icons column</xsl:comment></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -43,16 +44,28 @@
     <!-- legend -->
     <div class="block_hints datepick">
         <div class="wpdev_hint_with_text">
-            <div class="block_free datepick-days-cell"><a>#</a></div>
+            <div class="block_free legend_date_status_available">#</div>
             <div class="block_text">- Available</div>
         </div>
         <div class="wpdev_hint_with_text">
-            <div class="block_booked date_approved">#</div>
-            <div class="block_text">- Booked</div>
+            <div class="block_booked legend_date_status_reserved">R</div>
+            <div class="block_text">- Reserved</div>
         </div>
         <div class="wpdev_hint_with_text">
-            <div class="block_pending date2approve">#</div>
-            <div class="block_text">- Reserved</div>
+            <div class="block_booked legend_date_status_paid">P</div>
+            <div class="block_text">- Paid/Checked-in</div>
+        </div>
+        <div class="wpdev_hint_with_text">
+            <div class="block_booked legend_date_status_free">F</div>
+            <div class="block_text">- Free Night</div>
+        </div>
+        <div class="wpdev_hint_with_text">
+            <div class="block_booked legend_date_status_hours">H</div>
+            <div class="block_text">- Paid with Hours</div>
+        </div>
+        <div class="wpdev_hint_with_text">
+            <div class="block_booked legend_date_status_cancelled">NS</div>
+            <div class="block_text">- No Show/Cancelled</div>
         </div>
     </div>
     <div class="wpdev_clear_hint"><xsl:comment/></div>
@@ -82,32 +95,96 @@
             <xsl:if test="isAvailable != 'true'">
                 <xsl:attribute name="class">highlight_cell_red</xsl:attribute>
             </xsl:if>
-            <xsl:value-of select="name"/>
+            <xsl:if test="mode = 'edit'">
+                <input type="text" id="allocation_name{rowid}" name="allocation_name{rowid}" value="{name}" size="5"/>
+            </xsl:if>
+            <xsl:if test="mode = 'view'">
+                <xsl:value-of select="name"/>
+            </xsl:if>
             <xsl:if test="gender = 'M' or gender = 'F'">
                 (<xsl:value-of select="gender"/>)
             </xsl:if>
         </td>
-        <td class="avail_attrib"><xsl:value-of select="parentresource"/></td>
-        <td class="avail_attrib"><xsl:value-of select="resource"/></td>
+        <xsl:if test="mode = 'view'">
+            <td class="avail_attrib"><xsl:value-of select="parentresource"/></td>
+            <td class="avail_attrib"><xsl:value-of select="resource"/></td>
+        </xsl:if>
+        <xsl:if test="mode = 'edit'">
+            <td colspan="2">
+                <select id="booking_resource{rowid}" name="booking_resource{rowid}">
+                    <xsl:apply-templates select="../resources/resource" mode="resource_selection">
+                        <xsl:with-param name="resource_id"><xsl:value-of select="resourceid"/></xsl:with-param>
+                    </xsl:apply-templates>
+                </select>
+            </td>
+        </xsl:if>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
         <xsl:apply-templates select="dates/date" mode="allocation_date"/>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate > 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
+        <td class="avail_attrib">
+            <xsl:if test="mode = 'edit'">
+                <div style="text-align:center;">
+                    <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:save_allocation({rowid});" href="javascript:;">
+                        <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
+                    </a>
+                </div>
+            </xsl:if>
+            <xsl:if test="mode = 'view'">
+                <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:edit_allocation({rowid});" href="javascript:;">
+                    <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
+                </a>
+                <span style="padding-left: 10px;"></span>
+                <a class="tooltip_bottom" rel="tooltip" data-original-title="Delete" onclick="javascript:delete_allocation({rowid});" href="javascript:;">
+                    <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
+                </a>
+            </xsl:if>
+        </td>
     </tr>
 </xsl:template>
 
 <!-- adds table entries for each allocation in the availability table -->
 <xsl:template mode="allocation_date" match="date">
-    <td id="cell_{../../rowid}_{.}">
+    <td>
         <xsl:attribute name="class">avail_date_attrib date_status_<xsl:value-of select="@state"/></xsl:attribute>
-        <xsl:choose>
-            <xsl:when test="@state != 'inactive'">
-                <a href="javascript:toggle_booking_date({../../rowid}, '{.}', 'cell_{../../rowid}_{.}');"><xsl:value-of select="@payment"/></a>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="@payment"/>
-            </xsl:otherwise>
-        </xsl:choose>
+            <a href="javascript:toggle_booking_date({../../rowid}, '{.}');">
+                <xsl:if test="@state = 'available'">
+                    <xsl:value-of select="substring-before(., '.')"/>
+                </xsl:if>
+                <xsl:if test="@state = 'reserved'">R</xsl:if>
+                <xsl:if test="@state = 'paid'">P</xsl:if>
+                <xsl:if test="@state = 'free'">F</xsl:if>
+                <xsl:if test="@state = 'hours'">H</xsl:if>
+                <xsl:if test="@state = 'cancelled'">NS</xsl:if>
+            </a>
     </td>
+</xsl:template>
+
+<!-- builds drill-down of resource id, name -->
+<xsl:template mode="resource_selection" match="resource">
+    <xsl:param name="resource_id"/>
+    <option value="{id}">
+        <xsl:if test="$resource_id = id">
+            <xsl:attribute name="selected">selected</xsl:attribute>
+        </xsl:if>
+        <xsl:call-template name ="indent">
+            <xsl:with-param name="i">1</xsl:with-param>
+            <xsl:with-param name="value"><xsl:value-of select="level"/></xsl:with-param>
+        </xsl:call-template>
+        <xsl:value-of select ="name"/>
+    </option>
+</xsl:template>
+
+<!-- adds non-breaking spaces -->
+<xsl:template name="indent">
+    <xsl:param name="i"/>
+    <xsl:param name="value"/>
+    <xsl:if test="$i &lt; $value">
+        &#160;&#160;&#160;&#160;
+        <xsl:call-template name ="indent">
+            <xsl:with-param name="i"><xsl:value-of select ="$i+1"/></xsl:with-param>
+            <xsl:with-param name="value"><xsl:value-of select="level"/></xsl:with-param>
+        </xsl:call-template>
+    </xsl:if>
 </xsl:template>
 
 </xsl:stylesheet>
