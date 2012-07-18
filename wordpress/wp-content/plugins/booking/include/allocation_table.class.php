@@ -17,10 +17,10 @@ class AllocationTable extends XslTransform {
      *                if not set, all resources will be fetched from dbo
      */
     function AllocationTable($resourceMap = null) {
-        $this->allocationStrategy = new AllocationStrategy();
         $this->resourceMap = $resourceMap == null ? ResourceDBO::getAllResources() : $resourceMap;
+        $this->allocationStrategy = new AllocationStrategy($this->resourceMap);
     }
-
+    
     /**
      * Adds a number of allocations with the specified attributes.
      * numVisitors : number of guests to add
@@ -129,7 +129,23 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
     function updateAllocationRow($rowid, $allocationName, $resourceId) {
         if (isset($this->allocationRows[$rowid])) {
             $this->allocationRows[$rowid]->name = $allocationName;
-            $this->allocationRows[$rowid]->resourceId = $resourceId;
+            
+            // save and assign resources
+            if($this->allocationRows[$rowid]->resourceId != $resourceId) {
+                $this->allocationRows[$rowid]->resourceId = $resourceId;
+                
+                // perform the individual assignments to beds if a parent resource id is specified
+                // validation (on availability) will be done on save
+                $existingAllocations = array();   // array of all rows excluding the one being edited
+                foreach ($this->allocationRows as $k => $v) {
+                    if($k != $rowid) {
+                        $existingAllocations[$k] = $v;
+                    }
+                }
+                
+                $this->allocationStrategy->assignResourcesForAllocations(
+                    array($this->allocationRows[$rowid]), $existingAllocations);
+            }
         }
     }
     

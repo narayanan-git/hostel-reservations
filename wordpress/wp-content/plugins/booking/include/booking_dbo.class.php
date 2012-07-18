@@ -34,8 +34,7 @@ class BookingDBO {
             $return_val->firstname = $res->firstname;
             $return_val->lastname = $res->lastname;
             $return_val->referrer = $res->referrer;
-            $return_val->allocationTable = AllocationDBO::fetchAllocationTableForBookingId($res->booking_id);
-            $return_val->allocationTable->setDefaultMinMaxDates();
+            $return_val->loadAllocationTableFromBookingId($res->booking_id);
         }
         return $return_val;
     }

@@ -28,6 +28,7 @@ class AllocationRow {
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
+        $this->isAvailable = true;
         if($resourceMap == null) {
             $this->resourceMap = ResourceDBO::getAllResources();
         } else {

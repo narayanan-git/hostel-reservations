@@ -38,6 +38,15 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
     }
     
     /**
+     * Loads the allocation table from an existing booking.
+     * $bookingId : existing booking id
+     */
+    function loadAllocationTableFromBookingId($bookingId) {
+        $this->allocationTable = AllocationDBO::fetchAllocationTableForBookingId($bookingId, $this->resourceMap);
+        $this->allocationTable->setDefaultMinMaxDates();
+    }
+
+    /**
      * Returns the html for the current allocation table
      */
     function getAllocationTableHtml() {

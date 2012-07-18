@@ -5,7 +5,15 @@
  */
 class AllocationStrategy {
 
-    function AllocationStrategy() {
+    private $resourceMap;   // const map of resources 
+
+    /**
+     * Default constructor.
+     * $resourceMap : (optional) map of resource id -> resource recordset
+     *                if not set, all resources will be fetched from dbo
+     */
+    function AllocationStrategy($resourceMap = null) {
+        $this->resourceMap = $resourceMap == null ? ResourceDBO::getAllResources() : $resourceMap;
     }
 
     /**
@@ -31,17 +39,11 @@ class AllocationStrategy {
         //     check that it is still available and set its flag
         
 error_log("assignResourcesForAllocations ".sizeof($allocationRows));
-        $RESOURCE_MAP = ResourceDBO::getAllResources();
         foreach ($allocationRows as $alloc) {
-error_log("number of children : ".$RESOURCE_MAP[$alloc->resourceId]->number_children);
-//            if ($RESOURCE_MAP[$alloc->resourceId]->number_children == 0) {
-error_log("Resource $alloc->resourceId is a leaf node...");
-//                continue;
-//            }
+error_log($alloc->resourceId ." has this many children : ".$this->resourceMap[$alloc->resourceId]->number_children);
+
             // collect all dates for all allocations sharing this resourceId
             // (we should only need to check one as they *should* all be the same but just in case)
-error_log("found resource $alloc->resourceId");
-
             $bookingDates = array();
             $numberOfAllocationsSharingThisParent = $this->collectDatesWithResourceId($allocationRows, $alloc->resourceId, $bookingDates);
 error_log("after collectDatesWithResourceId numberOfAllocationsSharingThisParent:$numberOfAllocationsSharingThisParent bookingDates : ".sizeof($bookingDates));
@@ -57,13 +59,13 @@ foreach ($resourceIds as $k => $v) {
             
             // if "parent" node, we need to assign a specific leaf (bed)
             // first, try to fit everyone into the same room
-            if($RESOURCE_MAP[$alloc->resourceId]->number_children > 0) {
+            if($this->resourceMap[$alloc->resourceId]->number_children > 0) {
                 // reservedResourceIds : Map of key = resourceId, value = capacity
                 $reservedResourceIds = AllocationDBO::fetchResourcesUnderOneParentResource(array_keys($resourceIds), $numberOfAllocationsSharingThisParent);
 error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
 
                 // if we can't fit everyone in one room, just assign them in order
-                if (sizeof($reservedResourceIds) == 0) {
+                if (sizeof($reservedResourceIds) > 0) {
                     $resourceIds = $reservedResourceIds;
                 }
             }
