@@ -108,6 +108,14 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
     }
 
     /**
+     * Removes the given allocation row.
+     * $rowid : unique id of allocation row
+     */
+    function deleteAllocationRow($rowid) {
+        $this->allocationTable->deleteAllocationRow($rowid);
+    }
+
+    /**
      * Moves the reference dates to the right
      */
     function shiftCalendarRight() {

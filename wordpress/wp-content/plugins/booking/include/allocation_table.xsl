@@ -29,7 +29,7 @@
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
                                 <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
-                                <th class="avail_attrib"><xsl:comment>action icons column</xsl:comment></th>
+                                <th class="avail_action_icons"><xsl:comment>action icons column</xsl:comment></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -100,7 +100,7 @@
                     <input type="text" id="allocation_name{rowid}" name="allocation_name{rowid}" value="{name}" size="5"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:value-of select="name"/>
+                    <span id="allocation_name{rowid}"><xsl:value-of select="name"/></span>
                 </xsl:otherwise>
             </xsl:choose>
             <xsl:if test="gender = 'M' or gender = 'F'">
@@ -125,7 +125,7 @@
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
         <xsl:apply-templates select="dates/date" mode="allocation_date"/>
         <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate > 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
-        <td class="avail_attrib">
+        <td class="avail_action_icons">
             <xsl:choose>
                 <xsl:when test="../editingRowId = rowid">
                     <div style="text-align:center;">

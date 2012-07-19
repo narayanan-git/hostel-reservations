@@ -637,6 +637,24 @@
         });
     }
 
+    // this will delete the given allocation row.
+    // rowid : row id in allocation table
+    function delete_allocation(rowid) {
+
+        if (bk_are_you_sure('Remove allocation ' + document.getElementById('allocation_name'+rowid).innerHTML + '?')) {
+            jQuery.ajax({                                           // Start Ajax Sending
+                url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+                type:'POST',
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+                data:{
+                    ajax_action : 'DELETE_ALLOCATION',
+                    rowid : rowid
+                }
+            });
+        }
+    }
+
     // this will toggle the status of a booking date from pending/available
     // or pending/checked out/checked in/no show if on current day
     // rowid : row id in allocation table

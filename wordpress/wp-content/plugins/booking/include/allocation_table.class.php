@@ -121,6 +121,16 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
     }
     
     /**
+     * Removes the given allocation row.
+     * $rowid : unique id of allocation row
+     */
+    function deleteAllocationRow($rowid) {
+        if (isset($this->allocationRows[$rowid])) {
+            unset($this->allocationRows[$rowid]);
+        }
+    }
+
+    /**
      * Updates the name, resource fields on the given allocation row.
      * $rowid : unique id of allocation row
      * $allocationName : name of guest

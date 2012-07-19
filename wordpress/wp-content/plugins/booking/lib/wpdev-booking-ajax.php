@@ -387,9 +387,7 @@ function wpdev_add_booking_allocation() {
             <script type="text/javascript">
                 document.getElementById('ajax_respond').innerHTML = "There is not enough availability for the room (type) and dates chosen.";
                 jQuery("#ajax_respond")
-                    .css( {'color' : 'red'} )
-                    .fadeIn( 10 )
-                    .fadeOut( 5000 );   // hide message                
+                    .css( {'color' : 'red'} );
             </script>
             <?php
         }
@@ -439,6 +437,23 @@ error_log(var_export($_POST, true));
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
         $booking->updateAllocationRow($rowid, $name, $resourceId);
         $booking->disableEditOnAllocation($rowid);
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+        </script>
+        <?php
+    }
+}
+
+/**
+ * Deletes the specified allocation row.
+ */
+function wpdev_delete_allocation() {
+    $rowid = $_POST['rowid'];
+
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $booking->deleteAllocationRow($rowid);
         ?> 
         <script type="text/javascript">
             document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
