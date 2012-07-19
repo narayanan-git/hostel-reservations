@@ -45,7 +45,7 @@ class BookingSummary {
         $xmlRoot->appendChild($domtree->createElement('referrer', $this->referrer));
         $xmlRoot->appendChild($domtree->createElement('createdBy', $this->createdBy));
         $xmlRoot->appendChild($domtree->createElement('createdDate', 
-            $this->createdDate == null ? null : $this->createdDate->format('D, d M Y H:i a')));
+            $this->createdDate == null ? null : $this->createdDate->format('D, d M Y g:i a')));
             
         $guestRoot = $xmlRoot->appendChild($domtree->createElement('guests'));
         foreach($this->guests as $guest) {
