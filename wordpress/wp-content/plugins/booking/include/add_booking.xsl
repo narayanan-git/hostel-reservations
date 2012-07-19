@@ -52,6 +52,7 @@
                 <h3>Audit Log/Comments</h3>
                 <div id="comment_log" class="scroll_history">
                     <xsl:apply-templates select="comments/comment"/>
+                    <xsl:comment/>
                 </div>
                 <p>Comment:<br />
                     <span class="wpdev-form-control-wrap"><textarea id="booking_comment" name="booking_comment" cols="38" rows="1"><xsl:comment/></textarea></span>
