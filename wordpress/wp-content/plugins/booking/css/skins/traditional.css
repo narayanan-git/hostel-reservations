@@ -264,6 +264,15 @@ font-weight:normal;
 .datepick  .date_cleaning  { color:#79c  !important; background-color: #66cc00 !important;   color:#fff !important; }
 .block_time.date_cleaning  { color:#79c  !important; background-color: #66cc00 !important;   color:#fff !important; }/**/
 
+div.scroll_history {
+    height: 150px;
+    width: 300px;
+    overflow: auto;
+    border: 1px solid #666;
+    background-color: rgb(238,238,238);
+    padding: 8px;
+}
+
 .availability {
     table-layout: fixed;
     width: 800px;

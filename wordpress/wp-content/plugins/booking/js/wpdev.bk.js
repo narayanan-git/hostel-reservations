@@ -692,6 +692,21 @@
         });
     }
     
+    // this will add a comment to the current booking.
+    function add_booking_comment(submit_form) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'ADD_BOOKING_COMMENT',
+                booking_comment : submit_form.booking_comment.value
+            }
+        });
+    }
+
     // Check fields at form and then send request
     function mybooking_submit_v2( submit_form ){
 

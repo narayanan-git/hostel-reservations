@@ -6,14 +6,12 @@
 class BookingDBO {
 
     /**
-     * Creates and initialises a new EditBooking controller for the given booking id.
+     * Returns booking details for the given booking id.
      * $bookingId : existing booking id to edit
-     * Returns EditBooking controller loaded with existing booking details/allocations
+     * Returns booking recordset
      */
-    static function fetchBookingControllerByBookingId($bookingId) {
-    
+    static function fetchBookingDetails($bookingId) {
         global $wpdb;
-        $return_val = new AddBooking();
         
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT booking_id, firstname, lastname, referrer
@@ -30,13 +28,8 @@ class BookingDBO {
         
         // there should only be one match by primary key
         foreach ($resultset as $res) {
-            $return_val->id = $res->booking_id;
-            $return_val->firstname = $res->firstname;
-            $return_val->lastname = $res->lastname;
-            $return_val->referrer = $res->referrer;
-            $return_val->loadAllocationTableFromBookingId($res->booking_id);
+            return $res;
         }
-        return $return_val;
     }
 
     /**
@@ -47,6 +40,7 @@ class BookingDBO {
      * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
      * $createdBy : user id of person making this booking
      * Returns id of inserted booking id
+     * Throws DatabaseException on insert error
      */
     static function insertBooking($mysqli, $firstname, $lastname, $referrer, $createdBy) {
     
@@ -56,7 +50,7 @@ class BookingDBO {
              VALUES(?, ?, ?, ?, NOW())");
         $stmt->bind_param('ssss', $firstname, $lastname, $referrer, $createdBy);
         
-        if(FALSE === $stmt->execute()) {
+        if(false === $stmt->execute()) {
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);
         }
         $stmt->close();
@@ -70,6 +64,63 @@ class BookingDBO {
 //                    'created_by' => $createdBy,
 //                    'created_date' => new DateTime()));
 //        return $wpdb->insert_id;
+    }
+
+    /**
+     * Inserts a new booking comment.
+     * $mysqli : manual db connection (for transaction handling)
+     * $bookingComment : comment to insert  (immutable)
+     * Returns id of inserted booking id
+     * Throws DatabaseException on insert error
+     */
+    static function insertBookingComment($mysqli, $bookingComment) {
+    
+        global $wpdb;
+        $stmt = $mysqli->prepare(
+            "INSERT INTO ".$wpdb->prefix."bookingcomment(booking_id, comment, comment_type, created_by, created_date)
+             VALUES(?, ?, ?, ?, ?)");
+        $stmt->bind_param('sssss', 
+            $bookingComment->bookingId, 
+            $bookingComment->comment, 
+            $bookingComment->commentType, 
+            $bookingComment->createdBy, 
+            $bookingComment->createdDate->format('Y-m-d H:i:s'));
+        
+        if(false === $stmt->execute()) {
+            throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+        }
+        $stmt->close();
+
+        return $mysqli->insert_id;
+    }
+    
+    /**
+     * Loads all comments matching the given booking id.
+     * $bookingId : id of existing booking id
+     * Returns array() of BookingComment
+     * Throws DatabaseException on error
+     */
+    static function fetchBookingComments($bookingId) {
+        global $wpdb;
+        $return_val = array();
+        
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT comment_id, booking_id, comment, comment_type, created_by, DATE_FORMAT(created_date, '%%Y-%%m-%%d %%H:%%i:%%s') AS created_date
+               FROM ".$wpdb->prefix."bookingcomment
+              WHERE booking_id = %d
+              ORDER BY comment_id", $bookingId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        foreach ($resultset as $res) {
+            $comment = new BookingComment($res->booking_id, $res->comment, $res->comment_type, 
+                $res->created_by, DateTime::createFromFormat('Y-m-d H:i:s', $res->created_date));
+            $comment->id = $res->comment_id;
+            $return_val[] = $comment;
+        }
+        return $return_val;
     }
 
     /**

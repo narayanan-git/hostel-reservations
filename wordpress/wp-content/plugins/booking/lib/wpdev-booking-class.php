@@ -3218,18 +3218,16 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 
         function add_booking_form_action($bk_type =1, $cal_count =1, $is_echo = 1, $my_booking_form = 'standard', $my_selected_dates_without_calendar = '', $start_month_calendar = false) {
   
+            // always start with a new object
+            $_SESSION['ADD_BOOKING_CONTROLLER'] = new AddBooking();
+
             // if we are editing an existing booking...
             if(isset($_REQUEST['bookingid'])) {
                 // TODO: rename "ADD_BOOKING_CONTROLLER" to "EDIT_BOOKING_CONTROLLER", AddBooking to EditBooking
-                $_SESSION['ADD_BOOKING_CONTROLLER'] = BookingDBO::fetchBookingControllerByBookingId($_REQUEST['bookingid']);
+                $_SESSION['ADD_BOOKING_CONTROLLER']->load($_REQUEST['bookingid']);
         
-            } else {
-                ///// REMOVE PREVIOUS SESSION DATA IF SET //////////
-                unset($_SESSION['ADD_BOOKING_CONTROLLER']); 
-                ////////////////////////////////////////////////////
-                
-                $_SESSION['ADD_BOOKING_CONTROLLER'] = new AddBooking();
-            }
+            } 
+            
             echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
 
         }
@@ -3731,6 +3729,20 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             resource_type varchar(10) NOT NULL,
                             PRIMARY KEY (resource_id),
                             FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
+                        ) $charset_collate;";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+            
+            if ( ! $this->is_table_exists('bookingcomment') ) { 
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingcomment (
+                            comment_id bigint(20) unsigned NOT NULL auto_increment,
+                            booking_id bigint(20) unsigned NOT NULL,
+                            comment TEXT NOT NULL,
+                            comment_type varchar(10) NOT NULL,
+                            created_by varchar(20) NOT NULL,
+                            created_date datetime NOT NULL,
+                            PRIMARY KEY (comment_id),
+                            FOREIGN KEY (booking_id) REFERENCES ".$wpdb->prefix ."booking(booking_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }

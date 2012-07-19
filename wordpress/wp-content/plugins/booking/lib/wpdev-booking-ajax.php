@@ -86,6 +86,12 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
             
+        // add a comment to the current booking
+        case  'ADD_BOOKING_COMMENT':
+            wpdev_add_booking_comment();
+            die();
+            break;
+
 /////////////////////// END CUSTOM CODE ///////////////////////////
 
             case 'UPDATE_READ_UNREAD':
@@ -495,6 +501,23 @@ function wpdev_page_availability_table_left_right() {
         ?> 
         <script type="text/javascript">
             document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+        </script>
+        <?php
+    }
+}
+
+/**
+ * Adds a comment to the current booking.
+ */
+function wpdev_add_booking_comment() {
+    $comment = $_POST['booking_comment'];
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $booking->addComment($comment, 'user');
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('comment_log').innerHTML = <?php echo json_encode($booking->getCommentLogHtml()); ?>;
+            document.getElementById('booking_comment').value = '';
         </script>
         <?php
     }

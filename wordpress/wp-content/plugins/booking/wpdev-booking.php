@@ -389,6 +389,12 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/booking_allocation_view.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/booking_allocation_view.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/booking_comment.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/booking_comment.class.php' ); }
+
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/booking_comment_log.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/booking_comment_log.class.php' ); }
+
     //////////////////////// END CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
         
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

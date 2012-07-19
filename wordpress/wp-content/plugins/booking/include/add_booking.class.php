@@ -9,16 +9,17 @@ class AddBooking extends XslTransform {
     var $firstname;
     var $lastname;
     var $referrer;
-    var $details;
     
     // all allocations for this booking (type AllocationTable)
-    var $allocationTable;
+    private $allocationTable;
+    private $commentLog;    // BookingCommentLog
     private $resourceMap;   // const map of resources 
 
     function AddBooking() {
         $this->id = 0;
         $this->resourceMap = ResourceDBO::getAllResources();
         $this->allocationTable = new AllocationTable($this->resourceMap);
+        $this->commentLog = new BookingCommentLog();
     }
     
     /**
@@ -38,19 +39,17 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
     }
     
     /**
-     * Loads the allocation table from an existing booking.
-     * $bookingId : existing booking id
-     */
-    function loadAllocationTableFromBookingId($bookingId) {
-        $this->allocationTable = AllocationDBO::fetchAllocationTableForBookingId($bookingId, $this->resourceMap);
-        $this->allocationTable->setDefaultMinMaxDates();
-    }
-
-    /**
      * Returns the html for the current allocation table
      */
     function getAllocationTableHtml() {
         return $this->allocationTable->toHtml();
+    }
+    
+    /**
+     * Returns the html for the comment log
+     */
+    function getCommentLogHtml() {
+        return $this->commentLog->toHtml();
     }
     
     /**
@@ -134,6 +133,14 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
     }
     
     /**
+     * Adds a comment to this booking.
+     * $comment : non-empty comment
+     */
+    function addComment($comment, $commentType) {
+        $this->commentLog->comments[] = new BookingComment($this->id, $comment, $commentType);
+    }
+    
+    /**
      * Saves this booking and all allocations to the db.
      */
     function save() {
@@ -142,6 +149,7 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
             $bookingId = BookingDBO::insertBooking($dblink->mysqli, $this->firstname, $this->lastname, $this->referrer,  wp_get_current_user()->user_login);
 error_log("inserted booking id $bookingId");
             $this->allocationTable->save($dblink->mysqli, $bookingId);
+            $this->commentLog->save($dblink->mysqli, $bookingId);
             $dblink->mysqli->commit();
             $dblink->mysqli->close();
 
@@ -150,6 +158,21 @@ error_log("inserted booking id $bookingId");
             $dblink->mysqli->close();
             throw $e;
         }
+    }
+    
+    /**
+     * Loads the data for this object from an existing booking id.
+     * $bookingId  : id of existing booking
+     */
+    function load($bookingId) {
+        $rs = BookingDBO::fetchBookingDetails($bookingId);
+        $this->id = $rs->booking_id;
+        $this->firstname = $rs->firstname;
+        $this->lastname = $rs->lastname;
+        $this->referrer = $rs->referrer;
+        $this->allocationTable = AllocationDBO::fetchAllocationTableForBookingId($bookingId, $this->resourceMap);
+        $this->allocationTable->setDefaultMinMaxDates();
+        $this->commentLog->load($bookingId);
     }
 
     /** 
@@ -163,19 +186,10 @@ error_log("inserted booking id $bookingId");
                 <bookingName>Megan-1</bookingName>
                 ...
             </allocations>
-            <resources>
-                <resource>
-                    <id>1</id>
-                    <name>8-Bed Dorm</name>
-                    <level>1</level>
-                </resource>
-                <resource>
-                    <id>2</id>
-                    <name>Bed A</name>
-                    <level>2</level>
-                </resource>
+            <comments>
+                <comment>...<comment>
                 ...
-            </resources>
+            </comments>
         </editbooking>
      */
     function toXml() {
@@ -194,16 +208,10 @@ error_log("inserted booking id $bookingId");
         // add current allocations
         $this->allocationTable->addSelfToDocument($domtree, $xmlRoot);
 
-        $resourcesRoot = $domtree->createElement('resources');
-        $xmlRoot = $xmlRoot->appendChild($resourcesRoot);
+        // add comments
+        $this->commentLog->addSelfToDocument($domtree, $xmlRoot);
 
-        foreach ($this->resourceMap as $res) {
-            $resourceRow = $domtree->createElement('resource');
-            $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
-            $resourceRow->appendChild($domtree->createElement('name', $res->name));
-            $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
-            $resourcesRoot->appendChild($resourceRow);
-        }
+error_log($domtree->saveXML());
         return $domtree->saveXML();
     }
     

@@ -7,18 +7,18 @@
 //*****************************************************************************
 -->
 <xsl:include href="allocation_table.xsl"/>
+<xsl:include href="booking_comment_log.xsl"/>
 
 <xsl:template match="/editbooking">
 
     <div id="ajax_working"><xsl:comment/></div>
-    <div class="clear" style="margin:20px;"><xsl:comment/></div>
-
-    <div style="clear:both;height:10px;"><xsl:comment/></div>
+    <div class="clear" style="margin:10px;"><xsl:comment/></div>
+    <div style="clear:both;"><xsl:comment/></div>
     
     <div id="booking_form_div1" class="booking_form_div">
         <form id="booking_form" class="booking_form" method="post" action="">
             <div id="ajax_respond_insert"><xsl:comment/><!-- record inserted success message --></div>
-            <div style="text-align:left;">
+            <div style="float:left; text-align:left; width:450px;">
                 <input type="hidden" name="bookingid" value="{id}"/>
                 <p>First Name (required):<br />  <span class="wpdev-form-control-wrap firstname"><input type="text" name="firstname" value="{firstname}" class="wpdev-validates-as-required" size="40" /></span> </p>
                 <p>Last Name:<br />  <span class="wpdev-form-control-wrap lastname"><input type="text" name="lastname" value="{lastname}" size="40"/></span> </p>
@@ -47,8 +47,21 @@
                         </option>
                     </select>
                 </p>
-
-                <hr/>
+            </div>
+            <div class="metabox-holder" style="float:left;">
+                <h3>Audit Log/Comments</h3>
+                <div id="comment_log" class="scroll_history">
+                    <xsl:apply-templates select="comments/comment"/>
+                </div>
+                <p>Comment:<br />
+                    <span class="wpdev-form-control-wrap"><textarea id="booking_comment" name="booking_comment" cols="38" rows="1"><xsl:comment/></textarea></span>
+                </p>
+                <div style="float:right;"><input type="button" value="Add Comment" onclick="add_booking_comment(this.form);" /></div>
+            </div>
+            <div class="clear" style="margin:20px;"><xsl:comment/></div>
+            <div style="clear:both;height:10px;"><xsl:comment/></div>
+            <hr/>
+            <div style="text-align:left;">
 
                 <div class="metabox-holder">
                     <h3>Allocations</h3>
@@ -86,7 +99,6 @@
                 <p><div id="booking_allocations"><xsl:apply-templates select="allocations" /><xsl:comment/></div></p>
                 <p><div id="ajax_respond"><xsl:comment/><!-- ajax response here--></div></p>
                 
-                <!-- p>Details:<br /><span class="wpdev-form-control-wrap details1"><textarea name="details" cols="40" rows="10"><xsl:comment/></textarea></span> </p -->
                 <p><input type="button" value="Save" onclick="mybooking_submit_v2(this.form);" /></p>
             </div>
             
