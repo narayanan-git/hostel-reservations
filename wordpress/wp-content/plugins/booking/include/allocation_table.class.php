@@ -195,11 +195,18 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
         }
         
         // report business error if demand > supply
-        // TODO: move this down to bookingdates level
         if ($failedAllocation) {
             throw new AllocationException("One or more allocations did not have sufficient availability");
         }
-
+    }
+    
+    /**
+     * Loads current allocations from the db and resets the min/max dates to default.
+     * $bookingId : booking id for this allocation
+     */
+    function load($bookingId) {
+        $this->allocationRows = AllocationDBO::fetchAllocationRowsForBookingId($bookingId, $this->resourceMap);
+        $this->setDefaultMinMaxDates();
     }
     
     /**

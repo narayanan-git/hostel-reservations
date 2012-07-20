@@ -62,6 +62,9 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
         if (trim($this->firstname) == '') {
             $errors[] = 'First name cannot be blank';
         }
+        if (empty($this->allocationTable)) {
+            $errors[] = 'You must add at least one allocation';
+        }
         foreach ($this->allocationTable->doValidate() as $atError) {
             $errors[] = $atError;
         }
@@ -133,25 +136,59 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
     }
     
     /**
-     * Adds a comment to this booking.
+     * Adds a comment to this booking. This will persist the comment immediately if
+     * the booking has already been saved. Otherwise it will just add the comment to be
+     * saved later.
      * $comment : non-empty comment
      */
     function addComment($comment, $commentType) {
         $this->commentLog->comments[] = new BookingComment($this->id, $comment, $commentType);
+        
+        // persist the comment only if the booking already exists
+        if ($this->id > 0) {
+            $dblink = new DbTransaction();
+            try {
+                $this->commentLog->save($dblink->mysqli, $this->id);
+                $dblink->mysqli->commit();
+                $dblink->mysqli->close();
+                
+                // reload the comments so the ids are set and we don't save them twice
+                $this->commentLog->load($this->id);
+    
+            } catch(Exception $e) {
+                $dblink->mysqli->rollback();
+                $dblink->mysqli->close();
+                throw $e;
+            }
+        }
     }
     
     /**
      * Saves this booking and all allocations to the db.
      */
     function save() {
+    
         $dblink = new DbTransaction();
         try {
-            $bookingId = BookingDBO::insertBooking($dblink->mysqli, $this->firstname, $this->lastname, $this->referrer,  wp_get_current_user()->user_login);
-error_log("inserted booking id $bookingId");
+            if ($this->id == 0) {  // new record
+error_log("inserting booking id $bookingId");
+                $bookingId = BookingDBO::insertBooking($dblink->mysqli, $this->firstname, $this->lastname, $this->referrer);
+                $this->commentLog->save($dblink->mysqli, $bookingId);  // not req'd on update as it will always be up to date
+
+            } else { // existing record
+error_log("updating booking id $bookingId");
+                $bookingId = $this->id;
+                BookingDBO::updateBooking($dblink->mysqli, $bookingId, $this->firstname, $this->lastname, $this->referrer);
+            }
+
             $this->allocationTable->save($dblink->mysqli, $bookingId);
-            $this->commentLog->save($dblink->mysqli, $bookingId);
             $dblink->mysqli->commit();
             $dblink->mysqli->close();
+            
+            // once everything has been saved, reload everything from db...
+            // this will set the ids on everything so saving again will do update not insert
+            $this->load($this->id);
+error_log("reloaded booking $this->id");
 
         } catch(Exception $e) {
             $dblink->mysqli->rollback();
@@ -170,8 +207,7 @@ error_log("inserted booking id $bookingId");
         $this->firstname = $rs->firstname;
         $this->lastname = $rs->lastname;
         $this->referrer = $rs->referrer;
-        $this->allocationTable = AllocationDBO::fetchAllocationTableForBookingId($bookingId, $this->resourceMap);
-        $this->allocationTable->setDefaultMinMaxDates();
+        $this->allocationTable->load($bookingId);
         $this->commentLog->load($bookingId);
     }
 

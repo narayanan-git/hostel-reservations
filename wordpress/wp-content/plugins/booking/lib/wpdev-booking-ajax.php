@@ -305,16 +305,7 @@ error_log("wpdev_bk_insert_new_booking_v2 : begin");
         $booking->firstname = $_POST['firstname'];
         $booking->lastname = $_POST['lastname'];
         $booking->referrer = $_POST['referrer'];
-//        $booking->details = $_POST['details'];
-    } else {
-        ?> <script type="text/javascript">
-            document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo "Add some allocations first!"; ?></div>';
-            jQuery("#submitting")
-                .css( {'color' : 'red'} )
-        </script>
-        <?php
-        return;
-    }
+    } 
 error_log("wpdev_bk_insert_new_booking_v2 : pre validate");
 
     // validate form
@@ -342,9 +333,9 @@ error_log("wpdev_bk_insert_new_booking_v2 : validate OK, doing SAVE");
 error_log("wpdev_bk_insert_new_booking_v2 : SAVE complete");
         $msg = "Updated successfully";
     } catch(DatabaseException $ex) {
-        $msg = $ex->getMessage();
+        $msg = $ex->getMessage() . ". Changes were not saved.";
     } catch(AllocationException $ex) {
-        $msg = $ex->getMessage();
+        $msg = $ex->getMessage() . ". Changes were not saved.";
     }
 error_log("db save: $msg"); 
 
@@ -355,11 +346,10 @@ error_log("db save: $msg");
             jQuery("#submitting")
                 .css( {'color' : 'red'} );
                 
-            // reload allocation table if we get an exception
-            // invalid rows will be highlighted
-            if(msg.indexOf('success') < 0) {
-                document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
-            }
+            // reload allocation table; invalid rows will be highlighted
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+            // update comments
+            document.getElementById('comment_log').innerHTML = <?php echo json_encode($booking->getCommentLogHtml()); ?>;
 //           jQuery('#submitting').fadeOut(5000);
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
@@ -477,7 +467,7 @@ function wpdev_toggle_booking_date() {
 
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
-        $bookingState = $booking->toggleBookingStateAt($rowid, $dt);
+        $booking->toggleBookingStateAt($rowid, $dt);
         ?> 
         <script type="text/javascript">
             document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
@@ -513,7 +503,7 @@ function wpdev_add_booking_comment() {
     $comment = $_POST['booking_comment'];
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
-        $booking->addComment($comment, 'user');
+        $booking->addComment($comment, BookingComment::COMMENT_TYPE_USER);
         ?> 
         <script type="text/javascript">
             document.getElementById('comment_log').innerHTML = <?php echo json_encode($booking->getCommentLogHtml()); ?>;

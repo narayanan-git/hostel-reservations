@@ -3715,6 +3715,8 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             referrer varchar(50),
                             created_by varchar(20) NOT NULL,
                             created_date datetime NOT NULL,
+                            last_updated_by varchar(20) NOT NULL,
+                            last_updated_date datetime NOT NULL,
                             PRIMARY KEY (booking_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
@@ -3756,6 +3758,8 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             gender varchar(1) NOT NULL,
                             created_by varchar(20) NOT NULL,
                             created_date datetime NOT NULL,
+                            last_updated_by varchar(20) NOT NULL,
+                            last_updated_date datetime NOT NULL,
                             PRIMARY KEY (allocation_id),
                             FOREIGN KEY (booking_id) REFERENCES ".$wpdb->prefix ."booking(booking_id),
                             FOREIGN KEY (resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id) 
@@ -3768,6 +3772,10 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             allocation_id bigint(20) unsigned NOT NULL,
                             booking_date date NOT NULL,
                             status varchar(10) NOT NULL,
+                            created_by varchar(20) NOT NULL,
+                            created_date datetime NOT NULL,
+                            last_updated_by varchar(20) NOT NULL,
+                            last_updated_date datetime NOT NULL,
                             FOREIGN KEY (allocation_id) REFERENCES ".$wpdb->prefix ."allocation(allocation_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));

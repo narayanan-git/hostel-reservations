@@ -38,17 +38,17 @@ class BookingDBO {
      * $firstname : first name (required)
      * $lastname : last name (optional)
      * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
-     * $createdBy : user id of person making this booking
      * Returns id of inserted booking id
      * Throws DatabaseException on insert error
      */
-    static function insertBooking($mysqli, $firstname, $lastname, $referrer, $createdBy) {
+    static function insertBooking($mysqli, $firstname, $lastname, $referrer) {
     
         global $wpdb;
         $stmt = $mysqli->prepare(
-            "INSERT INTO ".$wpdb->prefix."booking(firstname, lastname, referrer, created_by, created_date)
-             VALUES(?, ?, ?, ?, NOW())");
-        $stmt->bind_param('ssss', $firstname, $lastname, $referrer, $createdBy);
+            "INSERT INTO ".$wpdb->prefix."booking(firstname, lastname, referrer, created_by, created_date, last_updated_by, last_updated_date)
+             VALUES(?, ?, ?, ?, NOW(), ?, NOW())");
+        $userLogin = wp_get_current_user()->user_login;
+        $stmt->bind_param('sssss', $firstname, $lastname, $referrer, $userLogin, $userLogin);
         
         if(false === $stmt->execute()) {
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);
@@ -65,6 +65,55 @@ class BookingDBO {
 //                    'created_date' => new DateTime()));
 //        return $wpdb->insert_id;
     }
+    
+    /**
+     * Updates an existing booking entry.
+     * $mysqli : manual db connection (for transaction handling)
+     * $bookingId : id of booking to update
+     * $firstname : first name (required)
+     * $lastname : last name (optional)
+     * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
+     * Throws DatabaseException on update error
+     */
+    static function updateBooking($mysqli, $bookingId, $firstname, $lastname, $referrer) {
+        global $wpdb;
+error_log("updateBooking $bookingId, $firstname, $lastname, $referrer");
+
+        // first check what has changed
+        $bookingRs = self::fetchBookingDetails($bookingId);
+        $auditMsgs = array();
+        
+        if ($firstname !== $bookingRs->firstname || $lastname !== $bookingRs->lastname) {
+            $auditMsgs[] = "Changing name from $bookingRs->firstname $bookingRs->lastname to $firstname $lastname";
+        }
+        if ($referrer !== $bookingRs->referrer) {
+            $auditMsgs[] = "Changing referrer from $bookingRs->referrer to $referrer";
+        }
+error_log(" is changed? auditMsg ".sizeof($auditMsgs));
+
+        // only update if something has changed
+        if (sizeof($auditMsgs) > 0) {
+            $stmt = $mysqli->prepare(
+                "UPDATE ".$wpdb->prefix."booking
+                    SET firstname = ?,
+                        lastname = ?,
+                        referrer = ?,
+                        last_updated_by = ?,
+                        last_updated_date = NOW()
+                WHERE booking_id = ?");
+            $userLogin = wp_get_current_user()->user_login;
+            $stmt->bind_param('ssssi', $firstname, $lastname, $referrer, $userLogin, $bookingId);
+        
+            if(false === $stmt->execute()) {
+                throw new DatabaseException("Error during UPDATE: " . $mysqli->error);
+            }
+            $stmt->close();
+
+            foreach ($auditMsgs as $msg) {
+                self::insertBookingComment($mysqli, new BookingComment($bookingId, $msg, BookingComment::COMMENT_TYPE_AUDIT));
+            }
+        }
+    }    
 
     /**
      * Inserts a new booking comment.
@@ -75,6 +124,7 @@ class BookingDBO {
      */
     static function insertBookingComment($mysqli, $bookingComment) {
     
+error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->comment  $bookingComment->commentType");
         global $wpdb;
         $stmt = $mysqli->prepare(
             "INSERT INTO ".$wpdb->prefix."bookingcomment(booking_id, comment, comment_type, created_by, created_date)

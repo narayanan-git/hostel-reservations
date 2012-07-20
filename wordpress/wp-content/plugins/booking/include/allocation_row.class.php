@@ -6,6 +6,7 @@
  */
 class AllocationRow {
     var $rowid;  // unique id for this row prior to creation
+    var $id;     // allocation id
     var $name;
     var $gender;
     var $resourceId;
@@ -25,6 +26,7 @@ class AllocationRow {
      * $resourceMap : array() of resource id -> resource recordset (if not specified, query db for all resources)
      */
     function AllocationRow($name, $gender, $resourceId, $resourceMap = null) {
+        $this->id = 0;
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
@@ -55,9 +57,10 @@ error_log("key is $key");
             if ($key === sizeof($this->STATUSES) - 1) {
 error_log("end of the line, unsetting $dt");
                 unset($this->bookingDateStatus[$dt]);
+            } else {
+                $this->bookingDateStatus[$dt] = $this->STATUSES[$key + 1];
+error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
             }
-            $this->bookingDateStatus[$dt] = $this->STATUSES[$key + 1];
-error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);            
             //TODO: if 'C' check if is @ start of block and cancel all subsequent dates
         }
         return $this->bookingDateStatus[$dt];
@@ -166,19 +169,29 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
     
         global $wpdb;
         
-        // create the allocation
-        $allocationId = AllocationDBO::insertAllocation(
-            $mysqli, $bookingId, $this->resourceId, $this->name, $this->gender);
+        // create the allocation if it doesn't exist
+        if ($this->id == 0) {
+            $allocationId = AllocationDBO::insertAllocation(
+                $mysqli, $bookingId, $this->resourceId, $this->name, $this->gender);
 error_log("inserted allocation $allocationId");
-        // then create the booking dates for the allocation
-        $this->isAvailable = true;
-        foreach ($this->bookingDateStatus as $bookingDate => $status) {
+
+            // then create the booking dates for the allocation
+            $this->isAvailable = true;
+            foreach ($this->bookingDateStatus as $bookingDate => $status) {
 error_log("to insert $bookingDate , $status");
-            // any booking date that breaks availability will flag it up at the row level
-            // TODO: should move this onto the booking date field
-            if( false === AllocationDBO::insertBookingDate($mysqli, $this->resourceId, $allocationId, $bookingDate, $status)) {
-                $this->isAvailable = false;
+
+                // any booking date that breaks availability will flag it up at the row level
+                // TODO: should move this onto the booking date field
+                if( false === AllocationDBO::insertBookingDate($mysqli, $allocationId, $bookingDate, $status)) {
+                    $this->isAvailable = false;
+                }
             }
+        } else { // update the existing allocation
+            AllocationDBO::updateAllocation($mysqli, $this->id, $this->resourceId, $this->name, $this->resourceMap);
+error_log("updating allocation $this->id");
+
+            // diff existing booking dates with the ones we want to save
+            $this->isAvailable = AllocationDBO::mergeUpdateBookingDates($mysqli, $this->id, $this->bookingDateStatus);
         }
 
         return $allocationId;
@@ -196,6 +209,7 @@ error_log("to insert $bookingDate , $status");
         $xmlRoot = $parentElement->appendChild($xmlRoot);
     
         $xmlRoot->appendChild($domtree->createElement('rowid', $this->rowid));
+        $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
         $xmlRoot->appendChild($domtree->createElement('resourceid', $this->resourceId));
@@ -242,6 +256,7 @@ error_log("to insert $bookingDate , $status");
       Generates the following xml:
         <allocation>
             <rowid>3</rowid>
+            <id>31</id>
             <name>Megan-1</name>
             <gender>Female</gender>
             <resourceid>21</resourceid>

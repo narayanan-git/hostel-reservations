@@ -10,6 +10,11 @@ class BookingComment {
     var $commentType;
     var $createdBy;
     var $createdDate;
+    
+    /* user created comment */
+    const COMMENT_TYPE_USER = 'user';
+    /* system created comment */
+    const COMMENT_TYPE_AUDIT = 'audit';
   
     /**
      * Default constructor.
