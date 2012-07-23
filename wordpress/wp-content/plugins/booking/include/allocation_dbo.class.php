@@ -103,7 +103,11 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);
         }
         $stmt->close();
-        return $mysqli->insert_id;
+        $allocationId = $mysqli->insert_id;
+        
+        BookingDBO::insertBookingComment($mysqli, new BookingComment($bookingId, "Adding allocation $allocationId ($name)", BookingComment::COMMENT_TYPE_AUDIT));
+        
+        return $allocationId;
     }
     
     /**
@@ -118,7 +122,7 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         global $wpdb;
         
         // fetch allocation details
-        $allocationRs = self::fetchAllocationForId($allocationId);
+        $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
         
         $auditMsgs = array();
         if ($name != $allocationRs->guest_name) {
@@ -151,6 +155,51 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         }
     }
     
+    /**
+     * Deletes the allocations with the specified ids.
+     * $mysqli : database link (to enforce manual transaction handling)
+     * $allocationId : allocation id to delete
+     */
+    static function deleteAllocation($mysqli, $allocationId) {
+        global $wpdb;
+        
+        // fetch allocation details
+        $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
+        $bookingId = $allocationRs->booking_id;
+        $bookingDateStatuses = self::fetchBookingDateStatuses($allocationId);
+        
+        $auditMsg = "Deleting allocation $allocationId (".$allocationRs->guest_name.") assigned to ".$allocationRs->resource_name."
+                     Booking Dates: ";
+        foreach ($bookingDateStatuses as $dt => $status) {
+            $auditMsg .= "$dt => $status, ";
+        }
+        $auditMsg = rtrim($auditMsg, ", ");
+        
+        // delete the allocation dates 
+        $stmt = $mysqli->prepare(
+            "DELETE FROM ".$wpdb->prefix."bookingdates
+              WHERE allocation_id = ?");
+        $stmt->bind_param('i', $allocationId);
+        
+        if(false === $stmt->execute()) {
+            throw new DatabaseException("Error during DELETE: " . $mysqli->error);
+        }
+        $stmt->close();
+            
+        // delete the allocation 
+        $stmt = $mysqli->prepare(
+            "DELETE FROM ".$wpdb->prefix."allocation
+              WHERE allocation_id = ?");
+        $stmt->bind_param('i', $allocationId);
+        
+        if(false === $stmt->execute()) {
+            throw new DatabaseException("Error during DELETE: " . $mysqli->error);
+        }
+        $stmt->close();
+            
+        BookingDBO::insertBookingComment($mysqli, new BookingComment($bookingId, $auditMsg, BookingComment::COMMENT_TYPE_AUDIT));
+    }
+
     /**
      * Inserts a booking date for the specified allocation and resource
      * only when availability exists.
@@ -197,9 +246,9 @@ error_log("insertBookingDates $allocationId ".var_export($bookingDateStatus, tru
         }
         
         // fetch allocation details
-        $allocationRs = self::fetchAllocationForId($allocationId);
+        $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
         $compliesWithAvailability = true;
-        $auditMsg = "Adding dates for allocation $allocationId ($allocationRs->guest_name): ";
+        $auditMsg = "Adding dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": ";
 
         foreach ($bookingDateStatus as $bd => $status) {
             $auditMsg .= "$bd => $status, ";
@@ -221,7 +270,6 @@ error_log("insertBookingDates $allocationId ".var_export($bookingDateStatus, tru
      * Returns true if the update complies with current availability, false otherwise.
      */
     static function mergeUpdateBookingDates($mysqli, $allocationId, $bookingDateStatus) {
-        global $wpdb;
 error_log("mergeUpdateBookingDates $allocationId ");
 
         // first find the ones currently saved for this allocationId
@@ -261,9 +309,9 @@ error_log("deleteBookingDates $allocationId ".var_export($bookingDateStatus, tru
         }
         
         // fetch allocation details
-        $allocationRs = self::fetchAllocationForId($allocationId);
+        $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
 
-        $auditMsg = "Removing dates for allocation $allocationId ($allocationRs->guest_name): ";
+        $auditMsg = "Removing dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": ";
         $bookingDatesString = "";
         foreach ($bookingDateStatus as $bd => $status) {
             $bookingDatesString .= "STR_TO_DATE('$bd', '%d.%m.%Y'),";
@@ -303,7 +351,7 @@ error_log("updateBookingDates $allocationId ");
 error_log("updateBookingDates intersection ".var_export($bookingDateStatus, true));
         
         // fetch allocation details
-        $allocationRs = self::fetchAllocationForId($allocationId);
+        $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
 
         $stmt = $mysqli->prepare(
             "UPDATE ".$wpdb->prefix."bookingdates 
@@ -337,7 +385,7 @@ error_log("updateBookingDates $bd changed to ".$newBookingDateStatus[$bd]);
         // if blank, we didn't actually do anything
         if ($auditMsg !== '') {
             // keep an audit trail...
-            $auditMsg = "Updating dates for allocation $allocationId ($allocationRs->guest_name): " . $auditMsg;
+            $auditMsg = "Updating dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": " . $auditMsg;
             BookingDBO::insertBookingComment($mysqli, new BookingComment($allocationRs->booking_id, $auditMsg, BookingComment::COMMENT_TYPE_AUDIT));
         }
     }
@@ -515,34 +563,37 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
     
     /**
      * Fetches allocation details given the id.
+     * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : existing allocation to query
      * Returns recordset for allocation
      */
-    static function fetchAllocationForId($allocationId) {
+    static function fetchAllocationForId($mysqli, $allocationId) {
         global $wpdb;
-        
-        $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT a.allocation_id, a.booking_id, a.guest_name, a.gender, a.resource_id
+
+        $resultset = $mysqli->query(
+            "SELECT a.allocation_id, a.booking_id, a.guest_name, a.gender, a.resource_id, r.name as resource_name
                FROM ".$wpdb->prefix."allocation a
-              WHERE a.allocation_id = %d", $allocationId));
+               JOIN ".$wpdb->prefix."bookingresources r ON a.resource_id = r.resource_id
+              WHERE a.allocation_id = $allocationId");
+            
+        $return_val = $resultset->fetch_object();
+        $resultset->close();
         
-        if($wpdb->last_error) {
-            throw new DatabaseException($wpdb->last_error);
+        if ($return_val == null) {
+            throw new DatabaseException("Allocation not found for $allocationId");
         }
         
-        foreach ($resultset as $res) {
-            return $res;
-        }
-        throw new DatabaseException("Allocation not found for $allocationId");
+        return $return_val;
     }
     
     /**
      * This will fetch all allocations for the given booking.
      * $bookingId : existing booking id
      * $resourceMap : map of resource id => resource recordset; if null, load all resources
-     * Returns array() of AllocationRow for booking id
+     * $loadBookingDates : true to load booking dates, false to leave uninitialised (default true)
+     * Returns array() of AllocationRow for booking id indexed by id
      */
-    static function fetchAllocationRowsForBookingId($bookingId, $resourceMap = null) {
+    static function fetchAllocationRowsForBookingId($bookingId, $resourceMap = null, $loadBookingDates = true) {
         global $wpdb;
         $resourceMap = $resourceMap == null ? ResourceDBO::getAllResources() : $resourceMap;
         
@@ -564,9 +615,11 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
         foreach ($resultset as $res) {
             $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $resourceMap);
             $ar->id = $res->allocation_id;
-            $ar->bookingDateStatus = AllocationDBO::fetchBookingDateStatuses($res->allocation_id);
-            $return_val[] = $ar;
-            $ar->rowid = array_search($ar, $return_val);
+            if ($loadBookingDates) {
+                $ar->bookingDateStatus = AllocationDBO::fetchBookingDateStatuses($res->allocation_id);
+            }
+            $return_val[$ar->id] = $ar;
+            $ar->rowid = $ar->id;
         }
         return $return_val;
     }

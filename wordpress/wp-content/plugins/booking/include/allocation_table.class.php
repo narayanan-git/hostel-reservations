@@ -185,6 +185,25 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
      */
     function save($mysqli, $bookingId) {
     
+        // we need to delete any allocations that have been removed since we last saved
+        $oldAllocationRows = AllocationDBO::fetchAllocationRowsForBookingId($bookingId, $this->resourceMap, false);
+
+        // existing (possibly changed) allocations, keep in a array indexed by id
+        $allocationRowsById = array();  // indexed by id where id > 0; we need to update these rows if they have changed
+        foreach ($this->allocationRows as $ar) {
+            if ($ar->id > 0) {
+                $allocationRowsById[$ar->id] = $ar;
+            }
+        }
+
+        // diff existing records with the ones we want to save
+        // if it exists in the old but not in the new, delete it
+error_log("allocation table.save() : ".var_export(array(array_keys($oldAllocationRows), array_keys($allocationRowsById)), true));
+        $allocationRowsToRemove = array_diff_key($oldAllocationRows, $allocationRowsById);
+        foreach ($allocationRowsToRemove as $allocId => $ar) {
+            AllocationDBO::deleteAllocation($mysqli, $allocId);
+        }
+        
         $failedAllocation = false;
         foreach ($this->allocationRows as $alloc) {
             $alloc_id = $alloc->save($mysqli, $bookingId);

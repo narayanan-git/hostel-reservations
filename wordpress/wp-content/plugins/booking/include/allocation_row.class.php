@@ -176,16 +176,8 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
 error_log("inserted allocation $allocationId");
 
             // then create the booking dates for the allocation
-            $this->isAvailable = true;
-            foreach ($this->bookingDateStatus as $bookingDate => $status) {
-error_log("to insert $bookingDate , $status");
+            $this->isAvailable = AllocationDBO::insertBookingDates($mysqli, $allocationId, $this->bookingDateStatus);
 
-                // any booking date that breaks availability will flag it up at the row level
-                // TODO: should move this onto the booking date field
-                if( false === AllocationDBO::insertBookingDate($mysqli, $allocationId, $bookingDate, $status)) {
-                    $this->isAvailable = false;
-                }
-            }
         } else { // update the existing allocation
             AllocationDBO::updateAllocation($mysqli, $this->id, $this->resourceId, $this->name, $this->resourceMap);
 error_log("updating allocation $this->id");
