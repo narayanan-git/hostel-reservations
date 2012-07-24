@@ -341,6 +341,9 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_table.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_table.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/resources_table.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/resources_table.class.php' ); }
+
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/resources.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/resources.class.php' ); }
 

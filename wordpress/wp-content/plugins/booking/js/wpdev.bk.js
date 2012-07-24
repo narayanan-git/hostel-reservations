@@ -747,6 +747,57 @@
         });
     }
     
+    // this will enable editing of the fields on the given resource id.
+    // resource_id : resource id to edit
+    function edit_resource(resource_id) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'EDIT_RESOURCE',
+                resource_id : resource_id
+            }
+        });
+    }
+
+    // this will delete by the given resource id.
+    // resource_id : resource id to delete
+    function delete_resource(resource_id) {
+
+        if (bk_are_you_sure('Are you sure you want to delete ' + document.getElementById('resource_name'+resource_id).innerHTML + '?')) {
+            jQuery.ajax({                                           // Start Ajax Sending
+                url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+                type:'POST',
+                success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+                error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+                data:{
+                    ajax_action : 'DELETE_RESOURCE',
+                    resource_id : resource_id
+                }
+            });
+        }
+    }
+
+    // this will save the given resource by id.
+    // resource_id : resource id to save
+    function save_resource(resource_id) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'SAVE_RESOURCE',
+                resource_id : resource_id,
+                resource_name : document.getElementById('resource_name'+resource_id).value
+            }
+        });
+    }
+
     //]]>
     
 //////////////////////// END CUSTOM CODE //////////////////////////////

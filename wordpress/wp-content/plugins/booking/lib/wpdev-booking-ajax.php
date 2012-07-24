@@ -51,6 +51,24 @@ function wpdev_bk_ajax_responder() {
             break;
 
 /////////////////////// BEGIN CUSTOM CODE /////////////////////////
+        // enable editing of the fields in the current resource row
+        case  'EDIT_RESOURCE':
+            wpdev_edit_resource();
+            die();
+            break;
+
+        // save the editing fields in the current resource row
+        case  'SAVE_RESOURCE':
+            wpdev_save_resource();
+            die();
+            break;
+
+        // delete the current resource row
+        case  'DELETE_RESOURCE':
+            wpdev_delete_resource();
+            die();
+            break;
+
         // insert allocations as part of a booking
         case  'ADD_ALLOCATION':
             wpdev_add_booking_allocation();
@@ -353,6 +371,78 @@ error_log("db save: $msg");
 //           jQuery('#submitting').fadeOut(5000);
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
        </script>
+    <?php
+}
+
+/**
+ * Permits editing of the currently selected resource row.
+ */
+function wpdev_edit_resource() {
+    $resourceId = $_POST['resource_id'];
+error_log("wpdev_edit_resource $resourceId");
+    $resources = new Resources($resourceId);
+
+    ?> 
+    <script type="text/javascript">
+        document.getElementById('meta-wrapper').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
+    </script>
+    <?php
+}
+
+/**
+ * Deletes the selected resource row.
+ */
+function wpdev_delete_resource() {
+    $resourceId = $_POST['resource_id'];
+error_log("wpdev_delete_resource $resourceId");
+
+    try {
+        ResourceDBO::deleteResource($resourceId);
+
+    } catch (DatabaseException $de) {
+        $msg = $de->getMessage();
+    }
+    
+    $resources = new Resources();
+    if (isset($msg)) {
+        $resources->errorMessage = $msg;
+    }
+
+    ?> 
+    <script type="text/javascript">
+        document.getElementById('meta-wrapper').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
+    </script>
+    <?php
+}
+
+/**
+ * Saves the selected resource row.
+ */
+function wpdev_save_resource() {
+
+    $resourceId = $_POST['resource_id'];
+    $resourceName = $_POST['resource_name'];
+
+error_log("wpdev_save_resource $resourceId $resourceName");
+
+    if ($resourceName != '') {
+        try {
+            ResourceDBO::editResource($resourceId, $resourceName);
+
+        } catch (DatabaseException $de) {
+            $msg = $de->getMessage();
+        }
+    }
+        
+    $resources = new Resources();
+    if (isset($msg)) {
+        $resources->errorMessage = $msg;
+    }
+
+    ?> 
+    <script type="text/javascript">
+        document.getElementById('meta-wrapper').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
+    </script>
     <?php
 }
 

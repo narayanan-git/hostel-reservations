@@ -1589,49 +1589,20 @@ if (!class_exists('wpdev_booking')) {
         function content_of_resource_page(){
 
             $resources = new Resources();
+
             try {
                 // if the user has just submitted an "Add new resource" request
-                if ( isset($_POST['resource_name_new'])) {
+                if ( isset($_POST['resource_name_new']) && $_POST['resource_name_new'] != '') {
                     ResourceDBO::insertResource($_POST['resource_name_new'], $_POST['resource_capacity_new'], 
                         $_POST['resource_parent_new'] == 0 ? null : $_POST['resource_parent_new'],
                         $_POST['resource_type_new']);
                 }
-                
-                // if user has submitted delete request
-                if ( isset($_POST['resource_id_delete']) && trim($_POST['resource_id_delete']) != '') {
-                    ResourceDBO::deleteResource($_POST['resource_id_delete']);
-                }
-                
-                // if user has submitted a change in resource name
-                if ( isset($_POST['resource_id_edit']) && trim($_POST['resource_id_edit']) != '') {
-                    $postvar_name = "resource_name".$_POST['resource_id_edit'];
-                    
-                    // user clicked save
-                    if ( isset($_POST[$postvar_name]) && trim($_POST[$postvar_name]) != '') {
-                        ResourceDBO::editResource($_POST['resource_id_edit'], $_POST[$postvar_name]);
-                        
-                    } else { // user clicked edit
-                        $resources->editResourceId = $_POST['resource_id_edit'];
-                    }
-                }
     
-           } catch (DatabaseException $de) {
-                $msg = $de->getMessage();
+            } catch (DatabaseException $de) {
+                $resources->errorMessage = $de->getMessage();
             }
-
             echo $resources->toHtml();
             
-            if(isset($msg)) { // show error if defined as post jsscript
-                ?>
-                    <script type="text/javascript">
-                        var msg = "<?php echo $msg; ?>";
-                        document.getElementById('ajax_working').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
-                        jQuery("#ajax_working")
-                            .css( {'color' : 'red'} )
-                    </script>
-                <?php
-            }
-
         }
         //////////////////// END OF CUSTOM CODE ////////////////////
                 
@@ -3729,6 +3700,10 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             capacity bigint(20) unsigned,
                             parent_resource_id bigint(20) unsigned,
                             resource_type varchar(10) NOT NULL,
+                            created_by varchar(20) NOT NULL,
+                            created_date datetime NOT NULL,
+                            last_updated_by varchar(20) NOT NULL,
+                            last_updated_date datetime NOT NULL,
                             PRIMARY KEY (resource_id),
                             FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
                         ) $charset_collate;";

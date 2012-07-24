@@ -98,7 +98,7 @@ class ResourceDBO {
         // easiest way to represent a single unit is to create separate resources 
         // for each individual bed in the room
         try {
-            if ($resourceType == 'private') {
+            if ($resourceType == 'private' || $resourceType = 'room') {
         
                 // first insert the parent record
                 $newId = ResourceDBO::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
@@ -119,8 +119,6 @@ class ResourceDBO {
         }
         $dblink->mysqli->commit();
         $dblink->mysqli->close();
-        
-        //ResourceDBO::cleanUpResources();
     }
     
     /**
@@ -135,9 +133,10 @@ class ResourceDBO {
     static function insertResourceDb($mysqli, $name, $parentResourceId, $resourceType) {
         global $wpdb;
         $stmt = $mysqli->prepare(
-                "INSERT INTO ".$wpdb->prefix ."bookingresources (name, parent_resource_id, resource_type)
-                 VALUES(?, ?, ?)");
-        $stmt->bind_param('sis', $name, $parentResourceId, $resourceType);
+                "INSERT INTO ".$wpdb->prefix ."bookingresources (name, parent_resource_id, resource_type, created_by, created_date, last_updated_by, last_updated_date)
+                 VALUES(?, ?, ?, ?, NOW(), ?, NOW())");
+        $userLogin = wp_get_current_user()->user_login;
+        $stmt->bind_param('sisss', $name, $parentResourceId, $resourceType, $userLogin, $userLogin);
         if(false === $stmt->execute()) {
             throw new DatabaseException("Error occurred inserting into resource :".$mysqli->error);
         }
@@ -216,10 +215,13 @@ class ResourceDBO {
      */
     static function editResource($resourceId, $resourceName) {
         global $wpdb;
+        $userLogin = wp_get_current_user()->user_login;
         if( false === $wpdb->query($wpdb->prepare(
                 "UPDATE ".$wpdb->prefix ."bookingresources
-                    SET name = %s
-                  WHERE resource_id = %d", $resourceName, $resourceId))) {
+                    SET name = %s,
+                        last_updated_by = %s,
+                        last_updated_date = NOW()
+                  WHERE resource_id = %d", $resourceName, $userLogin, $resourceId))) {
             error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
             throw new DatabaseException("Error occurred updating resource :".$wpdb->last_error);
         }
