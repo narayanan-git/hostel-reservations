@@ -13,8 +13,9 @@
                 <th style="width:10px; height:35px;">ID</th>
                 <th style="height:35px;">Resource Name</th>
                 <th style="width:50px;">Type</th>
+                <th style="width:50px;">Room Type</th>
                 <th class="tipcy" title="Max number of occupants" style="width:50px;">Beds</th>
-                <th style="width:10px;" title="Actions">Actions</th>
+                <th style="width:60px;" title="Actions">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -55,6 +56,11 @@
         </td>
         
         <td style="font-size:10px; font-weight: bold; text-align: left; padding-left: 5px;"><xsl:value-of select="type"/></td>
+        <td style="font-size:10px; font-weight: bold; text-align: left; padding-left: 5px;">
+            <xsl:if test="roomType = 'M'">male</xsl:if>
+            <xsl:if test="roomType = 'F'">female</xsl:if>
+            <xsl:if test="roomType = 'Mx'">mixed</xsl:if>
+        </td>
 
         <xsl:choose>
             <!-- if this is a bed, don't show capacity -->
@@ -67,7 +73,7 @@
             </xsl:otherwise>
         </xsl:choose>
         
-        <td>
+        <td style="text-align:right">
             <xsl:choose>
                 <xsl:when test="../editResource = id">
                     <div style="text-align:center;">
@@ -77,10 +83,16 @@
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
+                    <xsl:if test="type = 'room'">
+                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit Attributes" href="/wp-admin/admin.php?page=booking/wpdev-booking.phpwpdev-booking-resources&amp;editResourceId={id}">
+                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/notes_rd.png" title="Edit Attributes" alt="Edit Attributes"/>
+                        </a>
+                        <span style="padding-left: 10px;"><xsl:comment/></span>
+                    </xsl:if>
                     <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:edit_resource({id});" href="javascript:;">
                         <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
                     </a>
-                    <span style="padding-left: 10px;"></span>
+                    <span style="padding-left: 10px;"><xsl:comment/></span>
                     <a class="tooltip_bottom" rel="tooltip" data-original-title="Delete" onclick="javascript:delete_resource({id});" href="javascript:;">
                         <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
                     </a>

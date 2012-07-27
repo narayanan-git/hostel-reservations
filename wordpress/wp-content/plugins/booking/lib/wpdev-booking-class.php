@@ -1588,20 +1588,36 @@ if (!class_exists('wpdev_booking')) {
         //content of resources management page
         function content_of_resource_page(){
 
-            $resources = new Resources();
+            if (isset($_GET['editResourceId'])) {
 
-            try {
-                // if the user has just submitted an "Add new resource" request
-                if ( isset($_POST['resource_name_new']) && $_POST['resource_name_new'] != '') {
-                    ResourceDBO::insertResource($_POST['resource_name_new'], $_POST['resource_capacity_new'], 
-                        $_POST['resource_parent_new'] == 0 ? null : $_POST['resource_parent_new'],
-                        $_POST['resource_type_new']);
+                $rpp = new ResourcePropertyPage($_GET['editResourceId']);
+
+                // SAVE button was pressed on the edit resource property page
+                if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+                    $propertyIds = isset($_POST['resource_property']) ? $_POST['resource_property'] : array();
+                    ResourceDBO::updateResourceProperties($_GET['editResourceId'], $propertyIds);
+                    $rpp->isSaved = true;
                 }
+                
+error_log($rpp->toXml());
+                echo $rpp->toHtml();
+
+            } else {
+                $resources = new Resources();
     
-            } catch (DatabaseException $de) {
-                $resources->errorMessage = $de->getMessage();
+                try {
+                    // if the user has just submitted an "Add new resource" request
+                    if ( isset($_POST['resource_name_new']) && $_POST['resource_name_new'] != '') {
+                        ResourceDBO::insertResource($_POST['resource_name_new'], $_POST['resource_capacity_new'], 
+                            $_POST['resource_parent_new'] == 0 ? null : $_POST['resource_parent_new'],
+                            $_POST['resource_type_new']);
+                    }
+        
+                } catch (DatabaseException $de) {
+                    $resources->errorMessage = $de->getMessage();
+                }
+                echo $resources->toHtml();
             }
-            echo $resources->toHtml();
             
         }
         //////////////////// END OF CUSTOM CODE ////////////////////
@@ -3700,12 +3716,44 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                             capacity bigint(20) unsigned,
                             parent_resource_id bigint(20) unsigned,
                             resource_type varchar(10) NOT NULL,
+                            room_type varchar(2),
                             created_by varchar(20) NOT NULL,
                             created_date datetime NOT NULL,
                             last_updated_by varchar(20) NOT NULL,
                             last_updated_date datetime NOT NULL,
                             PRIMARY KEY (resource_id),
                             FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
+                        ) $charset_collate;";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+            
+            if ( ! $this->is_table_exists('resource_properties') ) { 
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."resource_properties (
+                            property_id bigint(20) unsigned NOT NULL,
+                            description varchar(20) NOT NULL,
+                            PRIMARY KEY (property_id)
+                        ) $charset_collate;";
+                $wpdb->query($wpdb->prepare($simple_sql));
+                
+                $simple_sql = "INSERT INTO ".$wpdb->prefix ."resource_properties (property_id, description)
+                               VALUES(%d, %s)";
+                $wpdb->query($wpdb->prepare($simple_sql, 1, '4-Bed Dorm'));
+                $wpdb->query($wpdb->prepare($simple_sql, 2, '8-Bed Dorm'));
+                $wpdb->query($wpdb->prepare($simple_sql, 3, '10-Bed Dorm'));
+                $wpdb->query($wpdb->prepare($simple_sql, 4, '12-Bed Dorm'));
+                $wpdb->query($wpdb->prepare($simple_sql, 5, '14-Bed Dorm'));
+                $wpdb->query($wpdb->prepare($simple_sql, 6, '16-Bed Dorm'));
+                $wpdb->query($wpdb->prepare($simple_sql, 7, 'Twin Room'));
+                $wpdb->query($wpdb->prepare($simple_sql, 8, 'Double Room'));
+                $wpdb->query($wpdb->prepare($simple_sql, 9, 'Double Deluxe Room'));
+            }
+            
+            if ( ! $this->is_table_exists('resource_properties_map') ) { 
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."resource_properties_map (
+                            resource_id bigint(20) unsigned NOT NULL,
+                            property_id bigint(20) unsigned NOT NULL,
+                            FOREIGN KEY (resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id),
+                            FOREIGN KEY (property_id) REFERENCES ".$wpdb->prefix ."resource_properties(property_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
@@ -3786,14 +3834,14 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
             
             if ( ! $this->is_table_exists('v_resources_sub1') ) {
                 $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 AS
-                        SELECT resource_id, name, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type
+                        SELECT resource_id, name, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type, room_type
                         FROM ".$wpdb->prefix."bookingresources";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
             if ( ! $this->is_table_exists('v_resources_by_path') ) {
                 $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
-                        SELECT resource_id, name, parent_resource_id, path, resource_type,
+                        SELECT resource_id, name, parent_resource_id, path, resource_type, room_type,
                                LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
                                (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) AND resource_type = 'bed') AS number_children,
                                (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE (s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) OR s1.path = s.path) AND resource_type = 'bed') AS capacity

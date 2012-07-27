@@ -40,6 +40,7 @@ class ResourcesTable extends XslTransform {
             $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
             $resourceRow->appendChild($domtree->createElement('numberChildren', $res->number_children));
             $resourceRow->appendChild($domtree->createElement('type', $res->resource_type));
+            $resourceRow->appendChild($domtree->createElement('roomType', $res->room_type));
             $xmlRoot->appendChild($resourceRow);
         }
     }
@@ -56,6 +57,7 @@ class ResourcesTable extends XslTransform {
      *         <level>1</level>
      *         <numberChildren>2</numberChildren>
      *         <type>room</type>
+     *         <roomType>M</roomType>     
      *     </resource>
      *     <resource>
      *         <id>2</id>

@@ -17,14 +17,16 @@ class ResourceDBO {
      * path : tree path by resource id
      * number_children : number of children (0 for leaf nodes)
      * parent_resource_id : resource id of parent (optional)
+     * parent_name : name of parent resource (if applicable)
      * resource_type : one of bed, room, group
+     * room_type : one of M, F, MX, "" (null)
      */
     static function getAllResources($resourceId = null) {
         global $wpdb;
 
         // query all our resources (in order)
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT r.resource_id, r.name, r.lvl, r.path, r.number_children, r.parent_resource_id, rp.name AS parent_name, r.resource_type
+            "SELECT r.resource_id, r.name, r.lvl, r.path, r.number_children, r.parent_resource_id, rp.name AS parent_name, r.resource_type, r.room_type
                FROM ".$wpdb->prefix."v_resources_by_path r
                LEFT OUTER JOIN ".$wpdb->prefix."bookingresources rp ON r.parent_resource_id = rp.resource_id
                     ". ($resourceId == null ? "" : "
@@ -41,6 +43,99 @@ class ResourceDBO {
             $result[$res->resource_id] = $res;
         }
         return $result;
+    }
+    
+    /**
+     * Fetches resource recordset by resource_id. 
+     * $resourceId : id of resource 
+     * Returns resultset with the following properties:
+     * resource_id : id of resource
+     * name : resource name
+     * capacity : capacity of resource
+     * lvl : depth of tree (starting at 1)
+     * path : tree path by resource id
+     * number_children : number of children (0 for leaf nodes)
+     * parent_resource_id : resource id of parent (optional)
+     * parent_name : name of parent resource (if applicable)
+     * resource_type : one of bed, room, group
+     * room_type : one of M, F, MX, "" (null)
+     * Throws DatabaseException if resourceId does not exist
+     */
+    static function fetchResourceById($resourceId) {
+        global $wpdb;
+
+        // query resource by id
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT r.resource_id, r.name, r.lvl, r.path, r.number_children, r.parent_resource_id, r.resource_type, r.room_type
+               FROM ".$wpdb->prefix."v_resources_by_path r
+              WHERE r.resource_id = %d
+              ORDER BY r.path", $resourceId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        foreach ($resultset as $res) {
+            return $res;
+        }
+        throw new DatabaseException("Resource $resourceId not found");
+    }
+    
+    /**
+     * Returns all properties for a given resource_id. 
+     * Each object in the collection returned has the following properties:
+     * $resourceId : id of resource 
+     * Returns resultset array() indexed by property id
+     * property_id : id of resource property
+     * description : description of property
+     * selected_yn : 'Y' if property is selected for resource, 'N' otherwise
+     */
+    static function getPropertiesForResource($resourceId) {
+        global $wpdb;
+
+        // query all our resources and properties (in order)
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT rp.property_id, rp.description, CASE WHEN rpm.property_id IS NULL THEN 'N' ELSE 'Y' END AS selected_yn 
+               FROM ".$wpdb->prefix."resource_properties rp
+               LEFT OUTER JOIN ".$wpdb->prefix."resource_properties_map rpm ON rp.property_id = rpm.property_id AND rpm.resource_id = %d
+              ORDER BY rp.property_id", $resourceId));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        $result = array();
+        foreach ($resultset as $res) {
+            $result[$res->property_id] = $res;
+        }
+        return $result;
+    }
+    
+    /**
+     * Update the properties for a particular resource to the DB.
+     * $resourceId : id of resource to update
+     * $propertyArray : array() of property ids applicable for this resource
+     */
+    static function updateResourceProperties($resourceId, $propertyArray) {
+error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, true));
+
+        global $wpdb;
+        $wpdb->query($wpdb->prepare(
+                "DELETE FROM ".$wpdb->prefix ."resource_properties_map
+                  WHERE resource_id = %d", $resourceId));
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        // iterate and insert
+        foreach ($propertyArray as $propertyId) {
+            $wpdb->query($wpdb->prepare(
+                "INSERT INTO ".$wpdb->prefix ."resource_properties_map (property_id, resource_id)
+                 VALUES(%d, %d)", $propertyId, $resourceId));
+            if($wpdb->last_error) {
+                throw new DatabaseException($wpdb->last_error);
+            }
+        }
     }
     
     /**
