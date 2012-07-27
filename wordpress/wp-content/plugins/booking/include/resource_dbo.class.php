@@ -98,7 +98,7 @@ class ResourceDBO {
         // easiest way to represent a single unit is to create separate resources 
         // for each individual bed in the room
         try {
-            if ($resourceType == 'private' || $resourceType = 'room') {
+            if ($resourceType == 'private' || $resourceType == 'room') {
         
                 // first insert the parent record
                 $newId = ResourceDBO::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
