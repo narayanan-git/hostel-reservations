@@ -49,15 +49,15 @@
                                     <tr>
                                         <td style="padding:0px; height:32px;">Type:</td>
                                         <td style="padding:0px;">
-                                            <select id="resource_type_new" name="resource_type_new" onchange="if(this.value == 'room' || this.value == 'private') jQuery('.capacity_row').hide(); else jQuery('.capacity_row').show(); alert('done '+jQuery('.capacity_row'));" style="float:left; width:100%;">
-                                                <option value="bed">Bed</option>
+                                            <select id="resource_type_new" name="resource_type_new" onchange="if(this.value == 'room' || this.value == 'private') jQuery('#capacity_row').show(); else jQuery('#capacity_row').hide();" style="float:left; width:100%;">
                                                 <option value="room">Shared Room</option>
                                                 <option value="private">Private Room</option>
                                                 <option value="group">Group</option>
+                                                <option value="bed">Bed</option>
                                             </select>
                                         </td>
                                     </tr>
-                                    <tr>
+                                    <tr id="capacity_row">
                                         <td style="padding:0px; height:32px;">Capacity:</td>
                                         <td style="padding:0px;">
                                             <select id="resource_capacity_new" name="resource_capacity_new" style="float:left; width:50px;">
