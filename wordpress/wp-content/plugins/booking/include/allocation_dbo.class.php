@@ -499,10 +499,10 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
         $resourceToBookingDateAllocationMap = array();
 
         foreach ($resultset as $res) {
-                foreach (AllocationDBO::fetchBookingDatesForAllocation($res->allocation_id) as $bookingDate) {
-                    $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = $res;
-                }
+            foreach (AllocationDBO::fetchBookingDateStatuses($res->allocation_id) as $bookingDate => $status) {
+                $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = $res;
             }
+        }
         
         return AllocationDBO::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
     }
@@ -607,10 +607,6 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
             throw new DatabaseException($wpdb->last_error);
         }
         
-        if(empty($resultset)) {
-            throw new DatabaseException("No allocations found for $bookingId");
-        }
-
         $return_val = array();
         foreach ($resultset as $res) {
             $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $resourceMap);
