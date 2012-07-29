@@ -187,8 +187,8 @@ error_log("updating booking id $bookingId");
             
             // once everything has been saved, reload everything from db...
             // this will set the ids on everything so saving again will do update not insert
-            $this->load($this->id);
-error_log("reloaded booking $this->id");
+            $this->load($bookingId);
+error_log("reloaded booking $bookingId");
 
         } catch(Exception $e) {
             $dblink->mysqli->rollback();
@@ -226,6 +226,9 @@ error_log("reloaded booking $this->id");
                 <comment>...<comment>
                 ...
             </comments>
+            <properties>
+                <property>...</property>
+            </properties>
         </editbooking>
      */
     function toXml() {
@@ -246,6 +249,14 @@ error_log("reloaded booking $this->id");
 
         // add comments
         $this->commentLog->addSelfToDocument($domtree, $xmlRoot);
+        
+        $propRoot = $xmlRoot->appendChild($domtree->createElement('properties'));
+        foreach (ResourceDBO::getPropertiesForResource() as $prop) {
+            $propRow = $domtree->createElement('property');
+            $propRow->appendChild($domtree->createElement('id', $prop->property_id));
+            $propRow->appendChild($domtree->createElement('value', $prop->description));
+            $propRoot->appendChild($propRow);
+        }
 
 error_log($domtree->saveXML());
         return $domtree->saveXML();
