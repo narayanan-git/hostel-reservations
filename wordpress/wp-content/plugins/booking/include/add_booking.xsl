@@ -67,24 +67,38 @@
                 <div class="metabox-holder">
                     <h3>Allocations</h3>
                     <div style="float:left; width:450px;">
-                    <p>Add <input type="text" name="num_visitors" value="" size="5" /> Guest(s)</p>
-                    <p>Gender:<br />  <span class="wpdev-form-control-wrap">
-                        <select id="gender" name="gender" style="width:150px;">
-                            <option value="X">Unspecified</option>
-                            <option value="M">Male</option>
-                            <option value="F">Female</option>
-                        </select>
-                        </span>
-                    </p>
-                    <p>Room/Bed:<br />  
-                        <span class="wpdev-form-control-wrap"> 
-                            <select id="booking_resource" name="booking_resource">
-                                <option value="0"> - </option>
-                                <xsl:apply-templates select="allocations/resources/resource" mode="resource_selection"/>
+                        <p>Add <input type="text" name="num_visitors" value="" size="5" /> Guest(s)</p>
+                        <p>Gender:<br />  <span class="wpdev-form-control-wrap">
+                            <select id="gender" name="gender" style="width:150px;">
+                                <option value="X">Unspecified</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
                             </select>
-                        </span>
-                    </p>
-                    <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form,'en_US');" /></p>
+                            </span>
+                        </p>
+                        <p>Room/Bed:<br />  
+                            <span class="wpdev-form-control-wrap"> 
+                                <select id="booking_resource" name="booking_resource">
+                                    <option value="0"> - </option>
+                                    <xsl:apply-templates select="allocations/resources/resource" mode="resource_selection"/>
+                                </select>
+                            </span>
+                        </p>
+                        <p>Requested Room Type:<br />  
+                            <span class="wpdev-form-control-wrap"> 
+                                <select id="room_type" name="room_type" style="width:200px">
+                                    <option value="X">Mixed/Don't give a Toss</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                </select>
+                            </span>
+                        </p>
+                        <p>Assign To:<br />  
+                            <div style="margin-left:30px;">
+                                <xsl:apply-templates select="properties/property"/>
+                            </div>
+                        </p>
+                        <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form,'en_US');" /></p>
                     </div>
                     
                     <div style="float:left;">
@@ -119,6 +133,14 @@
           });
     </script>
     
+</xsl:template>
+
+<xsl:template match="property">
+    <div style="text-align:left;">
+        <input type="checkbox" name="resource_property[]" value="{id}">
+            &#160;<xsl:value-of select="value"/>
+        </input>
+    </div>
 </xsl:template>
 
 </xsl:stylesheet>

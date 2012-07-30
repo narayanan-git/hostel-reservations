@@ -105,7 +105,7 @@
                     </div>
                 </div>
         
-                <div class="btn-group" style="margin-top: 2px; vertical-align: top;">
+                <div class="btn-group" style="float:right; margin-top: 2px; margin-right: 30px; vertical-align: top;">
                     <a  data-original-title="Print bookings listing"  rel="tooltip"
                         class="tooltip_top btn" onclick="javascript:print_booking_listing();">
                         Print <span class="icon-print"></span></a>

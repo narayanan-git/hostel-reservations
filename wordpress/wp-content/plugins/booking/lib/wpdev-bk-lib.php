@@ -1214,6 +1214,7 @@ if (empty( $num_per_page_check)) {
             $bav->allocationView->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
             $bav->allocationView->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
             $bav->allocationView->doSearch();
+            $bav->activeView = BookingAllocationView::ACTIVE_VIEW_ALLOCATION;
         }
         
         // if filter_status is defined, we are on the bookings view
@@ -1227,10 +1228,11 @@ error_log("filter status is defined");
             $bav->bookingView->dateMatchType = $_POST['filter_datetype'];
 //            $bv->resourceId = $_POST['filter_resource_id'];
             $bav->bookingView->doSearch();
+            $bav->activeView = BookingAllocationView::ACTIVE_VIEW_BOOKING;
         } else {
 error_log("filter status is not defined");
         }
-debuge($_POST);
+//debuge($_POST);
 error_log($bav->toXml());
         echo $bav->toHtml();
     }

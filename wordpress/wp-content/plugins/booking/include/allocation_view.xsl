@@ -12,7 +12,7 @@
     <div style="clear:both;height:1px;"><xsl:comment/></div>
     <div class="wpdevbk-filters-section ">
 
-        <div style="  float: right; margin-top: -90px;">
+        <div style="float: right; margin-top: -90px;">
             <form  name="booking_filters_formID" action="" method="post" id="booking_filters_formID" class=" form-search">
                 <input class="input-small" type="text" placeholder="Booking ID" name="wh_booking_id" id="wh_booking_id" value=""/>
                 <button class="btn small" type="submit">Go</button>
@@ -48,6 +48,39 @@
                 </div>
             </div>
     
+            <div class="btn-group" style="margin-top: 2px; margin-right: 30px; vertical-align: top; float:right;">
+                <a  data-original-title="Print bookings listing"  rel="tooltip"
+                    class="tooltip_top btn" onclick="javascript:print_booking_listing();">
+                    Print <span class="icon-print"></span></a>
+                <a data-original-title="Export only current page of bookings to CSV format"  rel="tooltip" class="tooltip_top btn" onclick="javascript:export_booking_listing('page');">
+                    Export <span class="icon-list"></span></a>
+            </div>
+                
+            <span style="display:none;" class="advanced_booking_filter">
+                <div class="block_hints datepick">
+                    <div class="wpdev_hint_with_text">
+                        <div class="block_free legend_date_status_available">&#160;</div>
+                        <div class="block_text">- Available</div>
+                    </div>
+                    <div class="wpdev_hint_with_text">
+                        <div class="block_booked legend_date_status_reserved">&#160;</div>
+                        <div class="block_text">- Reserved</div>
+                    </div>
+                    <div class="wpdev_hint_with_text">
+                        <div class="block_booked legend_date_status_paid">&#160;</div>
+                        <div class="block_text">- Paid/Checked-in</div>
+                    </div>
+                    <div class="wpdev_hint_with_text">
+                        <div class="block_booked legend_date_status_free">&#160;</div>
+                        <div class="block_text">- Free Night</div>
+                    </div>
+                    <div class="wpdev_hint_with_text">
+                        <div class="block_booked legend_date_status_hours">&#160;</div>
+                        <div class="block_text">- Paid with Hours</div>
+                    </div>
+                </div>
+            </span>
+
             <div class="clear"><xsl:comment/></div>
         </form>
 
@@ -141,7 +174,7 @@
             <xsl:attribute name="colspan"><xsl:value-of select="@span"/></xsl:attribute>
         </xsl:if>
         <xsl:if test="id &gt; 0">
-            <a class="booking_item status_{status}"><xsl:value-of select="name"/></a>
+            <a class="booking_item {render} status_{status}"><xsl:value-of select="name"/>&#160;</a>
         </xsl:if>
     </td>
 </xsl:template>

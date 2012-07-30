@@ -1,21 +1,21 @@
 <?php
 
 /**
- * Renders one cell (or block of cells) across a calendar view of an allocation.
+ * Renders one cell across a calendar view of an allocation.
  */
 class AllocationCell {
     var $id;  // allocation id
     var $name;
     var $status;  // checkedin, checkedout, pending, etc
     var $gender;
-    var $span;    // essentially, number of days in a row for this allocation
+    var $renderState;  // one of 'rounded_left', 'rounded_right', 'rounded_both', 'rounded_neither'
 
-    function AllocationCell($id = 0, $name = null, $gender = null, $status = 'reserved') {
+    function AllocationCell($id = 0, $name = null, $gender = null, $status = 'reserved', $renderState = null) {
         $this->id = $id;
         $this->name = $name;
         $this->gender = $gender;
         $this->status = $status;
-        $this->span = 1;  // default to 1 "day"
+        $this->renderState = $renderState;
     }
     
     /**
@@ -29,16 +29,13 @@ class AllocationCell {
         $xmlRoot = $domtree->createElement('allocationcell');
         $xmlRoot = $parentElement->appendChild($xmlRoot);
 
-        $attrSpan = $domtree->createAttribute('span');
-        $attrSpan->value = $this->span;
-        $xmlRoot->appendChild($attrSpan);
-
         // show content only for valid ids
         if($this->id > 0) {
             $xmlRoot->appendChild($domtree->createElement('id', $this->id));
             $xmlRoot->appendChild($domtree->createElement('name', $this->name));
             $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
             $xmlRoot->appendChild($domtree->createElement('status', $this->status));
+            $xmlRoot->appendChild($domtree->createElement('render', $this->renderState));
         }
     }
     

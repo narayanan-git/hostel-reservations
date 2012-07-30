@@ -531,16 +531,8 @@ table.allocation_view td {
 }
 
 table.allocation_view a.booking_item {
-    margin-left: 5px;
-    padding-left: 7px;
-    margin-right: 5px;
-    padding-right: 7px;
-    border-top-left-radius: 30px;
-    border-bottom-left-radius: 30px;
-    border-top-right-radius: 30px;
-    border-bottom-right-radius: 30px;
-    
     display: block;
+    white-space: nowrap;
     padding-top: 2px;
     padding-bottom: 2px;
     font-size: 9px;
@@ -549,8 +541,47 @@ table.allocation_view a.booking_item {
     color: black;
 }
 
+table.allocation_view a.rounded_left {
+    margin-left: 5px;
+    padding-left: 7px;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+}
+
+table.allocation_view a.rounded_right {
+    margin-right: 5px;
+    padding-right: 7px;
+	border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
+
+table.allocation_view a.rounded_both {
+    margin-left: 5px;
+    padding-left: 7px;
+    margin-right: 5px;
+    padding-right: 7px;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+	border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
+
 table.allocation_view a.status_reserved {
     background-color: rgb(255, 174, 0);
 }
 
+table.allocation_view a.status_paid {
+    background-color: rgb(146,209,140);
+}
 
+table.allocation_view a.status_free {
+    background-color: rgb(141,200,213);
+}
+
+table.allocation_view a.status_hours {
+    background-color: rgb(219,235,109);
+}
+
+table.allocation_view a.status_cancelled {
+    background-color: rgb(190,190,190);
+}

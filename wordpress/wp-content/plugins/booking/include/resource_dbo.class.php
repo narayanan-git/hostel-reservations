@@ -84,13 +84,13 @@ class ResourceDBO {
     /**
      * Returns all properties for a given resource_id. 
      * Each object in the collection returned has the following properties:
-     * $resourceId : id of resource 
+     * $resourceId : id of resource (optional; if not specified, returns all properties)
      * Returns resultset array() indexed by property id
      * property_id : id of resource property
      * description : description of property
      * selected_yn : 'Y' if property is selected for resource, 'N' otherwise
      */
-    static function getPropertiesForResource($resourceId) {
+    static function getPropertiesForResource($resourceId = 0) {
         global $wpdb;
 
         // query all our resources and properties (in order)

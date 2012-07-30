@@ -8,9 +8,9 @@ class AllocationDBO {
     /**
      * Queries availability for the given resourceId and booking dates.
      * Returns a map of available resources (beds) by resourceId which
-     * have availability for those dates. 
+     * have availability for *ALL* those dates. 
      * $resourceId  : id of resource id to get availability
-     * $bookingDates : array() of booking dates in format d.M.y
+     * $bookingDates : array() of booking dates in format d.m.Y
      * Returns map of key => $resourceId, value => $capacity
      */
     static function fetchAvailability($resourceId, $bookingDates) {
@@ -22,13 +22,18 @@ error_log("fetch availability resource id : $resourceId booking dates : " . size
         $bookingDatesString = rtrim($bookingDatesString, ',');
 error_log("fetch availability $bookingDatesString");
 
-        // this will give the resources that we can book
+        // this will bring back all beds that have no allocations for any of the dates given
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT resource_id, avail_capacity 
-               FROM ".$wpdb->prefix."v_resource_availability vp
-              WHERE (path LIKE '%%/$resourceId' OR path LIKE '%%/$resourceId/%%')
-                AND avail_capacity > 0
-                AND (booking_date IS NULL OR booking_date IN ($bookingDatesString))"));
+            "SELECT p.resource_id, p.capacity as avail_capacity 
+               FROM ".$wpdb->prefix."v_resources_by_path p 
+              WHERE p.resource_type = 'bed' AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')
+                AND NOT EXISTS(
+                    SELECT 1
+                      FROM ".$wpdb->prefix."bookingdates dt 
+                      JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
+                     WHERE dt.booking_date IN ($bookingDatesString)
+                       AND a.resource_id = p.resource_id
+                    )"));
 
 error_log("fetch availability ".$wpdb->last_query);
         $result = array();
@@ -464,6 +469,12 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
     static function getAllocationsByResourceForDateRange($startDate, $endDate, $resourceId = null, $status = null, $name = null) {
         global $wpdb;
 
+        // include day before and day after so we can see whether a booking continues "off the grid"
+        $start = clone $startDate;  
+        $start->sub(new DateInterval('P1D'));  // decrement by day
+        $end = clone $endDate;
+        $end->add(new DateInterval('P1D'));  // increment by day
+        
         // fetch all matching allocations; key => resource id, value => array[AllocationRow]
         $nameToMatch = $name == null ? '__ALL__' : '%'.str_replace('*', '%', strtolower($name)).'%';
         $resultset = $wpdb->get_results($wpdb->prepare(
@@ -488,7 +499,7 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
             // bit of trickery to get this to work with nulls
             $status == null ? '__ALL__' : $status, 
             $nameToMatch, $nameToMatch, $nameToMatch,
-            $startDate->format('d.m.Y'), $endDate->format('d.m.Y')));
+            $start->format('d.m.Y'), $end->format('d.m.Y')));
 
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);
@@ -500,11 +511,16 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
 
         foreach ($resultset as $res) {
             foreach (AllocationDBO::fetchBookingDateStatuses($res->allocation_id) as $bookingDate => $status) {
-                $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = $res;
+                $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
+                    new AllocationCell($res->allocation_id, $res->guest_name, $res->gender, $status);
             }
         }
+error_log("after initial allocation cell create");
         
         return AllocationDBO::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
+//        $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceToBookingDateAllocationMap);
+//debuge("bookingresources", $bookingResources);
+//        return $bookingResources;
     }
     
     /**
@@ -513,7 +529,7 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
      * $startDate : include allocations where a booking exists after this date (inclusive)  (DateTime)
      * $endDate : include allocations where a booking exists before this date (inclusive)  (DateTime)
      * $filteredResourceId : id of resource to match (can be parent resource id)
-     * $resourceToBookingDateAllocationMap : 2D map of resource id, booking date [d.m.Y] => allocation resultset
+     * $resourceToBookingDateAllocationMap : 2D map of resource id, booking date [d.m.Y] => AllocationCell
      *                                       to insert into model being returned
      * Returns array() of BookingResource including matching allocations
      */
@@ -523,33 +539,33 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
 //debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format('d.m.Y')." for $filteredResourceId ",
 //                $resourceToBookingDateAllocationMap);
         // another 2D map, to store the final allocation "cells"
+
         $resourceBookingDateMap = array();
         
         foreach (array_keys(ResourceDBO::getAllResources($filteredResourceId)) as $resourceId) {
             $start = clone $startDate;  // we will incrementally move $start until $start = $endDate
-            $lastrec = null;  // previous record one day behind so we can modify the previous date when calculating span
 
             while ($start <= $endDate) {
                 if(isset($resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')])) {
-                    $rs = $resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')];
+                    $allocCell = $resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')];
                     
-                    // it's the continuation of the same record
-                    if($lastrec != null && $rs->allocation_id == $lastrec->id) {
-                        $lastrec->span += 1;
-                        
-                    // new record found; create a new cell
-                    } else {
-                        $lastrec = new AllocationCell($rs->allocation_id, $rs->guest_name, $rs->gender);
-                        $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = $lastrec;
+error_log("calculating state for $resourceId , ".$start->format('d.m.Y'));
+                    $allocCell->renderState = AllocationDBO::getRenderStateForAllocation(
+                        $resourceToBookingDateAllocationMap, $resourceId, $start);
+error_log("calculating state returned ".$allocCell->renderState);
+
+                    // if we are continuing an existing record, blank out name/gender so we don't display it
+                    // reduces the amount of xml we generate as well
+                    if ($start != $startDate // display name if we are continuing from off the screen
+                            && ($allocCell->renderState == 'rounded_right' || $allocCell->renderState == 'rounded_neither')) {
+                        $allocCell->name = '';
+                        $allocCell->gender = '';
                     }
-                 
+
+                    $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = $allocCell;
+
                 } else { // allocation doesn't exist for date, place empty cell
-                    if($lastrec != null && $lastrec->id == 0) {
-                        $lastrec->span += 1;
-                    } else {
-                        $lastrec = new AllocationCell();
-                        $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = $lastrec;
-                    }
+                    $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = new AllocationCell();
                 }
                 $start->add(new DateInterval('P1D'));  // increment by day
             }
@@ -559,6 +575,52 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
         $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceBookingDateMap);
 //debuge("bookingresources", $bookingResources);
         return $bookingResources;
+    }
+    
+    /**
+     * Since we're trying to display all allocations in a grid, for each contiguous allocation, we will try to
+     * display the "ends" of the allocation with rounded corners. This will return either 
+     * "rounded_left", "rounded_right", "rounded_both", or "rounded_neither"
+     * depending on whether there are allocations on the day before and/or day after the given date.
+     * $resourceToBookingDateAllocationMap : 3D map of allocation recordset indexed by resource id followed by date (d.m.Y)
+     * $resourceId : id of resource for this allocation
+     * $forDate : current date to get state of
+     * Returns one of:
+     * rounded_left: allocation exists on day after but not day before
+     * rounded_right: allocation exists on day before but not day after
+     * rounded_both: no allocation exists on day before NOR after
+     * rounded_neither: allocation exists on day before AND on day after
+     */
+    private static function getRenderStateForAllocation($resourceToBookingDateAllocationMap, $resourceId, $forDate) {
+        $daybefore = clone $forDate;
+        $daybefore->sub(new DateInterval('P1D'));  // decrement by day
+        $dayafter = clone $forDate;
+        $dayafter->add(new DateInterval('P1D'));  // increment by day
+        
+        // we need to check if it's the same allocation (should always exist in map)
+        if (isset($resourceToBookingDateAllocationMap[$resourceId][$forDate->format('d.m.Y')])) {
+            $allocationId = $resourceToBookingDateAllocationMap[$resourceId][$forDate->format('d.m.Y')]->id;
+        } else {
+            throw new Exception("Invalid state, allocation does not exist! AllocationDBO::getRenderStateForAllocation( $resourceId ,".$forDate->format('d.m.Y'));
+        }
+        
+        if (isset($resourceToBookingDateAllocationMap[$resourceId][$daybefore->format('d.m.Y')])
+                && $resourceToBookingDateAllocationMap[$resourceId][$daybefore->format('d.m.Y')]->id == $allocationId) {
+
+            if (isset($resourceToBookingDateAllocationMap[$resourceId][$dayafter->format('d.m.Y')])
+                    && $resourceToBookingDateAllocationMap[$resourceId][$dayafter->format('d.m.Y')]->id == $allocationId) {
+                return "rounded_neither";
+            } else {
+                return "rounded_right";
+            }
+        } else {
+            if (isset($resourceToBookingDateAllocationMap[$resourceId][$dayafter->format('d.m.Y')]) 
+                    && $resourceToBookingDateAllocationMap[$resourceId][$dayafter->format('d.m.Y')]->id == $allocationId) {
+                return "rounded_left";
+            } else {
+                return "rounded_both";
+            }
+        }
     }
     
     /**
