@@ -965,7 +965,7 @@ html[xmlns] .clearfix-height.hidden_items {
     padding: 2px 4px;
     text-shadow: 0 0 3px #333333;
 }
-.booking-listing-collumn .field-date {
+.booking-listing-collumn .field-date, .field-user {
     font-size: 9px;
     font-style: italic;
     line-height: 12px;
@@ -974,7 +974,6 @@ html[xmlns] .clearfix-height.hidden_items {
     text-align: center;
     text-shadow: 0 -1px 0 #EEEEEE;
     white-space: nowrap;
-	float:left;
 }
 .booking-listing-collumn .field-time {
     font-size: 9px;
@@ -983,9 +982,9 @@ html[xmlns] .clearfix-height.hidden_items {
 	margin-top:-3px;
 	margin-right:5px;
 }
-.booking-listing-row .booking-labels, .booking-listing-row .booking-dates {
+/*.booking-listing-row .booking-labels, .booking-listing-row .booking-dates {
 text-align: center !important;
-}
+}*/
 .booking-listing-collumn .field-booking-date, .booking-listing-collumn .field-booking-date:hover {
     background: none repeat scroll 0 0 #FFBB45;
     border: 1px solid #EEEEEE;
@@ -1014,11 +1013,21 @@ text-align: center !important;
     white-space: nowrap;
     line-height: 22px;
 }
-.wpdevbk .booking-listing-collumn .label-pending {
-    background: none repeat scroll 0 0 #FFBB45;
+.wpdevbk .booking-listing-collumn .label-reserved {
+    background: none repeat scroll 0 0 rgb(255, 174, 0);
 }
-.wpdevbk .booking-listing-collumn .label-approved{
-   background: none repeat scroll 0 0 #99BBEE;
+.wpdevbk .booking-listing-collumn .label-paid {
+    background: none repeat scroll 0 0 rgb(146,209,140);
+}
+.wpdevbk .booking-listing-collumn .label-free {
+    background: none repeat scroll 0 0 rgb(141,200,213);
+}
+.wpdevbk .booking-listing-collumn .label-hours {
+	color: rgb(136,136,136);
+    background: none repeat scroll 0 0 rgb(219,235,109);
+}
+.wpdevbk .booking-listing-collumn .label-cancelled {
+    background: none repeat scroll 0 0 rgb(190,190,190);
 }
 .booking-listing-collumn .cost-fields-group{
     color: #444444;

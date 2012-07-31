@@ -253,7 +253,7 @@
 }
 
 .wpdevbk .row-fluid .span1 {
-	width: 6.382978723%
+	width: 12.76595745%
 }
 
 .wpdevbk .row-fluid .span2 {
@@ -261,15 +261,15 @@
 }
 
 .wpdevbk .row-fluid .span3 {
-	width: 23.404255317%
-}
-
-.wpdevbk .row-fluid .span4 {
 	width: 31.914893614%
 }
 
+.wpdevbk .row-fluid .span4 {
+	width: 23.404255317%
+}
+
 .wpdevbk .row-fluid .span5 {
-	width: 40.425531911%
+	width: 6.382978723%
 }
 
 .wpdevbk .row-fluid .span6 {
@@ -609,8 +609,8 @@
 	background-color: #f89406
 }
 
-.wpdevbk .label-success {
-	background-color: #468847
+.wpdevbk .label-referrer {
+	background-color: #612687
 }
 
 .wpdevbk .label-info {
@@ -4299,19 +4299,19 @@ to {
 		margin-left: 0
 	}
 	.wpdevbk .row-fluid .span1 {
-		width: 5.801104972%
+		width: 11.60220994%
 	}
 	.wpdevbk .row-fluid .span2 {
 		width: 14.364640883%
 	}
 	.wpdevbk .row-fluid .span3 {
-		width: 22.928176794%
-	}
-	.wpdevbk .row-fluid .span4 {
 		width: 31.491712705%
 	}
+	.wpdevbk .row-fluid .span4 {
+		width: 22.928176794%
+	}
 	.wpdevbk .row-fluid .span5 {
-		width: 40.055248616%
+		width: 5.801104972%
 	}
 	.wpdevbk .row-fluid .span6 {
 		width: 48.618784527%
@@ -4600,19 +4600,19 @@ to {
 		margin-left: 0
 	}
 	.wpdevbk .row-fluid .span1 {
-		width: 5.982905983%
+		width: 11.96581197%
 	}
 	.wpdevbk .row-fluid .span2 {
 		width: 14.529914530000001%
 	}
 	.wpdevbk .row-fluid .span3 {
-		width: 23.076923077%
-	}
-	.wpdevbk .row-fluid .span4 {
 		width: 31.623931624%
 	}
+	.wpdevbk .row-fluid .span4 {
+		width: 23.076923077%
+	}
 	.wpdevbk .row-fluid .span5 {
-		width: 40.170940171000005%
+		width: 5.982905983%
 	}
 	.wpdevbk .row-fluid .span6 {
 		width: 48.717948718%

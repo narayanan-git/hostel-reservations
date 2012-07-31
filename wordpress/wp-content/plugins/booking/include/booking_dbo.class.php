@@ -147,10 +147,11 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
     /**
      * Loads all comments matching the given booking id.
      * $bookingId : id of existing booking id
+     * $commentType : type of comment to retrieve (optional; returns all if not specified)
      * Returns array() of BookingComment
      * Throws DatabaseException on error
      */
-    static function fetchBookingComments($bookingId) {
+    static function fetchBookingComments($bookingId, $commentType = null) {
         global $wpdb;
         $return_val = array();
         
@@ -158,7 +159,8 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
             "SELECT comment_id, booking_id, comment, comment_type, created_by, DATE_FORMAT(created_date, '%%Y-%%m-%%d %%H:%%i:%%s') AS created_date
                FROM ".$wpdb->prefix."bookingcomment
               WHERE booking_id = %d
-              ORDER BY comment_id", $bookingId));
+                AND ". ($commentType == null ? "'_ALL_' = %s" : "comment_type = %s")."
+              ORDER BY comment_id", $bookingId, $commentType == null ? "_ALL_" : $commentType));
         
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);
@@ -291,6 +293,8 @@ debuge($sql, $sqlparams);
                 AllocationDBO::fetchStatusesForBookingId($res->booking_id);
             $result[$res->booking_id]->resources = 
                 ResourceDBO::fetchResourcesForBookingId($res->booking_id);
+            $result[$res->booking_id]->comments = 
+                self::fetchBookingComments($res->booking_id, BookingComment::COMMENT_TYPE_USER);
             $result[$res->booking_id]->bookingDates = 
                 AllocationDBO::fetchDatesForBookingId($res->booking_id);
         }

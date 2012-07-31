@@ -14,6 +14,7 @@ class BookingSummary {
     var $statuses; // unique array of String (one for each status) for this booking
     var $resources; // unique array of String (one for each resource) for this booking
     var $bookingDates; // unique array of DateTime (one for each day an allocation exists)
+    var $comments; // array of String (user comments) for this booking
 
     function BookingSummary($id = 0, $firstname = null, $lastname = null, $referrer = null, $createdBy = null, $createdDate = null) {
         $this->id = $id;
@@ -26,6 +27,7 @@ class BookingSummary {
         $this->statuses = array();
         $this->resources = array();
         $this->bookingDates = array();
+        $this->comments = array();
     }
     
     /**
@@ -60,6 +62,11 @@ class BookingSummary {
         $resourcesRoot = $xmlRoot->appendChild($domtree->createElement('resources'));
         foreach($this->resources as $resource) {
             $resourcesRoot->appendChild($domtree->createElement('resource', $resource));
+        }
+
+        $commentsRoot = $xmlRoot->appendChild($domtree->createElement('comments'));
+        foreach($this->comments as $comment) {
+            $comment->addSelfToDocument($domtree, $commentsRoot);
         }
 
         $datesRoot = $xmlRoot->appendChild($domtree->createElement('dates'));
@@ -142,6 +149,10 @@ class BookingSummary {
                 <resource>Room 12</resource>
                 <resource>Room 14</resource>
             </resources>
+            <comments>
+                <comment>...</comment>
+                ...
+            </comments>
             <dates>
                 <daterange>
                     <from>July 5, 2012</from>

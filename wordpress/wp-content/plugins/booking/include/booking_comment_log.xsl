@@ -8,7 +8,7 @@
 -->
 
 <xsl:template match="comment">
-    <p><xsl:value-of select="createdDate"/> [<xsl:value-of select="createdBy"/>]: <xsl:value-of select="comment"/></p>
+    <p><xsl:value-of select="createdDate"/> [<xsl:value-of select="createdBy"/>]: <xsl:value-of select="value"/></p>
 </xsl:template>
 
 </xsl:stylesheet>

@@ -51,8 +51,7 @@ class BookingComment {
     
         $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('bookingid', $this->bookingId));
-        //$xmlRoot->appendChild($domtree->createElement('comment', $this->comment));
-        $commentNode = $xmlRoot->appendChild($domtree->createElement('comment'));
+        $commentNode = $xmlRoot->appendChild($domtree->createElement('value'));
         $commentNode->appendChild($domtree->createTextNode($this->comment));
         $xmlRoot->appendChild($domtree->createElement('commentType', $this->commentType));
         $xmlRoot->appendChild($domtree->createElement('createdBy', $this->createdBy));
@@ -64,7 +63,7 @@ class BookingComment {
         <comment>
             <id>3</id>
             <bookingid>21</bookingid>
-            <comment>This is a comment</comment>
+            <value>This is a comment</value>
             <commentType>user</commentType>
             <createdBy>admin</createdBy>
             <createdDate>Tue, 12 Jun 2012 04:29 am</createdDate>
