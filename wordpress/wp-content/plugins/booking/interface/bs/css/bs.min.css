@@ -617,6 +617,11 @@
 	background-color: #3a87ad
 }
 
+.center {
+	display:table; 
+	margin:auto;
+}
+	       
 .wpdevbk table {
 	max-width: 100%;
 	border-collapse: collapse;
