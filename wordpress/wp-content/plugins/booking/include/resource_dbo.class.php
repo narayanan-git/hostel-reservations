@@ -352,6 +352,70 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
         return $return_val;
     }
     
+    /**
+     * Returns DailySummaryResource(s) for the specified date. 
+     * (number of checkins, checkouts, etc..)
+     * $selectedDate : DateTime object for the current date to query
+     * Returns array() of DailySummaryResource for date
+     */
+    static function fetchDailySummaryResources($selectedDate) {
+        global $wpdb;
+
+        // check-ins for the day: find all allocations for a given day where no reservation exists the day before
+        $dayBefore = clone $selectedDate;
+        $dayBefore->sub(new DateInterval('P1D'));
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT r.parent_resource_id AS resource_id,
+                    SUM(IF(d.status = 'reserved', 0, 1)) AS checkedin_count,
+                    SUM(IF(d.status = 'reserved', 1, 0)) AS checkedin_remain
+               FROM ".$wpdb->prefix."bookingresources r
+               LEFT OUTER JOIN ".$wpdb->prefix."allocation a ON r.resource_id = a.resource_id
+               LEFT OUTER JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
+              WHERE d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                AND NOT EXISTS (SELECT 1 FROM ".$wpdb->prefix."bookingdates d
+                                 WHERE a.allocation_id = d.allocation_id
+                                   AND d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y'))
+              GROUP BY r.parent_resource_id", 
+            $selectedDate->format('d.m.Y'), $dayBefore->format('d.m.Y')));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+        
+        // keep track of all resources above 'bed' level
+        $return_val = array();
+        foreach (self::getAllResources() as $res) {
+            if ($res->resource_type != 'bed') {
+                $return_val[$res->resource_id] = new DailySummaryResource(
+                    $res->resource_id, $res->name, $res->lvl, $res->path, $res->parent_resource_id);
+                    
+                // has a parent, parent should already be defined so link child to parent
+                if ($res->lvl > 1) { 
+                    $return_val[$res->parent_resource_id]->addChildResource($return_val[$res->resource_id]);
+                }
+            }
+        }
+
+        // now go thru our counts and update our return object array
+        foreach ($resultset as $rs) {
+            $return_val[$rs->resource_id]->checkedInCount = $rs->checkedin_count;
+            $return_val[$rs->resource_id]->checkedInRemaining = $rs->checkedin_remain;
+
+            // increment parent counts
+            for ($resId = $return_val[$rs->resource_id]->parentId; $resId != ''; $resId = $return_val[$resId]->parentId) {
+                $return_val[$resId]->checkedInCount += $rs->checkedin_count;  
+                $return_val[$resId]->checkedInRemaining += $rs->checkedin_remain;
+            }
+        }
+
+        // we don't actually need a handle on child resources as they will be linked from their parent
+        foreach ($return_val as $rv) {
+            if ($rv->level > 1) {
+                unset($return_val[$rv->id]);
+            }
+        }
+        return $return_val;
+    }
 }
 
 ?>

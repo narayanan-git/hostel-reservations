@@ -731,7 +731,7 @@
 //            alert(message_verif_selectdts);
 //        }
 
-        document.getElementById('submitting').innerHTML = '<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>';
+        jQuery('#submitting').html('<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>');
 
         jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
@@ -794,6 +794,25 @@
                 ajax_action : 'SAVE_RESOURCE',
                 resource_id : resource_id,
                 resource_name : document.getElementById('resource_name'+resource_id).value
+            }
+        });
+    }
+
+    // Updates the daily summary data on the page for the given date.
+    // selected_date : date in format yy-mm-dd
+    function select_daily_summary_date(selected_date) {
+
+        jQuery('#ajax_respond').html('<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>');
+        jQuery('#daily_summary_contents').html('');  // blank out contents while loading
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'SELECT_DAILY_SUMMARY_DAY',
+                calendar_selected_date : selected_date
             }
         });
     }

@@ -401,6 +401,15 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/booking_comment_log.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/booking_comment_log.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary_resource.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary_resource.class.php' ); }
+
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary_data.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary_data.class.php' ); }
+
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary.class.php' ); }
+
     //////////////////////// END CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
         
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

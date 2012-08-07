@@ -110,6 +110,11 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
 
+        case  'SELECT_DAILY_SUMMARY_DAY':
+            wpdev_select_daily_summary_day();
+            die();
+            break;
+
 /////////////////////// END CUSTOM CODE ///////////////////////////
 
             case 'UPDATE_READ_UNREAD':
@@ -456,6 +461,9 @@ function wpdev_add_booking_allocation() {
     $gender = $_POST['gender'];
     $dates = $_POST['dates'];
     $res = $_POST['booking_resource'];
+    $room_type = $_POST['room_type'];
+    $resource_property = $_POST['resource_property'];
+
     // keep allocations in a datastructure saved to session
     // { allocation_id, resource_id, gender, array[dates] }
     // display datastructure(s) as table from min(dates) for 2 weeks afterwards
@@ -601,6 +609,22 @@ function wpdev_add_booking_comment() {
         </script>
         <?php
     }
+}
+
+/**
+ * User updates the date to show for the daily summary. Update dependent data tables.
+ */
+function wpdev_select_daily_summary_day() {
+
+    $selectedDate = DateTime::createFromFormat('!d.m.Y', $_POST['calendar_selected_date'], new DateTimeZone('UTC'));
+    $ds = new DailySummaryData($selectedDate);
+    $ds->doSummaryUpdate();
+    
+    ?> 
+    <script type="text/javascript">
+        document.getElementById('daily_summary_contents').innerHTML = <?php echo json_encode($ds->toHtml()); ?>;
+    </script>
+    <?php
 }
 
 //////////////////////////////////////////////////////////////////////////

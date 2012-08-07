@@ -672,6 +672,12 @@ if (!class_exists('wpdev_booking')) {
             $pagehook1 = add_menu_page( __('Booking calendar', 'wpdev-booking'),  $update_title , $users_roles[0],
                     WPDEV_BK_FILE . 'wpdev-booking', array(&$this, 'on_show_booking_page_main'),  WPDEV_BK_PLUGIN_URL . '/img/calendar-16x16.png'  );
             add_action("admin_print_scripts-" . $pagehook1 , array( &$this, 'on_add_admin_js_files'));
+            
+            ///////////////// DAILY SUMMARY /////////////////////////////////////////////
+            $pagehook5 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Summary', 'wpdev-booking'), __('Summary', 'wpdev-booking'), $users_roles[3],
+                    WPDEV_BK_FILE .'wpdev-booking-summary', array(&$this, 'on_show_daily_summary')  );
+            add_action("admin_print_scripts-" . $pagehook5 , array( &$this, 'on_add_admin_js_files'));
+            
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             // A D D     R E S E R V A T I O N
             ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -705,7 +711,7 @@ if (!class_exists('wpdev_booking')) {
 
         //Booking
         function on_show_booking_page_main() {
-            $this->on_show_page_adminmenu('wpdev-booking','/img/calendar-48x48.png', __('Bookings View', 'wpdev-booking'),1);
+            $this->on_show_page_adminmenu('wpdev-booking','/img/calendar-48x48.png', __('Bookings and Allocations', 'wpdev-booking'),1);
         }
         //Add resrvation
         function on_show_booking_page_addbooking() {
@@ -719,6 +725,11 @@ if (!class_exists('wpdev_booking')) {
         // Resources
         function on_show_booking_page_resources() {
             $this->on_show_page_adminmenu('wpdev-booking-resources','/img/Resources-64x64.png', __('Booking resource management', 'wpdev-booking'),4);
+        }
+
+        //Daily summary
+        function on_show_daily_summary() {
+            $this->on_show_page_adminmenu('wpdev-booking-summary','/img/notebook-48x48.jpg', __('Daily Summary', 'wpdev-booking'),5);
         }
 
         //Show content
@@ -741,6 +752,8 @@ if (!class_exists('wpdev_booking')) {
                 case 3: $this->content_of_settings_page();
                     break;
                 case 4: $this->content_of_resource_page();
+                    break;
+                case 5: $this->content_of_summary_page();
                     break;
                 default: break;
             } ?>
@@ -1620,6 +1633,14 @@ error_log($rpp->toXml());
             }
             
         }
+        
+        function content_of_summary_page() {
+            $ds = new DailySummary(new DateTime());
+            $ds->doSummaryUpdate();
+error_log($ds->toXml());
+            echo $ds->toHtml();
+        }
+
         //////////////////// END OF CUSTOM CODE ////////////////////
                 
         //content of resources management page
@@ -3036,6 +3057,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
 
             //   Admin and Client
             if($is_admin) {
+error_log('booking_is_not_load_bs_script_in_admin');
                     $is_not_load_bs_script_in_admin = get_bk_option( 'booking_is_not_load_bs_script_in_admin'  );
                     ?> <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/bs/css/bs.min.css" rel="stylesheet" type="text/css" /> <?php
                     ?> <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/chosen/chosen.css" rel="stylesheet" type="text/css" /> <?php
@@ -3046,6 +3068,7 @@ if ($is_can_be_here) { //Reduction version 3.0 ?>
                     ?> <script type="text/javascript" src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/chosen/chosen.jquery.min.js"></script>  <?php /**/
 
             } else {
+error_log('booking_is_not_load_bs_script_in_client');
                 $is_not_load_bs_script_in_client = get_bk_option( 'booking_is_not_load_bs_script_in_client'  );
                 if ( strpos($_SERVER['REQUEST_URI'],'wp-admin/admin.php?') !==false ) {
                     ?> <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/css/admin.css" rel="stylesheet" type="text/css" />  <?php
