@@ -29,7 +29,7 @@
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
                                 <xsl:apply-templates select="dateheaders/datecol" mode="availability_date_header"/>
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('right');">&gt;&gt;</a></th>
-                                <th class="avail_action_icons"><xsl:comment>action icons column</xsl:comment></th>
+                                <th class="avail_action_icons"><xsl:comment/></th>
                             </tr>
                         </thead>
                         <tbody>

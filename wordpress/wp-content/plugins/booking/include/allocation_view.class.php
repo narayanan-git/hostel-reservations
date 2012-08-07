@@ -69,7 +69,7 @@ class AllocationView {
 
     /** 
       Generates the following xml:
-        <view>
+        <allocationview>
             <filter>
                 <allocationmindate>2012-06-21</allocationmindate>
                 <allocationmaxdate>2012-06-28</allocationmaxdate>
@@ -86,19 +86,21 @@ class AllocationView {
                         <name>Bed A</name>
                         <type>bed</type>
                         <cells> <!-- cells comprises one row on the allocation table -->
-                            <allocationcell span="1"/>
-                            <allocationcell span="4">
+                            <allocationcell/>
+                            <allocationcell>
                                 <id>1</id>
                                 <name>Megan-1</name>
                                 <gender>Female</gender>
-                                <status>checkedin</status>
+                                <status>paid</status>
+                                <render>rounded_both</render>
                             </allocationcell>
-                            <allocationcell span="2"/>
-                            <allocationcell span="3">
+                            <allocationcell/>
+                            <allocationcell>
                                 <id>2</id>
                                 <name>Romeo-1</name>
                                 <gender>Female</gender>
-                                <status>checkedin</status>
+                                <status>reserved</status>
+                                <render>rounded_left</render>
                             <allocationcell>
                         </cells>
                     </resource>
@@ -114,7 +116,7 @@ class AllocationView {
             <dateheaders>
                 ...
             </dateheaders>
-        </view>
+        </allocationview>
      */
     function toXml() {
         // create a dom document with encoding utf8

@@ -41,11 +41,12 @@ class AllocationCell {
     
     /** 
       Generates the following xml:
-        <allocationcell span="4">
+        <allocationcell>
             <id>3</id>
             <name>Megan-1</name>
             <gender>Female</gender>
-            <status>checkedin</status>
+            <status>paid</status>
+            <render>rounded_left</render>
         </allocation>
      */
     function toXml() {
