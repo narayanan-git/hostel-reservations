@@ -233,7 +233,7 @@ font-weight:normal;
 }/**/
 
 .datepick-inline .datepick td.datepick-current-day a {         /* SELECTED DAYs*/
-    background-color:#898C89 !important;
+    background-color:#df9a00 !important;
     border:1px solid #F4F2F2 !important;
     color:#FFFFFF !important;
     cursor:pointer;
