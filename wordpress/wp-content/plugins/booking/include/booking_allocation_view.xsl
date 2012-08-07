@@ -102,6 +102,7 @@
         </xsl:attribute>
     
         <xsl:apply-templates select="allocationview/resource"/>
+        <xsl:comment/>
     </div>
     <div class="visibility_container" id="booking_view">
         <xsl:attribute name="style">
@@ -111,6 +112,7 @@
             </xsl:choose>
         </xsl:attribute>
         <xsl:apply-templates select="bookingview"/>
+        <xsl:comment/>
     </div>
 
     <xsl:call-template name="write_inline_js"/>

@@ -12,13 +12,6 @@
     <div style="clear:both;height:1px;"><xsl:comment/></div>
     <div class="wpdevbk-filters-section ">
 
-        <div style="float: right; margin-top: -90px;">
-            <form  name="booking_filters_formID" action="" method="post" id="booking_filters_formID" class=" form-search">
-                <input class="input-small" type="text" placeholder="Booking ID" name="wh_booking_id" id="wh_booking_id" value=""/>
-                <button class="btn small" type="submit">Go</button>
-            </form>
-        </div>
-
         <form  name="allocation_view_form" action="" method="post" id="allocation_view_form"  class="form-inline">
             <a class="btn btn-primary" style="float: left; margin-right: 15px;"
                 onclick="javascript:allocation_view_form.submit();">Apply <span class="icon-refresh icon-white"></span>

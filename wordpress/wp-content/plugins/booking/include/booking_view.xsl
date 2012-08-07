@@ -13,6 +13,14 @@
 
     <div style="clear:both;height:1px;"><xsl:comment/></div>
     <div class="wpdevbk-filters-section ">
+
+        <div style="float: right; margin-top: -90px;">
+            <form  name="booking_filters_formID" action="" method="post" id="booking_filters_formID" class=" form-search">
+                <input class="input-small" type="text" placeholder="Booking ID" name="wh_booking_id" id="wh_booking_id" value=""/>
+                <button class="btn small" type="submit">Go</button>
+            </form>
+        </div>
+
         <form name="booking_view_form" action="" method="post" id="booking_view_form"  class="form-inline">
             <div class="btn-toolbar" style="margin:0px;">
                 <div class="btn-group" style="float:left; margin-right: 15px; vertical-align: top;">
@@ -76,8 +84,9 @@
                     <label for="filter_datetype" class="control-label"><xsl:comment/></label>
                     <div class="inline controls">
                         <div class="btn-group">
-                            <a href="#" data-original-title="Match from/to dates by:&lt;br&gt; Check-In Date: earliest date of any booking &lt;br&gt; Reservation Date (Any): any booking that overlaps the dates given &lt;br&gt; Date Added: date booking was created" rel="tooltip" data-toggle="dropdown" id="datetype_selector" class="btn dropdown-toggle tooltip_top">
+                            <a href="#" data-original-title="Match from/to dates by:&lt;br&gt; Check-In Date: earliest date of any allocation &lt;br&gt; Check-Out Date: latest date of any allocation &lt;br&gt; Reservation Date (Any): any booking that overlaps the dates given &lt;br&gt; Date Added: date booking was created" rel="tooltip" data-toggle="dropdown" id="datetype_selector" class="btn dropdown-toggle tooltip_top">
                                 <xsl:choose>
+                                    <xsl:when test="/view/bookingview/filter/datetype = 'checkout'">Check-Out Date</xsl:when>
                                     <xsl:when test="/view/bookingview/filter/datetype = 'reserved'">Reservation Date (Any)</xsl:when>
                                     <xsl:when test="/view/bookingview/filter/datetype = 'creation'">Date Added</xsl:when>
                                     <xsl:otherwise>Check-In Date<xml:text> </xml:text></xsl:otherwise>
@@ -85,6 +94,7 @@
                                 <span class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('checkin');" >Check-In Date</a></li>
+                                <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('checkout');" >Check-Out Date</a></li>
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('reserved');" >Reservation Date (Any)</a></li>
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('creation');" >Date Added</a></li>
                             </ul>
@@ -105,7 +115,7 @@
                     </div>
                 </div>
         
-                <div class="btn-group" style="margin-top: 2px; vertical-align: top;">
+                <div class="btn-group" style="margin-top: 2px; margin-right: 30px; vertical-align: top; float:right;">
                     <a  data-original-title="Print bookings listing"  rel="tooltip"
                         class="tooltip_top btn" onclick="javascript:print_booking_listing();">
                         Print <span class="icon-print"></span></a>
@@ -127,7 +137,7 @@
         <div id="listing_visible_bookings">
             <div class="row-fluid booking-listing-header">
                 <div class="booking-listing-collumn span1">ID</div>
-                <div class="booking-listing-collumn span2">Labels</div>
+                <div class="booking-listing-collumn span2">Tags</div>
                 <div class="booking-listing-collumn span3">Booking Details</div>
                 <div class="booking-listing-collumn span4">Booking Dates</div>
                 <div class="booking-listing-collumn span5">Actions</div>
