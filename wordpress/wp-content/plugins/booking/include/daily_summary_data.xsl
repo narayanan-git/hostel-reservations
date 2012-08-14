@@ -114,6 +114,7 @@
     <xsl:apply-templates select="checkin"/>
 </xsl:template>
 
+<!-- ====================================================================== -->
 <!-- this template used to display allocation view for unpaid/past due beds -->
 <xsl:template match="allocationview" mode="pastdue">
     <xsl:if test=".//resource/unpaid = 'true'">
@@ -183,7 +184,7 @@
         </tr>
     </xsl:if>
 </xsl:template>
-
+<!-- ====================================================================== -->
 
 
 <!-- this template used to display allocation view for under free beds -->
@@ -207,6 +208,12 @@
                             </thead>
                             <tbody>
                                 <xsl:apply-templates select="resource" mode="fb"/>
+                                <tr>
+                                    <td class="border_left border_right border_bottom">
+                                        <span style="margin-left:25px;font-weight:bold">Totals</span>
+                                    </td>
+                                    <xsl:apply-templates select="totals/freebeds/freebed"/>
+                                </tr>
                             </tbody>
                         </table>
                     </td>

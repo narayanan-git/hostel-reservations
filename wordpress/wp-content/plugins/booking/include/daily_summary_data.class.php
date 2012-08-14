@@ -158,6 +158,9 @@ class DailySummaryData extends XslTransform {
                     </checkout>
                 </checkout>
             </checkouts>
+            <allocationview>
+                ...
+            </allocationview>
         </view>
      */
     function toXml() {

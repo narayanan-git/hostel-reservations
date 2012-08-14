@@ -96,6 +96,24 @@ class AllocationView {
                 $dt->add(new DateInterval('P1D'));  // increment by day
             }
         }
+
+        // count total number of free beds
+        $totalfreebeds = array();
+        foreach ($this->bookingResources as $book) {
+            foreach ($book->freebeds as $i => $fb) {
+                if (isset($totalfreebeds[$i])) {
+                    $totalfreebeds[$i] += $fb;
+                } else {
+                    $totalfreebeds[$i] = $fb;
+                }
+            }
+        }
+        
+        $totals = $xmlRoot->appendChild($domtree->createElement('totals'));
+        $freebeds = $totals->appendChild($domtree->createElement('freebeds'));
+        foreach ($totalfreebeds as $tfb) {
+            $freebeds->appendChild($domtree->createElement('freebed', $tfb));
+        }
     }
 
     /** 
@@ -147,6 +165,14 @@ class AllocationView {
             <dateheaders>
                 ...
             </dateheaders>
+            
+            <totals>
+                <freebeds>
+                    <freebed>30</freebed>
+                    <freebed>40</freebed>
+                    ....
+                </freebeds>
+            </totals>
         </allocationview>
      */
     function toXml() {
