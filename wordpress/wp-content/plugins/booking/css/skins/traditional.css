@@ -496,15 +496,15 @@ table.allocation_view th.alloc_resource_attrib {
     vertical-align:middle;
 }
 
-table.allocation_view td.border_left {
+table.allocation_view th.border_left,td.border_left {
     border-left:1px solid rgb(223,223,223);
 }
 
-table.allocation_view td.border_bottom {
+table.allocation_view th.border_bottom,td.border_bottom {
     border-bottom:1px solid rgb(223,223,223);
 }
 
-table.allocation_view td.border_right {
+table.allocation_view th.border_right,td.border_right {
     border-right:1px solid rgb(223,223,223);
 }
 
