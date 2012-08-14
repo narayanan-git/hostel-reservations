@@ -10,7 +10,8 @@ class BookingResource extends XslTransform {
     var $level;
     var $path;
     var $numberChildren;
-    var $type;
+    var $type;       // resource type, e.g. group, room, bed
+    var $freebeds;   // array() of free beds (if type is 'group' or 'room') in same order as allocationCells
     private $childResources;  // array of BookingResource (where this is a parent resource, ie numberChildren > 0)
     private $allocationCells;  // (optional) array of AllocationCell assigned to this resource (where this is a child node, ie. numberChildren = 0)
     
@@ -24,6 +25,7 @@ class BookingResource extends XslTransform {
         $this->path = $path;
         $this->numberChildren = $numberChildren;
         $this->type = $type;
+        $this->freebeds = array();
         $this->childResources = array();
         $this->allocationCells = array();
     }
@@ -45,6 +47,51 @@ class BookingResource extends XslTransform {
     function setAllocationCells($allocationCells) {
         $this->allocationCells = $allocationCells;
     }
+    
+    /**
+     * Updates the number of free beds for this resource if it is a 'group' or a 'room'
+     * based on the current set of allocationCells.
+     * freeBeds will be initialised with the number of free beds in the group/room using a positional
+     * index from 0 .. length($allocationCells) - 1
+     */
+    function updateFreeBeds() {
+        // iterate through each allocation in order and tally up the number of free beds
+        $this->freebeds = array();  // int array() indexed by position in allocationCells (count from 0)
+
+        if ($this->type == 'group' || $this->type == 'room') {
+            foreach ($this->childResources as $child) {
+                $child->updateFreeBeds();   // count children
+                
+                if ($this->type == 'room') {
+                    $i = 0;
+                    foreach ($child->allocationCells as $cell) {
+                        if (false === isset($this->freebeds[$i])) {
+                            $this->freebeds[$i] = 0;
+                        }
+                        if ($cell->id == 0) {
+                            $this->freebeds[$i]++;
+                        }
+                        $i++;
+                    }
+
+                } else {
+                    // tally up all child counts by appending
+                    foreach ($child->freebeds as $key => $value) {
+                        if (isset($this->freebeds[$key])) {
+                            $this->freebeds[$key] += $value;
+                        } else {
+                            $this->freebeds[$key] = $value;
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($this->type == 'private') {
+            // TODO: count the number of empty rooms
+        }
+error_log("freebeds for $this->name is ".var_export($this->freebeds, true));
+    }
 
     /**
      * Adds this allocation row to the DOMDocument/XMLElement specified.
@@ -62,6 +109,15 @@ class BookingResource extends XslTransform {
         $parentElement->appendChild($domtree->createElement('path', $this->path));
         $parentElement->appendChild($domtree->createElement('level', $this->level));
         $parentElement->appendChild($domtree->createElement('numberChildren', $this->numberChildren));
+
+        if ($this->numberChildren > 0) {
+            $this->updateFreeBeds();   // this will be req'd for the daily summary
+            $freeBedRoot = $parentElement->appendChild($domtree->createElement('freebeds'));
+            for ($i = 0; $i < count($this->freebeds); $i++) {
+                $freeBedRoot->appendChild($domtree->createElement('freebed', $this->freebeds[$i]));
+            }
+        }
+        
         $parentElement->appendChild($domtree->createElement('type', $this->type));
     
         foreach ($this->childResources as $res) {
@@ -83,6 +139,10 @@ class BookingResource extends XslTransform {
      *         <path>/1</path>
      *         <level>1</level>
      *         <numberChildren>2</numberChildren>
+     *         <freebeds>
+     *             <freebed>3</freebed>
+     *             ...
+     *         </freebeds>
      *         <resource>...</resource>
      *         <resource>...</resource>
      *     </resource>

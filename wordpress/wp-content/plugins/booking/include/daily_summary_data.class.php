@@ -6,7 +6,9 @@
 class DailySummaryData extends XslTransform {
 
     var $selectionDate;  // DateTime of selected date
+    
     private $dailySummaryResources;  // array() of DailySummaryResource
+    private $allocationView;   // AllocationView showing free beds
     
     /**
      * Default constructor.
@@ -14,6 +16,13 @@ class DailySummaryData extends XslTransform {
      */
     function DailySummaryData($selectionDate) {
         $this->selectionDate = $selectionDate;
+
+        // show view from yesterday to 7 days in future
+        $startDate = clone $selectionDate;
+        $startDate->sub(new DateInterval('P1D'));
+        $endDate = clone $startDate;
+        $endDate->add(new DateInterval('P8D'));
+        $this->allocationView = new AllocationView($startDate, $endDate);
     }
     
     /**
@@ -21,6 +30,7 @@ class DailySummaryData extends XslTransform {
      */
     function doSummaryUpdate() {
         $this->dailySummaryResources = ResourceDBO::fetchDailySummaryResources($this->selectionDate);
+        $this->allocationView->doSearch();
     }
     
     /**
@@ -71,6 +81,47 @@ class DailySummaryData extends XslTransform {
         return $return_val;
     }
 
+    /**
+     * Adds this object to the DOMDocument/XMLElement specified.
+     * See toXml() for details.
+     * $domtree : DOM document root
+     * $parentElement : DOM element where this object will be added
+     */
+    function addSelfToDocument($domtree, $parentElement) {
+        $xmlRoot = $parentElement->appendChild($domtree->createElement('dataview'));
+        $xmlRoot->appendChild($domtree->createElement('selectiondate', $this->selectionDate->format('d.m.Y')));
+        
+        $checkinRoot = $xmlRoot->appendChild($domtree->createElement('checkins'));
+        
+        $attrArrived = $domtree->createAttribute('arrived');
+        $attrArrived->value = $this->getCheckedInCount();
+        $checkinRoot->appendChild($attrArrived);
+        
+        $attrRemaining = $domtree->createAttribute('remaining');
+        $attrRemaining->value = $this->getCheckedInRemaining();
+        $checkinRoot->appendChild($attrRemaining);
+        
+        foreach ($this->dailySummaryResources as $res) {
+            $res->addCheckInsToDocument($domtree, $checkinRoot);
+        }
+        
+        $checkoutRoot = $xmlRoot->appendChild($domtree->createElement('checkouts'));
+
+        $attrDeparted = $domtree->createAttribute('departed');
+        $attrDeparted->value = $this->getCheckedOutCount();
+        $checkoutRoot->appendChild($attrDeparted);
+
+        $attrRemaining = $domtree->createAttribute('remaining');
+        $attrRemaining->value = $this->getCheckedOutRemaining();
+        $checkoutRoot->appendChild($attrRemaining);
+
+        foreach ($this->dailySummaryResources as $res) {
+            $res->addCheckOutsToDocument($domtree, $checkoutRoot);
+        }
+
+        $this->allocationView->addSelfToDocument($domtree, $xmlRoot);
+    }
+    
     /** 
       Generates the following xml:
         <view>
@@ -112,37 +163,11 @@ class DailySummaryData extends XslTransform {
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
         $xmlRoot = $domtree->appendChild($domtree->createElement('view'));
-        $xmlRoot->appendChild($domtree->createElement('selectiondate', $this->selectionDate->format('d.m.Y')));
-        
-        $checkinRoot = $xmlRoot->appendChild($domtree->createElement('checkins'));
-        
-        $attrArrived = $domtree->createAttribute('arrived');
-        $attrArrived->value = $this->getCheckedInCount();
-        $checkinRoot->appendChild($attrArrived);
-        
-        $attrRemaining = $domtree->createAttribute('remaining');
-        $attrRemaining->value = $this->getCheckedInRemaining();
-        $checkinRoot->appendChild($attrRemaining);
-        
-        foreach ($this->dailySummaryResources as $res) {
-            $res->addCheckInsToDocument($domtree, $checkinRoot);
-        }
-        
-        $checkoutRoot = $xmlRoot->appendChild($domtree->createElement('checkouts'));
-
-        $attrDeparted = $domtree->createAttribute('departed');
-        $attrDeparted->value = $this->getCheckedOutCount();
-        $checkoutRoot->appendChild($attrDeparted);
-
-        $attrRemaining = $domtree->createAttribute('remaining');
-        $attrRemaining->value = $this->getCheckedOutRemaining();
-        $checkoutRoot->appendChild($attrRemaining);
-
-        foreach ($this->dailySummaryResources as $res) {
-            $res->addCheckOutsToDocument($domtree, $checkoutRoot);
-        }
-        
-        return $domtree->saveXML();
+        $this->addSelfToDocument($domtree, $xmlRoot);
+        $this->allocationView->addSelfToDocument($domtree, $xmlRoot);
+        $return_val = $domtree->saveXML();
+error_log($return_val);
+        return $return_val;
     }
     
     /**

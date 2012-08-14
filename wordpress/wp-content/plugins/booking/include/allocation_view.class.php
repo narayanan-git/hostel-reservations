@@ -8,12 +8,27 @@ class AllocationView {
     var $showMinDate;   // earliest date to show (DateTime)
     var $showMaxDate;   // latest date to show (DateTime)
     
-    function AllocationView() {
+    /**
+     * Default constructor.
+     * $startDate : begin date to show (inclusive; optional)
+     * $endDate : end date to show (inclusive; optional)
+     */
+    function AllocationView($startDate = null, $endDate = null) {
+    
         // default dates to 2-week range from 2-days ago
-        $this->showMinDate = new DateTime();
-        $this->showMinDate->sub(new DateInterval('P2D'));
-        $this->showMaxDate = new DateTime();
-        $this->showMaxDate->add(new DateInterval('P12D'));
+        if ($startDate == null) {
+            $this->showMinDate = new DateTime();
+            $this->showMinDate->sub(new DateInterval('P2D'));
+        } else {
+            $this->showMinDate = $startDate;
+        }
+        
+        if ($endDate == null) {
+            $this->showMaxDate = new DateTime();
+            $this->showMaxDate->add(new DateInterval('P12D'));
+        } else {
+            $this->showMaxDate = $endDate;
+        }
     }
     
     /**

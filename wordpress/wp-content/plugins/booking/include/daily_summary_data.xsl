@@ -8,6 +8,12 @@
 -->
 
 <xsl:template match="/view" name="daily_summary_contents">
+    <xsl:apply-templates select="dataview"/>
+    <div style="clear:both;height:1px;"><xsl:comment/></div>
+    <xsl:apply-templates select="allocationview"/>
+</xsl:template>
+
+<xsl:template match="dataview">
 
     <div style="float:left;">
         <table width="420" cellspacing="0" cellpadding="3" border="1">
@@ -105,6 +111,103 @@
     </tr>
     <!-- recursive -->
     <xsl:apply-templates select="checkin"/>
+</xsl:template>
+
+<!-- this template used to display allocation view for under free beds -->
+<xsl:template match="allocationview">
+    <div id="allocation_view">
+        <xsl:apply-templates select="resource"/>
+    </div>
+</xsl:template>
+
+<xsl:template match="resource">
+    <xsl:if test="level = 1"> <!-- add extra space at root level -->
+        <br/>
+    </xsl:if>
+    <xsl:if test="type = 'group'">
+        <div class="allocation_view_resource_title" style="padding-left: {-15+15*level}px;"><xsl:value-of select="name"/></div>
+    </xsl:if>
+
+    <xsl:choose>
+        <!-- if we are one level up from a leaf (room), then we generate a single table containing all children (beds) -->
+        <xsl:when test="resource/cells/allocationcell">
+            <br/>
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tbody>
+                    <tr valign="top">
+                        <td width="180"></td>
+                        <td class="availability_header"><xsl:value-of select="/view/allocationview/dateheaders/header"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2" width="{60 * count(/view/allocationview/dateheaders/datecol)}" valign="top">
+                            <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
+                                <thead>
+                                    <tr>
+                                        <th class="alloc_resource_attrib"><xsl:value-of select="name"/></th>
+                                        <xsl:apply-templates select="/view/allocationview/dateheaders/datecol" mode="availability_date_header"/>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <xsl:apply-templates select="resource/cells"/>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xsl:when>
+        <xsl:otherwise>
+            <!-- recurse if required -->
+            <xsl:apply-templates select="resource"/>
+        </xsl:otherwise>
+    </xsl:choose>
+</xsl:template>
+
+<!-- adds header entries for the availability table -->
+<xsl:template mode="availability_date_header" match="datecol">
+    <th class="alloc_view_date"><xsl:value-of select="date"/><span><xsl:value-of select="day"/></span></th>
+</xsl:template>
+
+<!-- adds row for each resource in the availability table -->
+<xsl:template match="cells">
+    <tr>
+        <xsl:attribute name="class">
+            <xsl:choose>
+                <xsl:when test="position() mod 2">odd</xsl:when>
+                <xsl:otherwise>even</xsl:otherwise>
+            </xsl:choose>
+        </xsl:attribute>
+        <td>
+            <xsl:attribute name="class">
+                border_left border_right
+                <xsl:if test="position() = last()">
+                    border_bottom
+                </xsl:if>
+            </xsl:attribute>
+            <xsl:value-of select="../name"/>
+        </td>
+        <xsl:apply-templates select="allocationcell"/>
+    </tr>
+</xsl:template>
+
+<!-- adds table entries for each allocation cell in the availability table -->
+<xsl:template match="allocationcell">
+    <td>
+        <xsl:attribute name="class">
+            <xsl:if test="count(../../../resource) = count(../../preceding-sibling::resource)+1">
+                border_bottom
+            </xsl:if>
+            <xsl:if test="position() = last()">
+                border_right
+            </xsl:if>
+        </xsl:attribute>
+        <xsl:if test="@span &gt; 1">
+            <xsl:attribute name="colspan"><xsl:value-of select="@span"/></xsl:attribute>
+        </xsl:if>
+        <xsl:if test="id &gt; 0">
+            <a class="booking_item {render} status_{status}"><xsl:value-of select="name"/>&#160;</a>
+        </xsl:if>
+    </td>
 </xsl:template>
 
 </xsl:stylesheet>
