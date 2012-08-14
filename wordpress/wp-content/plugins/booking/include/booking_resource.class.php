@@ -12,6 +12,7 @@ class BookingResource extends XslTransform {
     var $numberChildren;
     var $type;       // resource type, e.g. group, room, bed
     var $freebeds;   // array() of free beds (if type is 'group' or 'room') in same order as allocationCells
+    var $unpaid = false;  // mark this resource as unpaid (this property is date specific)
     private $childResources;  // array of BookingResource (where this is a parent resource, ie numberChildren > 0)
     private $allocationCells;  // (optional) array of AllocationCell assigned to this resource (where this is a child node, ie. numberChildren = 0)
     
@@ -90,11 +91,27 @@ class BookingResource extends XslTransform {
         if ($this->type == 'private') {
             // TODO: count the number of empty rooms
         }
-error_log("freebeds for $this->name is ".var_export($this->freebeds, true));
     }
 
     /**
-     * Adds this allocation row to the DOMDocument/XMLElement specified.
+     * Goes through each of our child resources and updates the 'unpaid' flag to true
+     * for the given resource ids.
+     * $resourceIds : array() of resource ids to mark as unpaid
+     */
+    function markUnpaidResources($resourceIds) {
+        if (sizeof($resourceIds) > 0) {
+            if (in_array($this->resourceId, $resourceIds)) {
+                $this->unpaid = true;
+            }
+        
+            foreach ($this->childResources as $child) {
+                $child->markUnpaidResources($resourceIds);
+            }
+        }
+    }
+
+    /**
+     * Adds this object to the DOMDocument/XMLElement specified.
      * See toXml() for details.
      * $domtree : DOM document root
      * $parentElement : DOM element where this row will be added
@@ -109,6 +126,10 @@ error_log("freebeds for $this->name is ".var_export($this->freebeds, true));
         $parentElement->appendChild($domtree->createElement('path', $this->path));
         $parentElement->appendChild($domtree->createElement('level', $this->level));
         $parentElement->appendChild($domtree->createElement('numberChildren', $this->numberChildren));
+        
+        if ($this->unpaid) {
+            $parentElement->appendChild($domtree->createElement('unpaid', 'true'));
+        }
 
         if ($this->numberChildren > 0) {
             $this->updateFreeBeds();   // this will be req'd for the daily summary
@@ -154,6 +175,7 @@ error_log("freebeds for $this->name is ".var_export($this->freebeds, true));
      *         <path>/1/2</path>
      *         <level>2</level>
      *         <numberChildren>0</numberChildren>
+     *         <unpaid>true</unpaid>
      *         <cells>
      *             <allocationcell> ... </allocationcell>
      *             <allocationcell> ... </allocationcell>

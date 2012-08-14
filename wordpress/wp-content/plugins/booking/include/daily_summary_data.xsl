@@ -10,7 +10,8 @@
 <xsl:template match="/view" name="daily_summary_contents">
     <xsl:apply-templates select="dataview"/>
     <div style="clear:both;height:1px;"><xsl:comment/></div>
-    <xsl:apply-templates select="allocationview"/>
+    <xsl:apply-templates select="allocationview" mode="fb"/>
+    <xsl:apply-templates select="allocationview" mode="pastdue"/>
 </xsl:template>
 
 <xsl:template match="dataview">
@@ -113,8 +114,80 @@
     <xsl:apply-templates select="checkin"/>
 </xsl:template>
 
+<!-- this template used to display allocation view for unpaid/past due beds -->
+<xsl:template match="allocationview" mode="pastdue">
+    <xsl:if test=".//resource/unpaid = 'true'">
+        <br/>
+        <div id="pastdue_view">
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tbody>
+                    <tr valign="top">
+                        <td class="availability_header" width="360">Unpaid / Past Due</td>
+                        <td class="availability_header"><xsl:value-of select="/view/allocationview/dateheaders/header"/></td>
+                    </tr>
+                    <tr valign="top">
+                        <td colspan="2" width="{60 * count(/view/allocationview/dateheaders/datecol)}" valign="top">
+                            <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
+                                <thead>
+                                    <tr>
+                                        <th class="border_left border_right">Room</th>
+                                        <th class="border_left border_right">Bed</th>
+                                        <xsl:apply-templates select="/view/allocationview/dateheaders/datecol" mode="availability_date_header"/>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <xsl:apply-templates select="resource" mode="pastdue"/>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </xsl:if>
+</xsl:template>
+
+<!-- generates a row in the past due availability table -->
+<xsl:template match="resource" mode="pastdue">
+    <xsl:if test="unpaid = 'true'">
+        <xsl:apply-templates select="cells" mode="pastdue"/>
+    </xsl:if>
+
+    <!-- recurse if required -->
+    <xsl:apply-templates select="resource" mode="pastdue"/>
+</xsl:template>
+
+<!-- adds row for each resource past due in the availability table -->
+<xsl:template match="cells" mode="pastdue">
+    <xsl:if test="allocationcell">
+        <tr>
+            <xsl:attribute name="class">
+                <xsl:choose>
+                    <!-- the idea is you can find the position of the parent node by you counting all its preceding siblings. -->
+                    <xsl:when test="count(parent::resource/preceding-sibling::resource) mod 2">even</xsl:when>
+                    <xsl:otherwise>odd</xsl:otherwise>
+                </xsl:choose>
+            </xsl:attribute>
+
+            <td class="border_left border_right border_bottom">
+                <span style="margin-left:15px">
+                    <xsl:value-of select="../../name"/>
+                </span>
+            </td>
+            <td class="border_left border_right border_bottom">
+                <span style="margin-left:15px">
+                    <xsl:value-of select="../name"/>
+                </span>
+            </td>
+            <xsl:apply-templates select="allocationcell"/>
+        </tr>
+    </xsl:if>
+</xsl:template>
+
+
+
 <!-- this template used to display allocation view for under free beds -->
-<xsl:template match="allocationview">
+<xsl:template match="allocationview" mode="fb">
     <br/>
     <div id="allocation_view">
         <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -133,7 +206,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <xsl:apply-templates select="resource"/>
+                                <xsl:apply-templates select="resource" mode="fb"/>
                             </tbody>
                         </table>
                     </td>
@@ -144,13 +217,12 @@
 </xsl:template>
 
 <!-- generates a row in the free bed availability table -->
-<xsl:template match="resource">
+<xsl:template match="resource" mode="fb">
     <xsl:apply-templates select="freebeds"/>
-    <xsl:apply-templates select="cells"/>
+    <xsl:apply-templates select="cells" mode="fb"/>
     
     <!-- recurse if required -->
-    <xsl:apply-templates select="resource"/>
-
+    <xsl:apply-templates select="resource" mode="fb"/>
 </xsl:template>
 
 <xsl:template match="freebeds">
@@ -210,7 +282,7 @@
 </xsl:template>
 
 <!-- adds row for each resource in the availability table -->
-<xsl:template match="cells">
+<xsl:template match="cells" mode="fb">
     <xsl:if test="allocationcell">
         <tr id="resource{translate(../path, '/', '_')}">
             <xsl:attribute name="style">

@@ -31,6 +31,7 @@ class DailySummaryData extends XslTransform {
     function doSummaryUpdate() {
         $this->dailySummaryResources = ResourceDBO::fetchDailySummaryResources($this->selectionDate);
         $this->allocationView->doSearch();
+        $this->allocationView->markUnpaidResources($this->selectionDate);
     }
     
     /**

@@ -416,6 +416,44 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
         }
         return $return_val;
     }
+    
+    /**
+     * Returns array() of resource ids that are due to be paid for the given day (or before).
+     * (That is, with an allocation of (R)eserved for given date but (P)aid/(F)ree/(H)ours for any day before).
+     * $selectedDate : DateTime corresponding to the date to query (usually today)
+     * Returns non-null array() of integer
+     */
+    static function fetchResourceIdsPastDue($selectedDate) {
+        global $wpdb;
+
+        // check-ins for the day: find all allocations for a given day where no reservation exists the day before
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT DISTINCT a.resource_id 
+               FROM ".$wpdb->prefix."allocation a
+              -- booking date of 'R'eserved for given date 
+              WHERE EXISTS (
+                SELECT 1 FROM ".$wpdb->prefix."bookingdates d 
+                 WHERE a.allocation_id = d.allocation_id
+                   AND d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                   AND d.status = 'reserved')
+              -- booking date of 'P'/'F'/'H' for some date before 
+              AND EXISTS ( 
+                SELECT 1 FROM ".$wpdb->prefix."bookingdates d 
+                 WHERE a.allocation_id = d.allocation_id
+                   AND d.booking_date < STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                   AND d.status IN ('paid', 'free', 'hours'))", 
+            $selectedDate->format('d.m.Y'), $selectedDate->format('d.m.Y')));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        $return_val = array();
+        foreach ($resultset as $res) {
+            $return_val[] = $res->resource_id;
+        }
+        return $return_val;
+    }
 }
 
 ?>

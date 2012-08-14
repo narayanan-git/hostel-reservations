@@ -41,6 +41,22 @@ class AllocationView {
                 null /* status */, 
                 null /* name */);
     }
+    
+    /**
+     * Goes through the booking resources and updates the 'unpaid' flag to true
+     * where a reservation exists for the given date and a "paid" status on a 
+     * previous date for the same allocation.
+     * $selectedDate : DateTime of date to check
+     */
+    function markUnpaidResources($selectedDate) {
+        $resourceIds = ResourceDBO::fetchResourceIdsPastDue($selectedDate);
+
+        if (sizeof($resourceIds) > 0) {
+            foreach ($this->bookingResources as $br) {
+                $br->markUnpaidResources($resourceIds);
+            }
+        }
+    }
 
     /**
      * Adds this AllocationView to the DOMDocument/XMLElement specified.
