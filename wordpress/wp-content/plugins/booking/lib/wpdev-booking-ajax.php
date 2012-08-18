@@ -99,6 +99,12 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
             
+        // toggle the checkout state of a booking date in the availability table
+        case  'TOGGLE_CHECKOUT_ON_BOOKING_DATE':
+            wpdev_toggle_checkout_on_booking_date();
+            die();
+            break;
+            
         case  'PAGE_AVAILABILITY_TABLE_LEFT_RIGHT':
             wpdev_page_availability_table_left_right();
             die();
@@ -566,6 +572,24 @@ function wpdev_toggle_booking_date() {
     if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
         $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
         $booking->toggleBookingStateAt($rowid, $dt);
+        ?> 
+        <script type="text/javascript">
+            document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
+        </script>
+        <?php
+    }
+}
+
+/**
+ * Toggles the checkout status of the allocation on the given booking date.
+ */
+function wpdev_toggle_checkout_on_booking_date() {
+    $rowid = $_POST['rowid'];
+    $dt = $_POST['booking_date'];
+
+    if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+        $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+        $booking->toggleCheckoutOnBookingDate($rowid, $dt);
         ?> 
         <script type="text/javascript">
             document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;

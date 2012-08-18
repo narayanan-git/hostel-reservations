@@ -375,7 +375,20 @@ div.scroll_history {
     background:none repeat scroll 0% 0% rgb(146,209,140);
 }
 
+.date_status_checkout_paid {
+    background:url("../../img/checkout_paid.png") repeat; 
+}
+
 .date_status_paid a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#fff;
+    display: block;
+    padding: 10px 10px;
+}
+
+.date_status_checkout_paid a {
     font-size:1em;
     font-weight:bold;
     text-decoration:none;
@@ -393,7 +406,20 @@ div.scroll_history {
     background:none repeat scroll 0% 0% rgb(141,200,213);
 }
 
+.date_status_checkout_free {
+    background:url("../../img/checkout_free.png") repeat; 
+}
+
 .date_status_free a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#fff;
+    display: block;
+    padding: 10px 10px;
+}
+
+.date_status_checkout_free a {
     font-size:1em;
     font-weight:bold;
     text-decoration:none;
@@ -411,7 +437,20 @@ div.scroll_history {
     background:none repeat scroll 0% 0% rgb(219,235,109);
 }
 
+.date_status_checkout_hours {
+    background:url("../../img/checkout_hours.png") repeat; 
+}
+
 .date_status_hours a {
+    font-size:1em;
+    font-weight:bold;
+    text-decoration:none;
+    color:#888;
+    display: block;
+    padding: 10px 10px;
+}
+
+.date_status_checkout_hours a {
     font-size:1em;
     font-weight:bold;
     text-decoration:none;
@@ -454,6 +493,33 @@ div.scroll_history {
     color:#000;
     display: block;
     padding: 10px 10px;
+}
+
+img.checkout { 
+	background:url("../../img/checkout.png") no-repeat; 
+	position:absolute;
+	width:12px; 
+	height:12px;
+	top:-3px; 
+}
+
+img.uncheckout { 
+	background:url("../../img/uncheckout.png") no-repeat; 
+	position:absolute;
+	width:12px; 
+	height:12px;
+	top:-3px; 
+}
+
+.legend_checkedout {
+	background:url("../../img/checkout_legend.png") repeat; 
+}
+
+a.checkout_link {
+	text-decoration:none;
+	display:block;
+	position:absolute;
+	right:-1px; 
 }
 
 .allocation_view_resource_title {

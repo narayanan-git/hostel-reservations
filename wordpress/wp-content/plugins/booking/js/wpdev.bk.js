@@ -674,6 +674,24 @@
         });
     }
 
+    // this will toggle the checkout status of a booking date
+    // rowid : row id in allocation table
+    // booking_date : date in format dd.MM.yyyy
+    function toggle_checkout_on_booking_date(rowid, booking_date) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'TOGGLE_CHECKOUT_ON_BOOKING_DATE',
+                rowid : rowid,
+                booking_date : booking_date
+            }
+        });
+    }
+
     /**
      * This will shift the dates on the calendar.
      * direction : one of 'left' or 'right'

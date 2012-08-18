@@ -171,12 +171,12 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         // fetch allocation details
         $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
         $bookingId = $allocationRs->booking_id;
-        $bookingDateStatuses = self::fetchBookingDateStatuses($allocationId);
+        $bookingDates = self::fetchBookingDates($allocationId);
         
         $auditMsg = "Deleting allocation $allocationId (".$allocationRs->guest_name.") assigned to ".$allocationRs->resource_name."
                      Booking Dates: ";
-        foreach ($bookingDateStatuses as $dt => $status) {
-            $auditMsg .= "$dt => $status, ";
+        foreach ($bookingDates as $dt => $bd) {
+            $auditMsg .= "$dt => $bd->status, ";
         }
         $auditMsg = rtrim($auditMsg, ", ");
         
@@ -210,22 +210,23 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
      * only when availability exists.
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
-     * $bookingDate : date to add booking (format d.m.Y)
-     * $status : status at booking date (e.g. paid, reserved, etc..)
+     * $bookingDate : date to add booking (BookingDate)
      * Returns true if the insert complies with current availability, false otherwise.
      */
-    static function insertBookingDate($mysqli, $allocationId, $bookingDate, $status) {
+    static function insertBookingDate($mysqli, $allocationId, $bookingDate) {
         global $wpdb;
-    
-        $compliesWithAvailability = self::isResourceAvailable($mysqli, $allocationId, $bookingDate);
+error_log(var_export($bookingDate, true));
+        $compliesWithAvailability = self::isResourceAvailable($mysqli, $allocationId, $bookingDate->bookingDate);
         
         // insert the record only if availability exists
         if ($compliesWithAvailability) {
             $userLogin = wp_get_current_user()->user_login;
+            $checkedOut = $bookingDate->checkedOut ? 'Y' : 'N';
             $stmt = $mysqli->prepare(
-                "INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date, status, created_by, created_date, last_updated_by, last_updated_date) 
-                 VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'), ?, ?, NOW(), ?, NOW())");
-            $stmt->bind_param('issss', $allocationId, $bookingDate, $status, $userLogin, $userLogin);
+                "INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date, status, checked_out, created_by, created_date, last_updated_by, last_updated_date) 
+                 VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'), ?, ?, ?, NOW(), ?, NOW())");
+            $stmt->bind_param('isssss', $allocationId, $bookingDate->bookingDate->format('d.m.Y'), 
+                    $bookingDate->status, $checkedOut, $userLogin, $userLogin);
             if(false === $stmt->execute()) {
                 throw new DatabaseException("Error during INSERT: " . $mysqli->error);
             }
@@ -239,14 +240,13 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
      * Inserts the booking dates for the given allocation.
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
-     * $bookingDateStatus : array() of statuses indexed by date (d.m.Y) to be inserted
+     * $bookingDates : array() of BookingDate() to be inserted
      * Returns true if the insert complies with current availability, false otherwise.
      */
-    static function insertBookingDates($mysqli, $allocationId, $bookingDateStatus) {
+    static function insertBookingDates($mysqli, $allocationId, $bookingDates) {
         global $wpdb;
-error_log("insertBookingDates $allocationId ".var_export($bookingDateStatus, true));
         
-        if (empty($bookingDateStatus)) {
+        if (empty($bookingDates)) {
             return true;  // nothing to do
         }
         
@@ -255,9 +255,9 @@ error_log("insertBookingDates $allocationId ".var_export($bookingDateStatus, tru
         $compliesWithAvailability = true;
         $auditMsg = "Adding dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": ";
 
-        foreach ($bookingDateStatus as $bd => $status) {
-            $auditMsg .= "$bd => $status, ";
-            $compliesWithAvailability &= self::insertBookingDate($mysqli, $allocationId, $bd, $status);
+        foreach ($bookingDates as $bd) {
+            $auditMsg .= $bd->bookingDate->format('d.m.Y') . " => $bd->status, ";
+            $compliesWithAvailability &= self::insertBookingDate($mysqli, $allocationId, $bd);
         }
         $auditMsg = rtrim($auditMsg, ', ');
         
@@ -267,32 +267,32 @@ error_log("insertBookingDates $allocationId ".var_export($bookingDateStatus, tru
     }
 
     /**
-     * This will update the bookingdate statuses for the given allocation id.
+     * This will update the bookingdates for the given allocation id.
      * Depending on whether a record already exists, an insert/update/delete will be done on the record.
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
-     * $bookingDateStatus : array() of statuses indexed by date (d.m.Y) to be saved
+     * $bookingDates : array() of BookingDate indexed by date (d.m.Y) to be saved
      * Returns true if the update complies with current availability, false otherwise.
      */
-    static function mergeUpdateBookingDates($mysqli, $allocationId, $bookingDateStatus) {
+    static function mergeUpdateBookingDates($mysqli, $allocationId, $bookingDates) {
 error_log("mergeUpdateBookingDates $allocationId ");
 
         // first find the ones currently saved for this allocationId
-        $oldBookingDateStatus = self::fetchBookingDateStatuses($allocationId);
+        $oldBookingDates = self::fetchBookingDates($allocationId);
         $compliesWithAvailability = true;
         
         // diff existing booking dates with the ones we want to save
         // if it exists in the old but not in the new, delete it
-error_log(var_export(array($oldBookingDateStatus, $bookingDateStatus), true));
-        $datesToRemove = array_diff_key($oldBookingDateStatus, $bookingDateStatus);
+error_log(var_export(array($oldBookingDates, $bookingDates), true));
+        $datesToRemove = array_diff_key($oldBookingDates, $bookingDates);
         self::deleteBookingDates($mysqli, $allocationId, $datesToRemove);
         
         // if it exists in the new but not in the old, add it
-        $datesToAdd = array_diff_key($bookingDateStatus, $oldBookingDateStatus);
+        $datesToAdd = array_diff_key($bookingDates, $oldBookingDates);
         $compliesWithAvailability &= self::insertBookingDates($mysqli, $allocationId, $datesToAdd);
         
         // if it exists in both, update it
-        self::updateBookingDates($mysqli, $allocationId, $oldBookingDateStatus, $bookingDateStatus);
+        self::updateBookingDates($mysqli, $allocationId, $oldBookingDates, $bookingDates);
         
         // now we need to check that we didn't overbook anywhere!
         $compliesWithAvailability &= self::isAvailabilityViolated($mysqli, $allocationId);
@@ -304,12 +304,12 @@ error_log("mergeUpdateBookingDates returning $compliesWithAvailability");
      * Deletes the booking dates for the given allocation.
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
-     * $bookingDateStatus : array() of statuses indexed by date (d.m.Y) to be deleted
+     * $bookingDates : array() of BookingDate indexed by date (d.m.Y) to be deleted
      */
-    static function deleteBookingDates($mysqli, $allocationId, $bookingDateStatus) {
+    static function deleteBookingDates($mysqli, $allocationId, $bookingDates) {
         global $wpdb;
-error_log("deleteBookingDates $allocationId ".var_export($bookingDateStatus, true));
-        if (empty($bookingDateStatus)) {
+error_log("deleteBookingDates $allocationId ".var_export($bookingDates, true));
+        if (empty($bookingDates)) {
             return;  // nothing to do
         }
         
@@ -318,9 +318,9 @@ error_log("deleteBookingDates $allocationId ".var_export($bookingDateStatus, tru
 
         $auditMsg = "Removing dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": ";
         $bookingDatesString = "";
-        foreach ($bookingDateStatus as $bd => $status) {
+        foreach ($bookingDates as $bd => $bdObj) {
             $bookingDatesString .= "STR_TO_DATE('$bd', '%d.%m.%Y'),";
-            $auditMsg .= "$bd => $status, ";
+            $auditMsg .= "$bd => $bdObj->status, ";
         }
         $bookingDatesString = rtrim($bookingDatesString, ',');
         $auditMsg = rtrim($auditMsg, ', ');
@@ -344,16 +344,16 @@ error_log("deleteBookingDates $allocationId ".var_export($bookingDateStatus, tru
      * Only those dates that appear in *both* the old and new arrays *and* are different will be updated.
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
-     * $oldBookingDateStatus : current array() of statuses indexed by date (d.m.Y)
-     * $newBookingDateStatus : new updated array() of statuses indexed by date (d.m.Y)
+     * $oldBookingDates : current array() of BookingDate indexed by date (d.m.Y)
+     * $newBookingDates : new updated array() of BookingDate indexed by date (d.m.Y)
      */
-    static function updateBookingDates($mysqli, $allocationId, $oldBookingDateStatus, $newBookingDateStatus) {
+    static function updateBookingDates($mysqli, $allocationId, $oldBookingDates, $newBookingDates) {
         global $wpdb;
 error_log("updateBookingDates $allocationId ");
         
         // these are the dates that exist in both old and new
-        $bookingDateStatus = array_intersect_key($oldBookingDateStatus, $newBookingDateStatus);
-error_log("updateBookingDates intersection ".var_export($bookingDateStatus, true));
+        $bookingDates = array_intersect_key($oldBookingDates, $newBookingDates);
+error_log("updateBookingDates intersection ".var_export($bookingDates, true));
         
         // fetch allocation details
         $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
@@ -361,6 +361,7 @@ error_log("updateBookingDates intersection ".var_export($bookingDateStatus, true
         $stmt = $mysqli->prepare(
             "UPDATE ".$wpdb->prefix."bookingdates 
                 SET status = ?,
+                    checked_out = ?,
                     last_updated_by = ?,
                     last_updated_date = NOW()
               WHERE allocation_id = ?
@@ -368,21 +369,27 @@ error_log("updateBookingDates intersection ".var_export($bookingDateStatus, true
         $userLogin = wp_get_current_user()->user_login;
         
         $auditMsg = "";
-        $bookingDatesString = "";
-        foreach ($bookingDateStatus as $bd => $status) {
+        foreach ($bookingDates as $bd => $bdObj) {
             // only apply where the status has changed 
-            if ($oldBookingDateStatus[$bd] !== $newBookingDateStatus[$bd]) {
-error_log("updateBookingDates $bd changed to ".$newBookingDateStatus[$bd]);
-                $auditMsg .= "$bd => $newBookingDateStatus[$bd], ";
+            $hasChanged = false;
+            if ($oldBookingDates[$bd]->status !== $newBookingDates[$bd]->status) {
+                $auditMsg .= "$bd => ".$newBookingDates[$bd]->status.", ";
+                $hasChanged = true;
+            }
+            if ($oldBookingDates[$bd]->checkedOut !== $newBookingDates[$bd]->checkedOut) {
+                $hasChanged = true;
+            }
                 
-                // do db update using the same statement
-                $stmt->bind_param('ssis', $newBookingDateStatus[$bd], $userLogin, $allocationId, $bd);
+            // do db update using the same statement
+            if ($hasChanged) {
+                $checkedOut = $newBookingDates[$bd]->checkedOut ? 'Y' : 'N';
+                $stmt->bind_param('sssis', $newBookingDates[$bd]->status, 
+                    $checkedOut, $userLogin, $allocationId, $bd);
                 if(false === $stmt->execute()) {
                     throw new DatabaseException("Error during UPDATE: " . $mysqli->error);
                 }
             }
         }
-        $bookingDatesString = rtrim($bookingDatesString, ',');
         $auditMsg = rtrim($auditMsg, ', ');
 
         $stmt->close();
@@ -430,6 +437,7 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
      * Checks whether there is current availability for the given allocation and booking date.
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of allocation record
+     * $bookingDate : date of booking (DateTime)
      * Returns true if availability exists, false otherwise.
      */
     static function isResourceAvailable($mysqli, $allocationId, $bookingDate) {
@@ -442,7 +450,7 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
               WHERE ra.booking_date = STR_TO_DATE(?, '%d.%m.%Y')
                 AND ra.resource_id = (SELECT resource_id FROM ".$wpdb->prefix."allocation 
                                        WHERE allocation_id = ?)");
-        $stmt->bind_param('si', $bookingDate, $allocationId);
+        $stmt->bind_param('si', $bookingDate->format('d.m.Y'), $allocationId);
         
         if(false === $stmt->execute()) {
             throw new DatabaseException("Error during SELECT: " . $mysqli->error);
@@ -452,7 +460,7 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
         $compliesWithAvailability = (! $stmt->fetch()) || $availCapacity > 0;
 error_log("isResourceAvailable: availCapacity $availCapacity");
         $stmt->close();
-error_log("allocation $allocationId on $bookingDate complies with availability: ". ($compliesWithAvailability ? 'true' : 'false'));       
+error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complies with availability: ". ($compliesWithAvailability ? 'true' : 'false'));       
         return $compliesWithAvailability;
     }
     
@@ -510,12 +518,11 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
         $resourceToBookingDateAllocationMap = array();
 
         foreach ($resultset as $res) {
-            foreach (AllocationDBO::fetchBookingDateStatuses($res->allocation_id) as $bookingDate => $status) {
+            foreach (AllocationDBO::fetchBookingDates($res->allocation_id) as $bookingDate => $bdObj) {
                 $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
-                    new AllocationCell($res->allocation_id, $res->guest_name, $res->gender, $status);
+                    new AllocationCell($res->allocation_id, $res->guest_name, $res->gender, $bdObj->status);
             }
         }
-error_log("after initial allocation cell create");
         
         return AllocationDBO::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
 //        $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceToBookingDateAllocationMap);
@@ -549,10 +556,8 @@ error_log("after initial allocation cell create");
                 if(isset($resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')])) {
                     $allocCell = $resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')];
                     
-error_log("calculating state for $resourceId , ".$start->format('d.m.Y'));
                     $allocCell->renderState = AllocationDBO::getRenderStateForAllocation(
                         $resourceToBookingDateAllocationMap, $resourceId, $start);
-error_log("calculating state returned ".$allocCell->renderState);
 
                     // if we are continuing an existing record, blank out name/gender so we don't display it
                     // reduces the amount of xml we generate as well
@@ -674,7 +679,7 @@ error_log("calculating state returned ".$allocCell->renderState);
             $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $resourceMap);
             $ar->id = $res->allocation_id;
             if ($loadBookingDates) {
-                $ar->bookingDateStatus = AllocationDBO::fetchBookingDateStatuses($res->allocation_id);
+                $ar->bookingDates = AllocationDBO::fetchBookingDates($res->allocation_id);
             }
             $return_val[$ar->id] = $ar;
             $ar->rowid = $ar->id;
@@ -683,15 +688,15 @@ error_log("calculating state returned ".$allocCell->renderState);
     }
     
     /**
-     * Returns a map of booking date -> status (String) for the given allocation id.
+     * Returns a map of booking date (d.m.Y) -> BookingDate() for the given allocation id.
      * $allocationId : existing allocation id
-     * Returns array() of statuses (String) indexed by booking date (String in format d.m.Y)
+     * Returns array() of BookingDate indexed by booking date (String in format d.m.Y)
      */
-    static function fetchBookingDateStatuses($allocationId) {
+    static function fetchBookingDates($allocationId) {
         global $wpdb;
 
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT DATE_FORMAT(booking_date, '%%d.%%m.%%Y') AS booking_date, status
+            "SELECT DATE_FORMAT(booking_date, '%%d.%%m.%%Y') AS booking_date, status, checked_out
                FROM ".$wpdb->prefix."bookingdates
               WHERE allocation_id = %d
               ORDER BY booking_date", $allocationId));
@@ -702,7 +707,11 @@ error_log("calculating state returned ".$allocCell->renderState);
 
         $return_val = array();
         foreach ($resultset as $res) {
-            $return_val[$res->booking_date] = $res->status;
+            $return_val[$res->booking_date] = new BookingDate(
+                    $allocationId, 
+                    DateTime::createFromFormat('!d.m.Y', $res->booking_date, new DateTimeZone('UTC')), 
+                    $res->status,
+                    $res->checked_out == 'Y' ? true : false);
         }
         return $return_val;
     }
@@ -747,7 +756,14 @@ error_log("calculating state returned ".$allocCell->renderState);
                FROM ".$wpdb->prefix."booking b
                JOIN ".$wpdb->prefix."allocation a ON b.booking_id = a.booking_id
                JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
-               WHERE b.booking_id = %d", $bookingId));
+              WHERE b.booking_id = %d
+              UNION ALL
+             SELECT DISTINCT 'checked-out' as status
+               FROM ".$wpdb->prefix."booking b
+               JOIN ".$wpdb->prefix."allocation a ON b.booking_id = a.booking_id
+               JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
+              WHERE b.booking_id = %d
+                AND d.checked_out = 'Y'", $bookingId, $bookingId));
         
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);

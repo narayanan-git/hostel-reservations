@@ -1029,6 +1029,9 @@ text-align: center !important;
 .wpdevbk .booking-listing-collumn .label-cancelled {
     background: none repeat scroll 0 0 rgb(190,190,190);
 }
+.wpdevbk .booking-listing-collumn .label-checkedout {
+    background: none repeat scroll 0 0 rgb(127,127,127);
+}
 .booking-listing-collumn .cost-fields-group{
     color: #444444;
     font-size: 15px;

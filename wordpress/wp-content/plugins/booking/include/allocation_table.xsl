@@ -67,6 +67,10 @@
             <div class="block_booked legend_date_status_cancelled">NS</div>
             <div class="block_text">- No Show/Cancelled</div>
         </div>
+        <div class="wpdev_hint_with_text">
+            <div class="block_booked legend_checkedout"><xsl:comment/></div>
+            <div class="block_text">- Checked Out</div>
+        </div>
     </div>
     <div class="wpdev_clear_hint"><xsl:comment/></div>
 </xsl:if>  
@@ -154,7 +158,33 @@
 <!-- adds table entries for each allocation in the availability table -->
 <xsl:template mode="allocation_date" match="date">
     <td>
-        <xsl:attribute name="class">avail_date_attrib date_status_<xsl:value-of select="@state"/></xsl:attribute>
+        <xsl:attribute name="class">
+            avail_date_attrib 
+                <xsl:choose>
+                    <!-- only these states can be checkedout -->
+                    <xsl:when test="@state = 'hours' or @state = 'free' or @state = 'paid'">
+                        date_status_<xsl:if test="@checkedout = 'true'">checkout_</xsl:if><xsl:value-of select="@state"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        date_status_<xsl:value-of select="@state"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+        </xsl:attribute>
+        <div style="position:relative;">
+            <xsl:if test="@checkedoutset">
+                <a href="javascript:toggle_checkout_on_booking_date({../../rowid}, '{.}');" class="checkout_link">
+                    <xsl:attribute name="title">
+                        <xsl:if test="@checkedoutset = 'false'">Checkout</xsl:if>
+                        <xsl:if test="@checkedoutset = 'true'">Undo Checkout</xsl:if>
+                    </xsl:attribute>
+                    <xsl:if test="@checkedoutset = 'false'">
+                        <img class="checkout" alt=""/>
+                    </xsl:if>
+                    <xsl:if test="@checkedoutset = 'true'">
+                        <img class="uncheckout" alt=""/>
+                    </xsl:if>
+                </a>
+            </xsl:if>
             <a href="javascript:toggle_booking_date({../../rowid}, '{.}');">
                 <xsl:if test="@state = 'available'">
                     <xsl:value-of select="substring-before(., '.')"/>
@@ -165,6 +195,7 @@
                 <xsl:if test="@state = 'hours'">H</xsl:if>
                 <xsl:if test="@state = 'cancelled'">NS</xsl:if>
             </a>
+        </div>
     </td>
 </xsl:template>
 

@@ -73,14 +73,21 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
     
     /**
      * This will update the state of a booking allocation.
-     * Rules:
-     *    if date is in the future, this will add/remove the current allocation at this date
-     *    if date is today, this will toggle state between checkedin, checkedout, noshow
-     *    if date is in the past, this will do nothing
+     * $rowid : unique id of allocation row
+     * $dt : date if format 'd.m.Y'
      * Returns: state of current allocation on this date (one of 'pending', 'available', 'checkedin', 'checkedout', 'noshow')
      */
     function toggleBookingStateAt($rowid, $dt) {
         return $this->allocationTable->toggleBookingStateAt($rowid, $dt);
+    }
+    
+    /**
+     * This will toggle the checkout state of a booking allocation for a set of contiguous dates.
+     * $rowid : unique id of allocation row
+     * $dt : date if format 'd.m.Y'
+     */
+    function toggleCheckoutOnBookingDate($rowid, $dt) {
+        $this->allocationTable->toggleCheckoutOnBookingDate($rowid, $dt);
     }
     
     /**

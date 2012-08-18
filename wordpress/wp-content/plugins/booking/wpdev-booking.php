@@ -335,6 +335,9 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/xsl_transform.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/xsl_transform.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/booking_date.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/booking_date.class.php' ); }
+
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_row.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_row.class.php' ); }
 

@@ -3818,6 +3818,7 @@ error_log('booking_is_not_load_bs_script_in_client');
                             allocation_id bigint(20) unsigned NOT NULL,
                             booking_date date NOT NULL,
                             status varchar(10) NOT NULL,
+                            checked_out varchar(1) NULL,
                             created_by varchar(20) NOT NULL,
                             created_date datetime NOT NULL,
                             last_updated_by varchar(20) NOT NULL,

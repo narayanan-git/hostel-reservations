@@ -13,7 +13,7 @@ class AllocationRow {
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
-    var $bookingDateStatus = array();  // key = booking date, value = status
+    var $bookingDates = array();  // key = booking date (d.m.Y), value = BookingDate()
     private $resourceMap;  // array of resource_id -> resource recordset
     private $STATUSES = array('reserved', 'paid', 'free', 'hours', 'cancelled'); 
 
@@ -43,27 +43,47 @@ class AllocationRow {
      * $dt  date string in format dd.MM.yyyy
      */
     function toggleStatusForDate($dt) {
-error_log("in toggleStatusForDate $dt");
-        if(false === isset($this->bookingDateStatus[$dt])) {
-error_log("$dt not set, setting to ".$this->STATUSES[0]);
-            $this->bookingDateStatus[$dt] = $this->STATUSES[0];
+        // new date to be added, toggle status
+        if(false === isset($this->bookingDates[$dt])) {
+            $this->bookingDates[$dt] = new BookingDate(
+                    $this->id, 
+                    DateTime::createFromFormat('!d.m.Y', $dt, new DateTimeZone('UTC')), 
+                    $this->STATUSES[0]);
 
+        // if we had it reset by cycling, reset to start
+        } else if ($this->bookingDates[$dt]->status == '') {
+            $this->bookingDates[$dt]->status = $this->STATUSES[0];
+           
+        // status already set, cycle it
         } else {
-error_log("$dt set");
-            $key = array_search($this->bookingDateStatus[$dt], $this->STATUSES);
-error_log("key is $key");
+            $key = array_search($this->bookingDates[$dt]->status, $this->STATUSES);
             
-            // if we are at the end of STATUSES, unset the date so it's "available"
+            // if we are at the end of STATUSES, set the status to null so it's available
             if ($key === sizeof($this->STATUSES) - 1) {
-error_log("end of the line, unsetting $dt");
-                unset($this->bookingDateStatus[$dt]);
+                $this->bookingDates[$dt]->status = null;
             } else {
-                $this->bookingDateStatus[$dt] = $this->STATUSES[$key + 1];
-error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
+                $this->bookingDates[$dt]->status = $this->STATUSES[$key + 1];
             }
-            //TODO: if 'C' check if is @ start of block and cancel all subsequent dates
         }
-        return $this->bookingDateStatus[$dt];
+        return $this->bookingDates[$dt]->status;
+    }
+
+    /**
+     * Toggles the checkout status for the contiguous block of dates on this allocation row.
+     * $dt  date string in format dd.MM.yyyy
+     */
+    function toggleCheckoutStatusForDate($dt) {
+        if (isset($this->bookingDates[$dt])) {
+            $this->bookingDates[$dt]->checkedOut = ! $this->bookingDates[$dt]->checkedOut;
+            
+            // now go back in time and set the same checkout status until we run out of dates
+            $dateRunner = DateTime::createFromFormat('!d.m.Y', $dt, new DateTimeZone('UTC'));
+            $dateRunner->sub(new DateInterval('P1D'));
+            while (isset($this->bookingDates[$dateRunner->format('d.m.Y')])) {
+                $this->bookingDates[$dateRunner->format('d.m.Y')]->checkedOut = $this->bookingDates[$dt]->checkedOut;
+                $dateRunner->sub(new DateInterval('P1D'));
+            }
+        }
     }
 
     /**
@@ -73,9 +93,9 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
      */
     function isExistsBooking($dt = '') {
         if($dt == '') {
-            return sizeof($this->bookingDateStatus) > 0;
+            return sizeof($this->bookingDates) > 0;
         }
-        return isset($this->bookingDateStatus[$dt]);
+        return isset($this->bookingDates[$dt]);
     }
     
     /**
@@ -97,10 +117,9 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
      */
     function getMinDate() {
         $result = null;
-        foreach ($this->bookingDateStatus as $bookingDate => $status) {
-            $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
-            if($result == null || $bd < $result) {
-                $result = $bd;
+        foreach ($this->bookingDates as $bd) {
+            if($result == null || $bd->bookingDate < $result) {
+                $result = $bd->bookingDate;
             }
         }
         return $result;
@@ -111,10 +130,9 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
      */
     function getMaxDate() {
         $result = null;
-        foreach ($this->bookingDateStatus as $bookingDate => $status) {
-            $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
-            if($result == null || $bd > $result) {
-                $result = $bd;
+        foreach ($this->bookingDates as $bd) {
+            if($result == null || $bd->bookingDate > $result) {
+                $result = $bd->bookingDate;
             }
         }
         return $result;
@@ -124,7 +142,7 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
      * Returns array of booking dates (string) for this AllocationRow.
      */
     function getBookingDates() {
-        return array_keys($this->bookingDateStatus);
+        return array_keys($this->bookingDates);
     }
     
     /**
@@ -133,9 +151,8 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
     function getNumBookingsBeforeMinDate() {
         $result = 0;
         if($this->showMinDate != null) {
-            foreach ($this->bookingDateStatus as $bookingDate => $status) {
-                $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
-                if($bd < $this->showMinDate) {
+            foreach ($this->bookingDates as $bd) {
+                if($bd->bookingDate < $this->showMinDate) {
                     $result++;
                 }
             }
@@ -149,9 +166,8 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
     function getNumBookingsAfterMaxDate() {
         $result = 0;
         if($this->showMaxDate != null) {
-            foreach ($this->bookingDateStatus as $bookingDate => $status) {
-                $bd = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
-                if($bd > $this->showMaxDate) {
+            foreach ($this->bookingDates as $bd) {
+                if($bd->bookingDate > $this->showMaxDate) {
                     $result++;
                 }
             }
@@ -176,14 +192,21 @@ error_log("toggleStatusForDate $dt setting to ".$this->bookingDateStatus[$dt]);
 error_log("inserted allocation $allocationId");
 
             // then create the booking dates for the allocation
-            $this->isAvailable = AllocationDBO::insertBookingDates($mysqli, $allocationId, $this->bookingDateStatus);
+            $this->isAvailable = AllocationDBO::insertBookingDates($mysqli, $allocationId, $this->bookingDates);
 
         } else { // update the existing allocation
             AllocationDBO::updateAllocation($mysqli, $this->id, $this->resourceId, $this->name, $this->resourceMap);
 error_log("updating allocation $this->id");
 
+            // clear out those with blank statuses (these are dates now marked as 'available')
+            foreach ($this->bookingDates as $dt => $bookingDate) {
+                if ($bookingDate->status == '') {
+                    unset($this->bookingDates[$dt]);
+                }
+            }
+
             // diff existing booking dates with the ones we want to save
-            $this->isAvailable = AllocationDBO::mergeUpdateBookingDates($mysqli, $this->id, $this->bookingDateStatus);
+            $this->isAvailable = AllocationDBO::mergeUpdateBookingDates($mysqli, $this->id, $this->bookingDates);
         }
 
         return $allocationId;
@@ -230,10 +253,31 @@ error_log("updating allocation $this->id");
         while ($dt < $this->showMaxDate) {
             $dateElem = $dateRow->appendChild($domtree->createElement('date', $dt->format('d.m.Y')));
             
-            if(isset($this->bookingDateStatus[$dt->format('d.m.Y')])) {   // also means that booking exists on this date
+            if(isset($this->bookingDates[$dt->format('d.m.Y')])) {   // booking exists on this date
                 $attrState = $domtree->createAttribute('state');
-                $attrState->value = $this->bookingDateStatus[$dt->format('d.m.Y')];
+                $attrState->value = $this->bookingDates[$dt->format('d.m.Y')]->status;
+                if ($attrState->value == '') {   // status has been reset
+                    $attrState->value = 'available';
+                }
                 $dateElem->appendChild($attrState);
+                
+                // this flag is used to show a checkedout allocation as a different colour (for a block of dates)
+                $attrCheckedOut = $domtree->createAttribute('checkedout');
+                $attrCheckedOut->value = $this->bookingDates[$dt->format('d.m.Y')]->checkedOut ? 'true' : 'false';
+                $dateElem->appendChild($attrCheckedOut);
+                        
+                // if booking date is Paid/Hours/Free and no booking on the following date, then it is a "checkout" day
+                // append the "checkedoutset" attribute if it exists so we can display an icon to checkout/un-checkout
+                if ($attrState->value == 'paid' || $attrState->value == 'hours' || $attrState->value == 'free') {
+                    $dt_after = clone $dt;
+                    $dt_after->add(new DateInterval('P1D'));
+                    if (false === isset($this->bookingDates[$dt_after->format('d.m.Y')]) 
+                            || $this->bookingDates[$dt_after->format('d.m.Y')]->status == '') {
+                        $attrCheckedOutSet = $domtree->createAttribute('checkedoutset');
+                        $attrCheckedOutSet->value = $this->bookingDates[$dt->format('d.m.Y')]->checkedOut ? 'true' : 'false';
+                        $dateElem->appendChild($attrCheckedOutSet);
+                    }
+                }
 
             } else { // booking doesn't exist
                 $attrState = $domtree->createAttribute('state');
@@ -258,8 +302,8 @@ error_log("updating allocation $this->id");
             <bookingsAfterMaxDate>3</bookingsAfterMaxDate>
             <isAvailable>true</isAvailable>
             <dates>
-                <date state="reserved">15.08.2012</date>
-                <date state="reserved">16.08.2012</date>
+                <date state="paid" checkedout="true">15.08.2012</date>
+                <date state="paid" checkedout="true" checkedoutset="true">16.08.2012</date>
             </dates>
         </allocation>
      */
