@@ -691,6 +691,27 @@
             }
         });
     }
+    
+    // this will toggle the checkout status of an allocation from the allocation view
+    // resource_id : id of resource allocation belongs to
+    // allocation_id : id of allocation
+    // posn : 0-based index of *date* where the checkout status was toggled.
+    //        this is required as it is possible to have multiple checkout dates for a single allocation.
+    function toggle_checkout_for_allocation(resource_id, allocation_id, posn) {
+
+        jQuery.ajax({                                           // Start Ajax Sending
+            url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+            type:'POST',
+            success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+            error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+            data:{
+                ajax_action : 'TOGGLE_CHECKOUT_FOR_ALLOCATION',
+                resource_id : resource_id,
+                allocation_id : allocation_id,
+                posn : posn
+            }
+        });
+    }
 
     /**
      * This will shift the dates on the calendar.

@@ -6,8 +6,8 @@
 class BookingDate {
     var $allocationId;
     var $bookingDate;  // DateTime
-    var $status;
-    var $checkedOut;
+    var $status;  // paid, free, reserved, etc..
+    var $checkedOut;  // null or boolean
     
     /**
      * Default constructor.

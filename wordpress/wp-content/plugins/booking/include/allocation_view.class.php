@@ -57,7 +57,21 @@ class AllocationView {
             }
         }
     }
+    
+    /**
+     * Toggles the checkout state of the given allocation and position in allocationCells.
+     * $allocationId : id of allocation
+     * $posn : position within allocationCells to toggle (multiple checkout dates may be possible for any given allocation)
+     */
+    function toggleCheckoutOnBookingDate($allocationId, $posn) {
+    
+        // find out the date that was toggled by adding the offset to minDate
+        $checkoutDate = clone $this->showMinDate;
+        $checkoutDate->add(new DateInterval('P'.$posn.'D'));
 
+        AllocationDBO::toggleCheckoutOnBookingDate($allocationId, $checkoutDate);
+    }
+    
     /**
      * Adds this AllocationView to the DOMDocument/XMLElement specified.
      * See toXml() for details.
@@ -76,26 +90,8 @@ class AllocationView {
         foreach ($this->bookingResources as $book) {
             $book->addSelfToDocument($domtree, $xmlRoot);
         }
-
-        // build dateheaders to be used to display availability table
-        if($this->showMinDate != null && $this->showMaxDate != null) {
-            $dateHeaders = $xmlRoot->appendChild($domtree->createElement('dateheaders'));
-            
-            // if spanning more than one month, print out both months
-            if($this->showMinDate->format('F') !== $this->showMaxDate->format('F')) {
-                $dateHeaders->appendChild($domtree->createElement('header', $this->showMinDate->format('F') . ' - ' . $this->showMaxDate->format('F')));
-            } else {
-                $dateHeaders->appendChild($domtree->createElement('header', $this->showMinDate->format('F')));
-            }
-            
-            $dt = clone $this->showMinDate;
-            while ($dt <= $this->showMaxDate) {
-                $dateElem = $dateHeaders->appendChild($domtree->createElement('datecol'));
-                $dateElem->appendChild($domtree->createElement('date', $dt->format('d')));
-                $dateElem->appendChild($domtree->createElement('day', $dt->format('D')));
-                $dt->add(new DateInterval('P1D'));  // increment by day
-            }
-        }
+        
+        self::addDateHeadersToDocument($domtree, $xmlRoot, $this->showMinDate, $this->showMaxDate);
 
         // count total number of free beds
         $totalfreebeds = array();
@@ -113,6 +109,47 @@ class AllocationView {
         $freebeds = $totals->appendChild($domtree->createElement('freebeds'));
         foreach ($totalfreebeds as $tfb) {
             $freebeds->appendChild($domtree->createElement('freebed', $tfb));
+        }
+    }
+    
+    /**
+     * Adds the <dateheaders> element to the DOMDocument/XMLElement specified.
+     * <dateheaders>
+           <header>July - August</header>
+           <datecol>
+               <date>27</date>
+               <day>Fri</day>
+           </datecol>
+           <datecol>
+               <date>28</date>
+               <day>Sat</day>
+           </datecol>
+           ...
+     * </dateheaders>
+     * $domtree : DOM document root
+     * $parentElement : DOM element where this object will be added
+     * $minDate : first date inclusive (DateTime)
+     * $maxDate : last date inclusive (DateTime)
+     */
+    static function addDateHeadersToDocument($domtree, $parentElement, $minDate, $maxDate) {
+        // build dateheaders to be used to display availability table
+        if($minDate != null && $maxDate != null) {
+            $dateHeaders = $parentElement->appendChild($domtree->createElement('dateheaders'));
+            
+            // if spanning more than one month, print out both months
+            if($minDate->format('F') !== $maxDate->format('F')) {
+                $dateHeaders->appendChild($domtree->createElement('header', $minDate->format('F') . ' - ' . $maxDate->format('F')));
+            } else {
+                $dateHeaders->appendChild($domtree->createElement('header', $minDate->format('F')));
+            }
+            
+            $dt = clone $minDate;
+            while ($dt <= $maxDate) {
+                $dateElem = $dateHeaders->appendChild($domtree->createElement('datecol'));
+                $dateElem->appendChild($domtree->createElement('date', $dt->format('d')));
+                $dateElem->appendChild($domtree->createElement('day', $dt->format('D')));
+                $dt->add(new DateInterval('P1D'));  // increment by day
+            }
         }
     }
 

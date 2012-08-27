@@ -94,6 +94,7 @@
         <!-- if we are one level up from a leaf (room), then we generate a single table containing all children (beds) -->
         <xsl:when test="resource/cells/allocationcell">
             <br/>
+            <div id="table_resource_{id}">
             <table width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tbody>
                     <tr valign="top">
@@ -117,6 +118,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
         </xsl:when>
         <xsl:otherwise>
             <!-- recurse if required -->
@@ -167,7 +169,21 @@
             <xsl:attribute name="colspan"><xsl:value-of select="@span"/></xsl:attribute>
         </xsl:if>
         <xsl:if test="id &gt; 0">
-            <a class="booking_item {render} status_{status}"><xsl:value-of select="name"/>&#160;</a>
+            <a>
+                <xsl:attribute name="class">
+                    booking_item <xsl:value-of select="render"/> status_<xsl:value-of select="status"/><xsl:if test="checkedout = 'true'">_checkout</xsl:if>
+                </xsl:attribute>
+                <xsl:value-of select="name"/>&#160;
+            </a>
+        </xsl:if>
+        <xsl:if test="render = 'rounded_both' or render = 'rounded_right'">
+            <xsl:if test="status = 'free' or status = 'hours' or status = 'paid'">
+                <div style="position:relative;">
+                    <a href="javascript:toggle_checkout_for_allocation({../../../id}, {id}, {count(preceding-sibling::allocationcell)});" class="checkout_link" title="checkout/uncheckout">
+                        <img class="toggle_checkout" alt=""/>
+                    </a>
+                </div>
+            </xsl:if>
         </xsl:if>
     </td>
 </xsl:template>

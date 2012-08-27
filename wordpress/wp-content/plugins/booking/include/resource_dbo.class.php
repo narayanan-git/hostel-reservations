@@ -30,8 +30,8 @@ class ResourceDBO {
                FROM ".$wpdb->prefix."v_resources_by_path r
                LEFT OUTER JOIN ".$wpdb->prefix."bookingresources rp ON r.parent_resource_id = rp.resource_id
                     ". ($resourceId == null ? "" : "
-                            WHERE ((r.path LIKE '%%/$resourceId' AND r.number_children = 0)
-                                OR (r.path LIKE '%%/$resourceId/%%' AND r.number_children = 0))") . "
+                            WHERE (r.path LIKE '%%/$resourceId'
+                                OR r.path LIKE '%%/$resourceId/%%')") . "
               ORDER BY r.path"));
         
         if($wpdb->last_error) {
@@ -152,11 +152,12 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
         $return_val_map = array();  // map of all resource id => BookingResource in return_val
         foreach (ResourceDBO::getAllResources($resourceId) as $res) {
             $br = new BookingResource($res->resource_id, $res->name, $res->lvl, $res->path, $res->number_children, $res->resource_type);
-            if ($br->level == 1) {  // root element
-                $return_val[] = $br;
-            } else { // child of root
-                // if paths are correct, parent_resource_id will always be set
+
+            // if parent exists, add child to parent... otherwise set it as root
+            if ($res->parent_resource_id != '' && isset($return_val_map[$res->parent_resource_id])) {
                 $return_val_map[$res->parent_resource_id]->addChildResource($br);
+            } else {
+                $return_val[] = $br;
             }
             
             if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId]) && $br->type == 'bed') {

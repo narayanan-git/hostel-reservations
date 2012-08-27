@@ -640,14 +640,35 @@ table.allocation_view a.status_paid {
     background-color: rgb(146,209,140);
 }
 
+table.allocation_view a.status_paid_checkout {
+    background:url("../../img/checkout_paid.png") repeat; 
+}
+
 table.allocation_view a.status_free {
     background-color: rgb(141,200,213);
+}
+
+table.allocation_view a.status_free_checkout {
+    background:url("../../img/checkout_free.png") repeat; 
 }
 
 table.allocation_view a.status_hours {
     background-color: rgb(219,235,109);
 }
 
+table.allocation_view a.status_hours_checkout {
+    background:url("../../img/checkout_hours.png") repeat; 
+}
+
 table.allocation_view a.status_cancelled {
-    background-color: rgb(190,190,190);
+    background-color: rgb(190,190,190);    
+}
+
+img.toggle_checkout {
+    background: url('../../img/red_x.gif') no-repeat;
+	width:10px; 
+	height:10px;
+	position:absolute;
+	top:-14px;
+	right:6px; 
 }

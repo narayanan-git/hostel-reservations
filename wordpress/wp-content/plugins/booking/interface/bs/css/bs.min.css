@@ -53,12 +53,12 @@
 	bottom: -0.25em
 }
 
-.wpdevbk img {
+/*.wpdevbk img {
 	max-width: 100%;
 	height: auto;
 	border: 0;
 	-ms-interpolation-mode: bicubic
-}
+}*/
 
 .wpdevbk button,.wpdevbk input,.wpdevbk select,.wpdevbk textarea {
 	margin: 0;

@@ -6,16 +6,20 @@
 class AllocationCell {
     var $id;  // allocation id
     var $name;
-    var $status;  // checkedin, checkedout, pending, etc
+    var $status;  // booking date status (e.g. paid, hours, reserved, etc..)
     var $gender;
     var $renderState;  // one of 'rounded_left', 'rounded_right', 'rounded_both', 'rounded_neither'
+    var $checkedOut;   // checked out status : null or boolean
 
-    function AllocationCell($id = 0, $name = null, $gender = null, $status = 'reserved', $renderState = null) {
+    function AllocationCell($id = 0, $name = null, $gender = null, $status = 'reserved', $renderState = null, $checkedOut = null) {
         $this->id = $id;
         $this->name = $name;
         $this->gender = $gender;
         $this->status = $status;
         $this->renderState = $renderState;
+        if ($checkedOut != null) {
+            $this->checkedOut = $checkedOut;
+        }
     }
     
     /**
@@ -36,6 +40,9 @@ class AllocationCell {
             $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
             $xmlRoot->appendChild($domtree->createElement('status', $this->status));
             $xmlRoot->appendChild($domtree->createElement('render', $this->renderState));
+            if ($this->checkedOut != null) {
+                $xmlRoot->appendChild($domtree->createElement('checkedout', $this->checkedOut ? 'true' : 'false'));
+            }
         }
     }
     
@@ -47,7 +54,8 @@ class AllocationCell {
             <gender>Female</gender>
             <status>paid</status>
             <render>rounded_left</render>
-        </allocation>
+            <checkedout>false</checkedout>
+        </allocationcell>
      */
     function toXml() {
         /* create a dom document with encoding utf8 */

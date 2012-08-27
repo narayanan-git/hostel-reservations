@@ -518,13 +518,13 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         $resourceToBookingDateAllocationMap = array();
 
         foreach ($resultset as $res) {
-            foreach (AllocationDBO::fetchBookingDates($res->allocation_id) as $bookingDate => $bdObj) {
+            foreach (self::fetchBookingDates($res->allocation_id) as $bookingDate => $bdObj) {
                 $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
-                    new AllocationCell($res->allocation_id, $res->guest_name, $res->gender, $bdObj->status);
+                    new AllocationCell($res->allocation_id, $res->guest_name, $res->gender, $bdObj->status, null, $bdObj->checkedOut);
             }
         }
         
-        return AllocationDBO::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
+        return self::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
 //        $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceToBookingDateAllocationMap);
 //debuge("bookingresources", $bookingResources);
 //        return $bookingResources;
@@ -556,7 +556,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
                 if(isset($resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')])) {
                     $allocCell = $resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')];
                     
-                    $allocCell->renderState = AllocationDBO::getRenderStateForAllocation(
+                    $allocCell->renderState = self::getRenderStateForAllocation(
                         $resourceToBookingDateAllocationMap, $resourceId, $start);
 
                     // if we are continuing an existing record, blank out name/gender so we don't display it
@@ -679,7 +679,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $resourceMap);
             $ar->id = $res->allocation_id;
             if ($loadBookingDates) {
-                $ar->bookingDates = AllocationDBO::fetchBookingDates($res->allocation_id);
+                $ar->bookingDates = self::fetchBookingDates($res->allocation_id);
             }
             $return_val[$ar->id] = $ar;
             $ar->rowid = $ar->id;
@@ -802,6 +802,52 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             $return_val[] = DateTime::createFromFormat('!d.m.Y', $res->booking_date, new DateTimeZone('UTC'));
         }
         return $return_val;
+    }
+    
+    /**
+     * Toggles the checkout status for the given allocation id and checkout date.
+     * This will toggle the status for the contiguous block of dates up to and including the checkout date
+     * which are currently set at 'P'aid, 'H'ours or 'F'ree.
+     * $allocationId : id of allocation to toggle
+     * $checkoutDate : date of checkout (DateTime) (multiple checkout days may exist for any particular allocation)
+     */
+    static function toggleCheckoutOnBookingDate($allocationId, $checkoutDate) {
+        global $wpdb;
+        $bookingDates = self::fetchBookingDates($allocationId);
+        
+        if (isset($bookingDates[$checkoutDate->format('d.m.Y')])) {
+        
+            $toggledState = $bookingDates[$checkoutDate->format('d.m.Y')]->checkedOut ? 'N' : 'Y';
+            
+            // collect the contiguous dates on or before the checkoutDate
+            $dateStr = "";
+            for ($dateRunner = clone $checkoutDate; 
+                    isset($bookingDates[$dateRunner->format('d.m.Y')]); 
+                    $dateRunner->sub(new DateInterval('P1D'))) {
+                $bdObj = $bookingDates[$dateRunner->format('d.m.Y')];
+                
+                // additional break when status is not a valid paid status
+                if($bdObj->status != 'paid' && $bdObj->status != 'hours' && $bdObj->status != 'free')
+                    break;
+
+                $dateStr .= 'STR_TO_DATE("'.$dateRunner->format('d.m.Y').'", "%%d.%%m.%%Y"),';
+            }
+            $dateStr = rtrim($dateStr, ',');
+    
+            if ($dateStr != '') {
+                $userLogin = wp_get_current_user()->user_login;
+                if( false === $wpdb->query($wpdb->prepare(
+                        "UPDATE ".$wpdb->prefix."bookingdates
+                            SET checked_out = %s,
+                                last_updated_by = %s,
+                                last_updated_date = NOW()
+                          WHERE booking_date IN ($dateStr)
+                            AND allocation_id = %d", $toggledState, $userLogin, $allocationId))) {
+                    error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+                    throw new DatabaseException("Error occurred checking out allocation $allocationId:".$wpdb->last_error);
+                } 
+            }
+        } 
     }
 }
 
