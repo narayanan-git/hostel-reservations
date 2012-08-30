@@ -139,42 +139,12 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
     }
     
     /**
-     * Fetches available resource objects by parent resource id.
-     * The result will be a nested tree based on their path.
-     * $resourceId : id of (parent) resource (if not provided, will return all resources)
-     * $allocationCellMap : 2D map of resource id, date [d.m.Y] => array() of AllocationCell to populate for any matched resource
-     * Returns array of BookingResource
-     */
-    static function getBookingResourcesById($resourceId = null, $allocationCellMap = null) {
-        
-        // resources are path-ordered
-        $return_val = array();
-        $return_val_map = array();  // map of all resource id => BookingResource in return_val
-        foreach (ResourceDBO::getAllResources($resourceId) as $res) {
-            $br = new BookingResource($res->resource_id, $res->name, $res->lvl, $res->path, $res->number_children, $res->resource_type);
-
-            // if parent exists, add child to parent... otherwise set it as root
-            if ($res->parent_resource_id != '' && isset($return_val_map[$res->parent_resource_id])) {
-                $return_val_map[$res->parent_resource_id]->addChildResource($br);
-            } else {
-                $return_val[] = $br;
-            }
-            
-            if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId]) && $br->type == 'bed') {
-                $br->setAllocationCells($allocationCellMap[$br->resourceId]);
-            }
-            $return_val_map[$res->resource_id] = $br;
-        }
-        return $return_val;
-    }
-    
-    /**
      * Returns all resources mapped by ID.
      * Returns (array of) id -> resource name
      */
     static function getResourceMap() {
         $result = array();
-        foreach (ResourceDBO::getAllResources() as $res) {
+        foreach (self::getAllResources() as $res) {
             $result[$res->resource_id] = $res->name;
         }
         return $result;
@@ -197,15 +167,15 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
             if ($resourceType == 'private' || $resourceType == 'room') {
         
                 // first insert the parent record
-                $newId = ResourceDBO::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
+                $newId = self::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
                 
                 // insert a record for each 'bed' in the room
                 for($i = 0; $i < $capacity; $i++) {
-                    ResourceDBO::insertResourceDb($dblink->mysqli, 'Bed-'.($i+1), $newId, 'bed');
+                    self::insertResourceDb($dblink->mysqli, 'Bed-'.($i+1), $newId, 'bed');
                 }
             }
             else {
-                $newId = ResourceDBO::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
+                $newId = self::insertResourceDb($dblink->mysqli, $name, $parentResourceId, $resourceType);
             }
 
         } catch(Exception $ex) {

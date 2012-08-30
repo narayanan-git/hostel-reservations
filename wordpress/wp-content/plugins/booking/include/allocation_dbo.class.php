@@ -524,10 +524,10 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             }
         }
         
-        return self::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
-//        $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceToBookingDateAllocationMap);
-//debuge("bookingresources", $bookingResources);
-//        return $bookingResources;
+//error_log('processed allocations and dates, building resource tree');
+        $return_val = self::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
+//error_log('END getAllocationsByResourceForDateRange');
+        return $return_val;
     }
     
     /**
@@ -543,13 +543,12 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
     private static function buildResourceTree($startDate, $endDate, $filteredResourceId, $resourceToBookingDateAllocationMap) {
         // to make it easier to render the front-end table, we will create table "cells"
         // for all dates from $startDate to $endDate for each resource
-//debuge("buildResourceTree: ".$startDate->format('d.m.Y')." to ".$endDate->format('d.m.Y')." for $filteredResourceId ",
-//                $resourceToBookingDateAllocationMap);
-        // another 2D map, to store the final allocation "cells"
 
+        // another 2D map, to store the final allocation "cells"
         $resourceBookingDateMap = array();
         
-        foreach (array_keys(ResourceDBO::getAllResources($filteredResourceId)) as $resourceId) {
+        $resourceMap = ResourceDBO::getAllResources($filteredResourceId);
+        foreach (array_keys($resourceMap) as $resourceId) {
             $start = clone $startDate;  // we will incrementally move $start until $start = $endDate
 
             while ($start <= $endDate) {
@@ -575,11 +574,40 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
                 $start->add(new DateInterval('P1D'));  // increment by day
             }
         }
-//debuge("resourceBookingDateMap ", $resourceBookingDateMap);
+
         // now get all the resources an bind the allocations above to them
-        $bookingResources = ResourceDBO::getBookingResourcesById($filteredResourceId, $resourceBookingDateMap);
-//debuge("bookingresources", $bookingResources);
+        $bookingResources = self::getBookingResourcesById($resourceMap, $resourceBookingDateMap);
         return $bookingResources;
+    }
+    
+    /**
+     * Fetches available resource objects by parent resource id.
+     * The result will be a nested tree based on their path.
+     * $resourceMap : array() of resource recordset indexed by resource id
+     * $allocationCellMap : 2D map of resource id, date [d.m.Y] => array() of AllocationCell to populate for any matched resource
+     * Returns array of BookingResource
+     */
+    private static function getBookingResourcesById($resourceMap, $allocationCellMap) {
+        
+        // resources are path-ordered
+        $return_val = array();
+        $return_val_map = array();  // map of all resource id => BookingResource in return_val
+        foreach ($resourceMap as $res) {
+            $br = new BookingResource($res->resource_id, $res->name, $res->lvl, $res->path, $res->number_children, $res->resource_type);
+
+            // if parent exists, add child to parent... otherwise set it as root
+            if ($res->parent_resource_id != '' && isset($return_val_map[$res->parent_resource_id])) {
+                $return_val_map[$res->parent_resource_id]->addChildResource($br);
+            } else {
+                $return_val[] = $br;
+            }
+            
+            if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId]) && $br->type == 'bed') {
+                $br->setAllocationCells($allocationCellMap[$br->resourceId]);
+            }
+            $return_val_map[$res->resource_id] = $br;
+        }
+        return $return_val;
     }
     
     /**
