@@ -3,7 +3,7 @@
 /**
  * Encapsulates and renders a view of selected bookings.
  */
-class BookingView {
+class BookingView extends XslTransform {
     private $bookings = array();  // array of BookingSummary
     var $minDate;   // earliest date (DateTime)
     var $maxDate;   // latest date (DateTime)
@@ -108,10 +108,16 @@ class BookingView {
     function toXml() {
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
-        addSelfToDocument($domtree, $domtree);
+        $this->addSelfToDocument($domtree, $domtree);
         return $domtree->saveXML();
     }
     
+    /**
+     * Returns the filename for the stylesheet to use during transform.
+     */
+    function getXslFilename() {
+        return WPDEV_BK_PLUGIN_DIR. '/include/booking_view.xsl';
+    }
 }
 
 ?>

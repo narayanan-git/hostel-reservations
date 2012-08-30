@@ -1203,38 +1203,7 @@ if (empty( $num_per_page_check)) {
 
     // B o o k i n g    L i s t i n g    P A G E
     function wpdevbk_show_booking_listings() {
-
-        if( false === isset($_SESSION['BOOKING_ALLOCATION_VIEW'])) {
-            $_SESSION['BOOKING_ALLOCATION_VIEW'] = new BookingAllocationView();
-        }
-        $bav = $_SESSION['BOOKING_ALLOCATION_VIEW'];
-
-        // if allocation date is defined, we are on the allocations view
-        if (isset($_POST['allocationmindate']) && trim($_POST['allocationmindate']) != '') {
-            $bav->allocationView->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
-            $bav->allocationView->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
-            $bav->allocationView->doSearch();
-            $bav->activeView = BookingAllocationView::ACTIVE_VIEW_ALLOCATION;
-        }
-        
-        // if filter_status is defined, we are on the bookings view
-        if (isset($_POST['filter_status']) && trim($_POST['filter_status']) != '') {
-error_log("filter status is defined");
-//            $bv = new BookingsView();
-            $bav->bookingView->minDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC'));
-            $bav->bookingView->maxDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC'));
-            $bav->bookingView->status = $_POST['filter_status'];
-            $bav->bookingView->matchName = trim($_POST['filter_name']) == '' ? null : $_POST['filter_name'];
-            $bav->bookingView->dateMatchType = $_POST['filter_datetype'];
-//            $bv->resourceId = $_POST['filter_resource_id'];
-            $bav->bookingView->doSearch();
-            $bav->activeView = BookingAllocationView::ACTIVE_VIEW_BOOKING;
-        } else {
-error_log("filter status is not defined");
-        }
-//debuge($_POST);
-error_log($bav->toXml());
-        echo $bav->toHtml();
+        // DEPRECATED: moved to wpdev-booking-class
     }
 
     function wpdevbk_show_booking_listings_OLD() {

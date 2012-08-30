@@ -48,6 +48,7 @@ if (!class_exists('wpdev_booking')) {
             // User defined - hooks
             add_action( 'wpdev_bk_add_calendar', array(&$this,'add_calendar_action') ,10 , 2);
             add_action( 'wpdev_bk_add_form',     array(&$this,'add_booking_form_action') ,10 , 2);
+            add_action( 'wpdev_bk_allocations_view',     array(&$this,'allocations_view_action') ,10 , 2);
 
 
             add_filter( 'wpdev_bk_get_form',     array(&$this,'get_booking_form_action') ,10 , 2);
@@ -673,6 +674,11 @@ if (!class_exists('wpdev_booking')) {
                     WPDEV_BK_FILE . 'wpdev-booking', array(&$this, 'on_show_booking_page_main'),  WPDEV_BK_PLUGIN_URL . '/img/calendar-16x16.png'  );
             add_action("admin_print_scripts-" . $pagehook1 , array( &$this, 'on_add_admin_js_files'));
             
+            ///////////////// ALLOCATIONS VIEW /////////////////////////////////////////////
+            $pagehook6 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Allocations', 'wpdev-booking'), __('Allocations', 'wpdev-booking'), $users_roles[3],
+                    WPDEV_BK_FILE .'wpdev-booking-allocations', array(&$this, 'on_show_booking_page_allocations')  );
+            add_action("admin_print_scripts-" . $pagehook6 , array( &$this, 'on_add_admin_js_files'));
+            
             ///////////////// DAILY SUMMARY /////////////////////////////////////////////
             $pagehook5 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Summary', 'wpdev-booking'), __('Summary', 'wpdev-booking'), $users_roles[3],
                     WPDEV_BK_FILE .'wpdev-booking-summary', array(&$this, 'on_show_daily_summary')  );
@@ -711,25 +717,29 @@ if (!class_exists('wpdev_booking')) {
 
         //Booking
         function on_show_booking_page_main() {
-            $this->on_show_page_adminmenu('wpdev-booking','/img/calendar-48x48.png', __('Bookings and Allocations', 'wpdev-booking'),1);
+            $this->on_show_page_adminmenu('wpdev-booking','/img/calendar-48x48.png', __('Bookings', 'wpdev-booking'),1);
+        }
+        //Allocations
+        function on_show_booking_page_allocations() {
+            $this->on_show_page_adminmenu('wpdev-booking-allocations','/img/calendar-48x48.png', __('Allocations', 'wpdev-booking'),2);
         }
         //Add resrvation
         function on_show_booking_page_addbooking() {
-            $this->on_show_page_adminmenu('wpdev-booking-reservation','/img/add-1-48x48.png', __('Add booking', 'wpdev-booking'),2);
+            $this->on_show_page_adminmenu('wpdev-booking-reservation','/img/add-1-48x48.png', __('Add booking', 'wpdev-booking'),3);
         }
         //Settings
         function on_show_booking_page_settings() {
-            $this->on_show_page_adminmenu('wpdev-booking-option','/img/General-setting-64x64.png', __('Booking settings customizations', 'wpdev-booking'),3);
+            $this->on_show_page_adminmenu('wpdev-booking-option','/img/General-setting-64x64.png', __('Booking settings customizations', 'wpdev-booking'),4);
         }
 
         // Resources
         function on_show_booking_page_resources() {
-            $this->on_show_page_adminmenu('wpdev-booking-resources','/img/Resources-64x64.png', __('Booking resource management', 'wpdev-booking'),4);
+            $this->on_show_page_adminmenu('wpdev-booking-resources','/img/Resources-64x64.png', __('Booking resource management', 'wpdev-booking'),5);
         }
 
         //Daily summary
         function on_show_daily_summary() {
-            $this->on_show_page_adminmenu('wpdev-booking-summary','/img/notebook-48x48.jpg', __('Daily Summary', 'wpdev-booking'),5);
+            $this->on_show_page_adminmenu('wpdev-booking-summary','/img/notebook-48x48.jpg', __('Daily Summary', 'wpdev-booking'),6);
         }
 
         //Show content
@@ -747,13 +757,15 @@ if (!class_exists('wpdev_booking')) {
             switch ($content_type) {
                 case 1: $this->content_of_booking_page();
                     break;
-                case 2: $this->content_of_reservation_page();
+                case 2: $this->content_of_allocations_page();
                     break;
-                case 3: $this->content_of_settings_page();
+                case 3: $this->content_of_reservation_page();
                     break;
-                case 4: $this->content_of_resource_page();
+                case 4: $this->content_of_settings_page();
                     break;
-                case 5: $this->content_of_summary_page();
+                case 5: $this->content_of_resource_page();
+                    break;
+                case 6: $this->content_of_summary_page();
                     break;
                 default: break;
             } ?>
@@ -1476,6 +1488,27 @@ if (!class_exists('wpdev_booking')) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         function content_of_booking_page() {
 
+            if( false === isset($_SESSION['BOOKING_VIEW'])) {
+                $_SESSION['BOOKING_VIEW'] = new BookingView();
+            }
+            $bv = $_SESSION['BOOKING_VIEW'];
+
+            // if filter_status is defined, we are on the bookings view
+            if (isset($_POST['filter_status']) && trim($_POST['filter_status']) != '') {
+                $bv->minDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC'));
+                $bv->maxDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC'));
+                $bv->status = $_POST['filter_status'];
+                $bv->matchName = trim($_POST['filter_name']) == '' ? null : $_POST['filter_name'];
+                $bv->dateMatchType = $_POST['filter_datetype'];
+//            $bv->resourceId = $_POST['filter_resource_id'];
+                $bv->doSearch();
+            } 
+error_log($bv->toXml());
+            echo $bv->toHtml();
+        }
+
+        function content_of_booking_page_OLD() {
+
             // Check if this user ACTIVE and can be at this page in MultiUser version
             $is_can = apply_bk_filter('multiuser_is_user_can_be_here', true, 'check_for_active_users');
             if (! $is_can) return false;
@@ -1511,6 +1544,11 @@ if (!class_exists('wpdev_booking')) {
                     wpdevbk_show_booking_listings();
                     //debugq(); ?>
                </div><?php
+        }
+
+        //Content of the Allocations page
+        function content_of_allocations_page() {
+            do_action('wpdev_bk_allocations_view');
         }
 
         //Content of the Add reservation page
@@ -3240,6 +3278,24 @@ error_log('booking_is_not_load_bs_script_in_client');
             
             echo $_SESSION['ADD_BOOKING_CONTROLLER']->toHtml();
 
+        }
+
+        // show allocations view page
+        function allocations_view_action() {
+            if( false === isset($_SESSION['ALLOCATION_VIEW'])) {
+                $_SESSION['ALLOCATION_VIEW'] = new AllocationView();
+            }
+            $av = $_SESSION['ALLOCATION_VIEW'];
+
+            // if allocation date is defined, we are on the allocations view
+            if (isset($_POST['allocationmindate']) && trim($_POST['allocationmindate']) != '') {
+                $av->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
+                $av->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
+                $av->doSearch();
+            }
+        
+error_log($av->toXml());
+            echo $av->toHtml();
         }
 //////////////////////// END CUSTOM CODE ////////////////////////////
         

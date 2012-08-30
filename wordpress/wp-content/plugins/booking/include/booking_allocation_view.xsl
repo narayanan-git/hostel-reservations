@@ -6,6 +6,8 @@
 // Distributed under the GNU General Public Licence
 //*****************************************************************************
 // View of tabbed screen with allocations and bookings
+//  **** D E P R E C A T E D : This class is no longer used ****
+// **** keeping for records, template for tabbed view ****
 -->
 <xsl:include href="allocation_view.xsl"/>
 <xsl:include href="booking_view.xsl"/>

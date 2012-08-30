@@ -2,6 +2,8 @@
 
 /**
  * Container for both BookingView and AllocationView.
+ * **** D E P R E C A T E D : This class is no longer used ****
+ * **** keeping for records, template for tabbed view ****
  */
 class BookingAllocationView extends XslTransform {
 

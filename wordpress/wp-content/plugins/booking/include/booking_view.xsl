@@ -7,9 +7,70 @@
 //*****************************************************************************
 // View of bookings by room, name...
 -->
+<xsl:include href="inline_scripts.xsl"/>
 
-<!-- tabbed view for "Bookings" -->
-<xsl:template name="show_booking_view">
+<xsl:template match="/bookingview">
+
+    <!-- required for legend... TODO: why do we have admin.css and client.css? -->
+    <link href="/wp-content/plugins/booking/css/client.css" rel="stylesheet" type="text/css" />
+
+    <div class="wpdevbk">
+        <div id="ajax_working"></div>
+        <div class="clear" style="height:1px;"></div>
+        <div id="ajax_respond"></div>
+
+        <!-- define tabs -->
+        <div style="height:1px;clear:both;margin-top:30px;"><xsl:comment/></div>
+        <div id="menu-wpdevplugin">
+            <div class="nav-tabs-wrapper">
+                <div class="nav-tabs">
+
+                    <a title=""  href="#" class="nav-tab nav-tab-active">
+                        <img class="menuicons" src="/wp-content/plugins/booking/img/actionservices24x24.png"/>Bookings
+                    </a>
+                                    
+                    <span class="dropdown pull-right">
+                        <a href="#" data-toggle="dropdown" class="dropdown-toggle nav-tab ">
+                            <img class="menuicons" src="/wp-content/plugins/booking/img/system-help22x22.png"/>Help <span class="caret" style="border-top-color: #333333 !important;"/>
+                        </a>
+                        <ul class="dropdown-menu" id="menu1" style="right:0px; left:auto;">
+                            <li><a href="/help/" target="_blank">Help</a></li>
+                            <li><a href="/faq/" target="_blank">FAQ</a></li>
+                            <li><a href="/support/" target="_blank">Technical Support</a></li>
+                        </ul>
+                    </span>
+
+                </div>
+            </div>
+        </div>
+    
+        <div class="booking-submenu-tab-container" style="">
+            <div class="nav-tabs booking-submenu-tab-insidecontainer">
+
+                <div id="bookings" class="visibility_container active" style="display:block;">
+                    <xsl:call-template name="show_booking_menu_options"/>
+                </div>
+
+                <div class="visibility_container" id="help" style="display:none;"><xsl:comment/></div>
+
+            </div>
+        </div>
+
+        <div style="height:1px;clear:both;margin-top:40px;"><xsl:comment/></div>
+    
+        <div class="visibility_container" id="booking_view" style="display:block;">
+            <xsl:call-template name="bookingview_contents"/>
+            <xsl:comment/>
+        </div>
+    </div>
+
+    <xsl:call-template name="write_inline_js"/>
+    <xsl:call-template name="write_inline_css"/>
+
+</xsl:template>
+
+<!-- filters for "Bookings" page -->
+<xsl:template name="show_booking_menu_options">
 
     <div style="clear:both;height:1px;"><xsl:comment/></div>
     <div class="wpdevbk-filters-section ">
@@ -35,10 +96,10 @@
                         <div class="btn-group">
                             <a href="#" data-toggle="dropdown" id="status_selector" class="btn dropdown-toggle">
                                 <xsl:choose>
-                                    <xsl:when test="/view/bookingview/filter/status = 'reserved'">Reserved</xsl:when>
-                                    <xsl:when test="/view/bookingview/filter/status = 'checkedin'">Checked-In</xsl:when>
-                                    <xsl:when test="/view/bookingview/filter/status = 'checkedout'">Checked-Out</xsl:when>
-                                    <xsl:when test="/view/bookingview/filter/status = 'cancelled'">Cancelled</xsl:when>
+                                    <xsl:when test="filter/status = 'reserved'">Reserved</xsl:when>
+                                    <xsl:when test="filter/status = 'checkedin'">Checked-In</xsl:when>
+                                    <xsl:when test="filter/status = 'checkedout'">Checked-Out</xsl:when>
+                                    <xsl:when test="filter/status = 'cancelled'">Cancelled</xsl:when>
                                     <xsl:otherwise>All <xml:text> </xml:text></xsl:otherwise>
                                 </xsl:choose>
                                 <span class="caret"></span></a>
@@ -50,7 +111,7 @@
                                 <li class="divider"></li>
                                 <li><a href="#" onclick="javascript:jQuery('#status_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_status').val('all');" >All</a></li>
                             </ul>
-                            <input type="hidden" value="{/view/bookingview/filter/status}" id="filter_status" name="filter_status" />
+                            <input type="hidden" value="{filter/status}" id="filter_status" name="filter_status" />
                         </div>
                         <p class="help-block" style="margin-top:0px">Booking Status</p>
                     </div>
@@ -61,7 +122,7 @@
                     <div class="inline controls">
                         <div class="btn-group">
                             <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                                value="{/view/bookingview/filter/bookingmindate}"  id="bookingmindate"  name="bookingmindate" />
+                                value="{filter/bookingmindate}"  id="bookingmindate"  name="bookingmindate" />
                             <span class="add-on"><span class="icon-calendar"></span></span>
                         </div>
                     <p class="help-block" style="text-align:left;padding-left:15px;">Date (from)</p>
@@ -73,7 +134,7 @@
                     <div class="inline controls">
                         <div class="btn-group">
                             <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                                value="{/view/bookingview/filter/bookingmaxdate}"  id="bookingmaxdate"  name="bookingmaxdate" />
+                                value="{filter/bookingmaxdate}"  id="bookingmaxdate"  name="bookingmaxdate" />
                             <span class="add-on"><span class="icon-calendar"></span></span>
                         </div>
                     <p class="help-block" style="text-align:left;padding-left:15px;">Date (to)</p>
@@ -86,9 +147,9 @@
                         <div class="btn-group">
                             <a href="#" data-original-title="Match from/to dates by:&lt;br&gt; Check-In Date: earliest date of any allocation &lt;br&gt; Check-Out Date: latest date of any allocation &lt;br&gt; Reservation Date (Any): any booking that overlaps the dates given &lt;br&gt; Date Added: date booking was created" rel="tooltip" data-toggle="dropdown" id="datetype_selector" class="btn dropdown-toggle tooltip_top">
                                 <xsl:choose>
-                                    <xsl:when test="/view/bookingview/filter/datetype = 'checkout'">Check-Out Date</xsl:when>
-                                    <xsl:when test="/view/bookingview/filter/datetype = 'reserved'">Reservation Date (Any)</xsl:when>
-                                    <xsl:when test="/view/bookingview/filter/datetype = 'creation'">Date Added</xsl:when>
+                                    <xsl:when test="filter/datetype = 'checkout'">Check-Out Date</xsl:when>
+                                    <xsl:when test="filter/datetype = 'reserved'">Reservation Date (Any)</xsl:when>
+                                    <xsl:when test="filter/datetype = 'creation'">Date Added</xsl:when>
                                     <xsl:otherwise>Check-In Date<xml:text> </xml:text></xsl:otherwise>
                                 </xsl:choose>
                                 <span class="caret"></span></a>
@@ -98,7 +159,7 @@
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('reserved');" >Reservation Date (Any)</a></li>
                                 <li><a href="#" onclick="javascript:jQuery('#datetype_selector').html(jQuery(this).html() + ' &lt;span class=&quot;caret&quot;&gt;&lt;/span&gt;');jQuery('#filter_datetype').val('creation');" >Date Added</a></li>
                             </ul>
-                            <input type="hidden" value="{/view/bookingview/filter/datetype}" id="filter_datetype" name="filter_datetype" />
+                            <input type="hidden" value="{filter/datetype}" id="filter_datetype" name="filter_datetype" />
                         </div>
                         <p class="help-block" style="margin-top:0px; text-align:center">Match Dates By</p>
                     </div>
@@ -109,7 +170,7 @@
                     <div class="inline controls">
                         <div class="btn-group">
                             <input style="width:140px;" type="text" class="span2span2"  placeholder=""
-                                value="{/view/bookingview/filter/matchname}"  id="filter_name"  name="filter_name" />
+                                value="{filter/matchname}"  id="filter_name"  name="filter_name" />
                         </div>
                         <p class="help-block" style="text-align:center">Search by Name</p>
                     </div>
@@ -131,8 +192,8 @@
     <div class="clear" style="height:1px;"><xsl:comment/></div>
 </xsl:template>
 
-<!-- this is the main template for BookingView -->
-<xsl:template match="bookingview">
+<!-- this shows the table contents for the BookingView -->
+<xsl:template name="bookingview_contents">
     <xsl:if test="booking">
         <div id="listing_visible_bookings">
             <div class="row-fluid booking-listing-header">

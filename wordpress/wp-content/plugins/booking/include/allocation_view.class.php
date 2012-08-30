@@ -3,7 +3,7 @@
 /**
  * Encapsulates and renders a view of selected allocations for a given date range.
  */
-class AllocationView {
+class AllocationView extends XslTransform {
     private $bookingResources = array();  // array of BookingResource
     var $showMinDate;   // earliest date to show (DateTime)
     var $showMaxDate;   // latest date to show (DateTime)
@@ -215,10 +215,16 @@ class AllocationView {
     function toXml() {
         // create a dom document with encoding utf8
         $domtree = new DOMDocument('1.0', 'UTF-8');
-        addSelfToDocument($domtree, $domtree);
+        $this->addSelfToDocument($domtree, $domtree);
         return $domtree->saveXML();
     }
     
+    /**
+     * Returns the filename for the stylesheet to use during transform.
+     */
+    function getXslFilename() {
+        return WPDEV_BK_PLUGIN_DIR. '/include/allocation_view.xsl';
+    }
 }
 
 ?>

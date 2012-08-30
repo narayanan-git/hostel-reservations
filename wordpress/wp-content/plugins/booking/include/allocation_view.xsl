@@ -7,6 +7,71 @@
 //*****************************************************************************
 -->
 <xsl:include href="allocation_view_resource.xsl"/>
+<xsl:include href="inline_scripts.xsl"/>
+
+<xsl:template match="/allocationview">
+
+    <!-- required for legend... TODO: why do we have admin.css and client.css? -->
+    <link href="/wp-content/plugins/booking/css/client.css" rel="stylesheet" type="text/css" />
+
+    <div class="wpdevbk">
+        <div id="ajax_working"></div>
+        <div class="clear" style="height:1px;"></div>
+        <div id="ajax_respond"></div>
+    
+        <!-- define tabs and help -->
+        <div style="height:1px;clear:both;margin-top:30px;"><xsl:comment/></div>
+        <div id="menu-wpdevplugin">
+            <div class="nav-tabs-wrapper">
+                <div class="nav-tabs">
+
+                    <a title=""  href="#" class="nav-tab nav-tab-active">
+                        <img class="menuicons" src="/wp-content/plugins/booking/img/Season-64x64.png"/>Allocations
+                    </a>
+                                    
+                    <span class="dropdown pull-right">
+                        <a href="#" data-toggle="dropdown" class="dropdown-toggle nav-tab ">
+                            <img class="menuicons" src="/wp-content/plugins/booking/img/system-help22x22.png"/>Help <span class="caret" style="border-top-color: #333333 !important;"/>
+                        </a>
+                        <ul class="dropdown-menu" id="menu1" style="right:0px; left:auto;">
+                            <li><a href="/help/" target="_blank">Help</a></li>
+                            <li><a href="/faq/" target="_blank">FAQ</a></li>
+                            <li><a href="/support/" target="_blank">Technical Support</a></li>
+                        </ul>
+                    </span>
+
+                </div>
+            </div>
+        </div>
+    
+        <div class="booking-submenu-tab-container" style="">
+            <div class="nav-tabs booking-submenu-tab-insidecontainer">
+
+                <div id="filter" class="visibility_container active" style="display:block;">
+
+                    <xsl:call-template name="show_allocation_view"/>
+
+                    <span id="show_link_advanced_booking_filter" class="tab-bottom tooltip_right" data-original-title="Show Legend"  rel="tooltip"><a href="#" onclick="javascript:jQuery('.advanced_booking_filter').show();jQuery('#show_link_advanced_booking_filter').hide();jQuery('#hide_link_advanced_booking_filter').show();"><span class="icon-chevron-down"></span></a></span>
+                    <span id="hide_link_advanced_booking_filter" style="display:none;" class="tab-bottom tooltip_right" data-original-title="Hide Legend" rel="tooltip" ><a href="#"  onclick="javascript:jQuery('.advanced_booking_filter').hide(); jQuery('#hide_link_advanced_booking_filter').hide(); jQuery('#show_link_advanced_booking_filter').show();"><span class="icon-chevron-up"></span></a></span>
+                </div>
+
+                <div class="visibility_container" id="help" style="display:none;"><xsl:comment/></div>
+
+            </div>
+        </div>
+
+        <div style="height:1px;clear:both;margin-top:40px;"><xsl:comment/></div>
+    
+        <div class="visibility_container" id="allocation_view" style="display:block;">
+            <xsl:apply-templates select="resource"/>
+            <xsl:comment/>
+        </div>
+    </div>
+
+    <xsl:call-template name="write_inline_js"/>
+    <xsl:call-template name="write_inline_css"/>
+
+</xsl:template>
 
 <!-- tabbed view for "Allocations" -->
 <xsl:template name="show_allocation_view">
@@ -23,7 +88,7 @@
                 <div class="inline controls">
                     <div class="btn-group">
                         <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                            value="{/view/allocationview/filter/allocationmindate}"  id="allocationmindate"  name="allocationmindate" />
+                            value="{filter/allocationmindate}"  id="allocationmindate"  name="allocationmindate" />
                         <span class="add-on"><span class="icon-calendar"></span></span>
                     </div>
                 <p class="help-block" style="float:left;padding-left:5px;">Date (from)</p>
@@ -35,7 +100,7 @@
                 <div class="inline controls">
                     <div class="btn-group">
                         <input style="width:100px;" type="text" class="span2span2 wpdevbk-filters-section-calendar" 
-                            value="{/view/allocationview/filter/allocationmaxdate}"  id="allocationmaxdate"  name="allocationmaxdate" />
+                            value="{filter/allocationmaxdate}"  id="allocationmaxdate"  name="allocationmaxdate" />
                         <span class="add-on"><span class="icon-calendar"></span></span>
                     </div>
                 <p class="help-block" style="float:left;padding-left:5px;">Date (to)</p>
@@ -84,117 +149,6 @@
 
     </div>
     <div style="clear:both;height:1px;"><xsl:comment/></div>
-</xsl:template>
-
-<xsl:template name="write_inline_js">
-
-    <script type="text/javascript">
-        jQuery(document).ready( function(){
-            jQuery('input.wpdevbk-filters-section-calendar').datepick(
-                {   showOn: 'focus',
-                    multiSelect: 0,
-                    numberOfMonths: 1,
-                    stepMonths: 1,
-                    prevText: '&lt;&lt;',
-                    nextText: '&gt;&gt;',
-                    dateFormat: 'yy-mm-dd',
-                    changeMonth: false,
-                    changeYear: false,
-                    minDate: null, maxDate: '1Y',
-                    showStatus: false,
-                    multiSeparator: ', ',
-                    closeAtTop: false,
-                    firstDay: 0, // 0 = sunday
-                    gotoCurrent: false,
-                    hideIfNoPrevNext:true,
-                    useThemeRoller :false,
-                    mandatory: true
-                }
-            );
-
-            jQuery('# a.popover_here').popover( {
-                placement: 'bottom'
-                , delay: { show: 100, hide: 100 }
-                , content: ''
-                , template: '<div class="wpdevbk popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
-                });
-
-            jQuery('.tooltip_right').tooltip( {
-                animation: true
-                , delay: { show: 500, hide: 100 }
-                , selector: false
-                , placement: 'right'
-                , trigger: 'hover'
-                , title: ''
-                , template: '<div class="wpdevbk tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
-
-            jQuery('.tooltip_left').tooltip( {
-                animation: true
-                , delay: { show: 500, hide: 100 }
-                , selector: false
-                , placement: 'left'
-                , trigger: 'hover'
-                , title: ''
-                , template: '<div class="wpdevbk tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
-
-            jQuery('.tooltip_top').tooltip( {
-                animation: true
-                , delay: { show: 500, hide: 100 }
-                , selector: false
-                , placement: 'top'
-                , trigger: 'hover'
-                , title: ''
-                , template: '<div class="wpdevbk tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
-    
-            jQuery('.tooltip_bottom').tooltip( {
-                animation: true
-                , delay: { show: 500, hide: 100 }
-                , selector: false
-                , placement: 'bottom'
-                , trigger: 'hover'
-                , title: ''
-                , template: '<div class="wpdevbk tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
-            });
-       });
-    </script>
-</xsl:template>
-
-<xsl:template name="write_inline_css">
-
-    <style type="text/css">
-        #datepick-div .datepick-header {
-               width: 172px !important;
-        }
-        #datepick-div {
-            -border-radius: 3px;
-            -box-shadow: 0 0 2px #888888;
-            -webkit-border-radius: 3px;
-            -webkit-box-shadow: 0 0 2px #888888;
-            -moz-border-radius: 3px;
-            -moz-box-shadow: 0 0 2px #888888;
-            width: 172px !important;
-        }
-        #datepick-div .datepick .datepick-days-cell a{
-            font-size: 12px;
-        }
-        #datepick-div table.datepick tr td {
-            border-top: 0 none !important;
-            line-height: 24px;
-            padding: 0 !important;
-            width: 24px;
-        }
-        #datepick-div .datepick-control {
-            font-size: 10px;
-            text-align: center;
-        }
-        #datepick-div .datepick-one-month {
-            height: 215px;
-        }
-    </style>
-
 </xsl:template>
 
 </xsl:stylesheet>
