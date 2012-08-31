@@ -15,9 +15,9 @@
     <link href="/wp-content/plugins/booking/css/client.css" rel="stylesheet" type="text/css" />
 
     <div class="wpdevbk">
-        <div id="ajax_working"></div>
-        <div class="clear" style="height:1px;"></div>
-        <div id="ajax_respond"></div>
+        <div id="ajax_working"><xsl:comment/></div>
+        <div class="clear" style="height:1px;"><xsl:comment/></div>
+        <div id="ajax_respond"><xsl:comment/></div>
 
         <!-- define tabs -->
         <div style="height:1px;clear:both;margin-top:30px;"><xsl:comment/></div>
@@ -44,10 +44,10 @@
             </div>
         </div>
     
-        <div class="booking-submenu-tab-container" style="">
+        <div class="booking-submenu-tab-container">
             <div class="nav-tabs booking-submenu-tab-insidecontainer">
 
-                <div id="bookings" class="visibility_container active" style="display:block;">
+                <div id="bookings" class="visibility_container active">
                     <xsl:call-template name="show_booking_menu_options"/>
                 </div>
 
@@ -58,7 +58,7 @@
 
         <div style="height:1px;clear:both;margin-top:40px;"><xsl:comment/></div>
     
-        <div class="visibility_container" id="booking_view" style="display:block;">
+        <div class="visibility_container" id="booking_view">
             <xsl:call-template name="bookingview_contents"/>
             <xsl:comment/>
         </div>
