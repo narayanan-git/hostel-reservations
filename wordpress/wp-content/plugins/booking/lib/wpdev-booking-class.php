@@ -1488,21 +1488,30 @@ if (!class_exists('wpdev_booking')) {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         function content_of_booking_page() {
 
-            if( false === isset($_SESSION['BOOKING_VIEW'])) {
-                $_SESSION['BOOKING_VIEW'] = new BookingView();
-            }
-            $bv = $_SESSION['BOOKING_VIEW'];
-
             // if filter_status is defined, we are on the bookings view
             if (isset($_POST['filter_status']) && trim($_POST['filter_status']) != '') {
-                $bv->minDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC'));
-                $bv->maxDate = DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC'));
+                $bv = new BookingView(
+                    DateTime::createFromFormat('!Y-m-d', $_POST['bookingmindate'], new DateTimeZone('UTC')),
+                    DateTime::createFromFormat('!Y-m-d', $_POST['bookingmaxdate'], new DateTimeZone('UTC')));
                 $bv->status = $_POST['filter_status'];
                 $bv->matchName = trim($_POST['filter_name']) == '' ? null : $_POST['filter_name'];
                 $bv->dateMatchType = $_POST['filter_datetype'];
 //            $bv->resourceId = $_POST['filter_resource_id'];
                 $bv->doSearch();
             } 
+            // redo search if we've already done one
+            else if (isset($_SESSION['BOOKING_VIEW'])) {
+                $bv = $_SESSION['BOOKING_VIEW'];
+                $bv = new BookingView($bv->minDate, $bv->maxDate, 
+                    $bv->dateMatchType, $bv->status, $bv->resourceId, $bv->matchName);
+                $bv->doSearch();
+            } 
+            // leave as blank view if it is the first time
+            else {
+                $bv = new BookingView();
+            }
+            $_SESSION['BOOKING_VIEW'] = $bv;
+
 error_log($bv->toXml());
             echo $bv->toHtml();
         }
@@ -3282,17 +3291,24 @@ error_log('booking_is_not_load_bs_script_in_client');
 
         // show allocations view page
         function allocations_view_action() {
-            if( false === isset($_SESSION['ALLOCATION_VIEW'])) {
-                $_SESSION['ALLOCATION_VIEW'] = new AllocationView();
-            }
-            $av = $_SESSION['ALLOCATION_VIEW'];
 
             // if allocation date is defined, we are on the allocations view
             if (isset($_POST['allocationmindate']) && trim($_POST['allocationmindate']) != '') {
-                $av->showMinDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC'));
-                $av->showMaxDate = DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC'));
-                $av->doSearch();
+                $av = new AllocationView(
+                    DateTime::createFromFormat('!Y-m-d', $_POST['allocationmindate'], new DateTimeZone('UTC')),
+                    DateTime::createFromFormat('!Y-m-d', $_POST['allocationmaxdate'], new DateTimeZone('UTC')));
             }
+            // redo search on allocation dates
+            else if (isset($_SESSION['ALLOCATION_VIEW'])) {
+                $av = new AllocationView($_SESSION['ALLOCATION_VIEW']->showMinDate, $_SESSION['ALLOCATION_VIEW']->showMaxDate);
+            }
+            // use default dates if it's the first time 
+            else {
+                $av = new AllocationView();
+            }
+
+            $av->doSearch();
+            $_SESSION['ALLOCATION_VIEW'] = $av;
         
 error_log($av->toXml());
             echo $av->toHtml();

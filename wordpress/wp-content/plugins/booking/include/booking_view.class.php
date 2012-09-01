@@ -11,15 +11,25 @@ class BookingView extends XslTransform {
     var $dateMatchType;  // one of 'checkin', 'reserved', 'creation'
     var $status;     // one of 'reserved', 'checkedin', 'checkedout', 'cancelled', 'all'
     var $matchName;  // (partial) name to match (not case sensitive), null for any
-    
-    function BookingView() {
+        
+    /**
+     * Default constructor.
+     * $minDate : earliest DateTime of booking to search
+     * $maxDate : latest DateTime of booking to search
+     * $dateMatchType : one of 'checkin', 'reserved', 'creation' (default 'checkin')
+     * $status : one of 'reserved', 'checkedin', 'checkedout', 'cancelled', 'all' (default 'all')
+     * $resourceId : id of resource to match (if parent resource, searches all children; optional)
+     * $matchName : (partial) name to match with * as wildcard (not case sensitive; optional)
+     */
+    function BookingView($minDate, $maxDate, 
+            $dateMatchType = 'checkin', $status = 'all', $resourceId = null, $matchName = null) {
         // default date to today
-        $this->minDate = new DateTime();
-        $this->maxDate = new DateTime();
-        $this->dateMatchType = 'checkin';
-        $this->resourceId = null;
-        $this->status = 'all';
-        $this->matchName = null;
+        $this->minDate = $minDate;
+        $this->maxDate = $maxDate;
+        $this->dateMatchType = $dateMatchType;
+        $this->resourceId = $resourceId;
+        $this->status = $status;
+        $this->matchName = $matchName;
     }
     
     /**
