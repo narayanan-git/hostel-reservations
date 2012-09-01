@@ -10,8 +10,8 @@ class AllocationView extends XslTransform {
     
     /**
      * Default constructor.
-     * $startDate : begin date to show (inclusive; optional)
-     * $endDate : end date to show (inclusive; optional)
+     * $startDate : begin date to show (inclusive; optional DateTime)
+     * $endDate : end date to show (inclusive; optional DateTime)
      */
     function AllocationView($startDate = null, $endDate = null) {
     

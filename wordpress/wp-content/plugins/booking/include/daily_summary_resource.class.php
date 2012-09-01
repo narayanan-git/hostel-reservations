@@ -5,7 +5,7 @@
  */
 class DailySummaryResource {
 
-    var $id;
+    var $id;    // id of resource
     var $name;
     var $level;
     var $path;
