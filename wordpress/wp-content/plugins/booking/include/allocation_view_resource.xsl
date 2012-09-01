@@ -23,31 +23,30 @@
     <xsl:choose>
         <!-- if we are one level up from a leaf (room), then we generate a single table containing all children (beds) -->
         <xsl:when test="resource/cells/allocationcell">
-            <br/>
             <div id="table_resource_{id}">
-            <table width="100%" cellspacing="0" cellpadding="0" border="0">
-                <tbody>
-                    <tr valign="top">
-                        <td width="180"></td>
-                        <td class="availability_header"><xsl:value-of select="//dateheaders/header"/></td>
-                    </tr>
-                    <tr valign="top">
-                        <td colspan="2" width="{60 * count(//dateheaders/datecol)}" valign="top">
-                            <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
-                                <thead>
-                                    <tr>
-                                        <th class="alloc_resource_attrib"><xsl:value-of select="name"/></th>
-                                        <xsl:apply-templates select="//dateheaders/datecol" mode="availability_date_header"/>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <xsl:apply-templates select="resource/cells"/>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tbody>
+                        <tr valign="top">
+                            <td width="180"></td>
+                            <td class="availability_header"><xsl:value-of select="//dateheaders/header"/></td>
+                        </tr>
+                        <tr valign="top">
+                            <td colspan="2" width="{60 * count(//dateheaders/datecol)}" valign="top">
+                                <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
+                                    <thead>
+                                        <tr>
+                                            <th class="alloc_resource_attrib"><xsl:value-of select="name"/></th>
+                                            <xsl:apply-templates select="//dateheaders/datecol" mode="availability_date_header"/>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <xsl:apply-templates select="resource/cells"/>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </xsl:when>
         <xsl:otherwise>

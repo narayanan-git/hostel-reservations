@@ -99,12 +99,13 @@ function wpdev_bk_ajax_responder() {
             die();
             break;
             
-        // toggle the checkout state of a booking date in the availability table
+        // toggle the checkout state of a booking date in the (edit booking) availability table
         case  'TOGGLE_CHECKOUT_ON_BOOKING_DATE':
             wpdev_toggle_checkout_on_booking_date();
             die();
             break;
-            
+        
+        // toggle the checkout state of an allocation from the allocation view
         case  'TOGGLE_CHECKOUT_FOR_ALLOCATION':
             wpdev_toggle_checkout_for_allocation();
             die();
@@ -611,19 +612,25 @@ function wpdev_toggle_checkout_for_allocation() {
     $allocationId = $_POST['allocation_id'];
     $posn = $_POST['posn'];
 
-    if(isset($_SESSION['BOOKING_ALLOCATION_VIEW'])) {
-        $bav = $_SESSION['BOOKING_ALLOCATION_VIEW'];
-        $bav->allocationView->toggleCheckoutOnBookingDate($allocationId, $posn);
+error_log('begin TOGGLE_CHECKOUT_FOR_ALLOCATION');
+    if(isset($_SESSION['ALLOCATION_VIEW'])) {
+        $av = $_SESSION['ALLOCATION_VIEW'];
+error_log('begin db write');
+        $av->toggleCheckoutOnBookingDate($allocationId, $posn);
+error_log('end db write');
         
         // create a new allocation view for the updated resource
-        $viewForResource = new AllocationViewResource($resourceId, $bav->allocationView->showMinDate, $bav->allocationView->showMaxDate);
+error_log('begin search');
+        $viewForResource = new AllocationViewResource($resourceId, $av->showMinDate, $av->showMaxDate);
         $viewForResource->doSearch();
+error_log('end search');
         
         ?> 
         <script type="text/javascript">
             document.getElementById('table_resource_<?php echo $resourceId;?>').innerHTML = <?php echo json_encode($viewForResource->toHtml()); ?>;
         </script>
         <?php
+error_log('end TOGGLE_CHECKOUT_FOR_ALLOCATION');
     }
 }
 

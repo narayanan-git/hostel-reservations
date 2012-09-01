@@ -268,7 +268,7 @@ error_log("allocation table.save() : ".var_export(array(array_keys($oldAllocatio
             $resourceRow = $domtree->createElement('resource');
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));
-            $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
+            $resourceRow->appendChild($domtree->createElement('level', $res->level));
             $resourcesRoot->appendChild($resourceRow);
         }
         

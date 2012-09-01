@@ -13,7 +13,7 @@ class ResourceDBO {
      * resource_id : id of resource
      * name : resource name
      * capacity : capacity of resource
-     * lvl : depth of tree (starting at 1)
+     * level : depth of tree (starting at 1)
      * path : tree path by resource id
      * number_children : number of children (0 for leaf nodes)
      * parent_resource_id : resource id of parent (optional)
@@ -26,8 +26,8 @@ class ResourceDBO {
 
         // query all our resources (in order)
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT r.resource_id, r.name, r.lvl, r.path, r.number_children, r.parent_resource_id, rp.name AS parent_name, r.resource_type, r.room_type
-               FROM ".$wpdb->prefix."v_resources_by_path r
+            "SELECT r.resource_id, r.name, r.level, r.path, r.number_children, r.parent_resource_id, rp.name AS parent_name, r.resource_type, r.room_type
+               FROM ".$wpdb->prefix."mv_resources_by_path r
                LEFT OUTER JOIN ".$wpdb->prefix."bookingresources rp ON r.parent_resource_id = rp.resource_id
                     ". ($resourceId == null ? "" : "
                             WHERE (r.path LIKE '%%/$resourceId'
@@ -52,7 +52,7 @@ class ResourceDBO {
      * resource_id : id of resource
      * name : resource name
      * capacity : capacity of resource
-     * lvl : depth of tree (starting at 1)
+     * level : depth of tree (starting at 1)
      * path : tree path by resource id
      * number_children : number of children (0 for leaf nodes)
      * parent_resource_id : resource id of parent (optional)
@@ -66,8 +66,8 @@ class ResourceDBO {
 
         // query resource by id
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT r.resource_id, r.name, r.lvl, r.path, r.number_children, r.parent_resource_id, r.resource_type, r.room_type
-               FROM ".$wpdb->prefix."v_resources_by_path r
+            "SELECT r.resource_id, r.name, r.level, r.path, r.number_children, r.parent_resource_id, r.resource_type, r.room_type
+               FROM ".$wpdb->prefix."mv_resources_by_path r
               WHERE r.resource_id = %d
               ORDER BY r.path", $resourceId));
         
@@ -358,10 +358,10 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
         foreach (self::getAllResources() as $res) {
             if ($res->resource_type != 'bed') {
                 $return_val[$res->resource_id] = new DailySummaryResource(
-                    $res->resource_id, $res->name, $res->lvl, $res->path, $res->parent_resource_id);
+                    $res->resource_id, $res->name, $res->level, $res->path, $res->parent_resource_id);
                     
                 // has a parent, parent should already be defined so link child to parent
-                if ($res->lvl > 1) { 
+                if ($res->level > 1) { 
                     $return_val[$res->parent_resource_id]->addChildResource($return_val[$res->resource_id]);
                 }
             }

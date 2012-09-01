@@ -37,7 +37,7 @@ class ResourcesTable extends XslTransform {
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));
             $resourceRow->appendChild($domtree->createElement('path', $res->path));
-            $resourceRow->appendChild($domtree->createElement('level', $res->lvl));
+            $resourceRow->appendChild($domtree->createElement('level', $res->level));
             $resourceRow->appendChild($domtree->createElement('numberChildren', $res->number_children));
             $resourceRow->appendChild($domtree->createElement('type', $res->resource_type));
             $resourceRow->appendChild($domtree->createElement('roomType', $res->room_type));

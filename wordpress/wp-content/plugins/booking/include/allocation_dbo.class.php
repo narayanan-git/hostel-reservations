@@ -25,7 +25,7 @@ error_log("fetch availability $bookingDatesString");
         // this will bring back all beds that have no allocations for any of the dates given
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT p.resource_id, p.capacity as avail_capacity 
-               FROM ".$wpdb->prefix."v_resources_by_path p 
+               FROM ".$wpdb->prefix."mv_resources_by_path p 
               WHERE p.resource_type = 'bed' AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')
                 AND NOT EXISTS(
                     SELECT 1
@@ -489,7 +489,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             "SELECT alloc.allocation_id, alloc.guest_name, alloc.gender, alloc.resource_id, bk.firstname, bk.lastname
                FROM ".$wpdb->prefix."allocation alloc
                JOIN ".$wpdb->prefix."booking bk ON alloc.booking_id = bk.booking_id
-               JOIN ".$wpdb->prefix."v_resources_by_path res ON alloc.resource_id = res.resource_id
+               JOIN ".$wpdb->prefix."mv_resources_by_path res ON alloc.resource_id = res.resource_id
               WHERE EXISTS (SELECT 1 FROM ".$wpdb->prefix."bookingdates d 
                              WHERE alloc.allocation_id = d.allocation_id
                                AND ".($status == null ? "'__ALL__'" : "d.status")." = %s)
@@ -593,7 +593,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         $return_val = array();
         $return_val_map = array();  // map of all resource id => BookingResource in return_val
         foreach ($resourceMap as $res) {
-            $br = new BookingResource($res->resource_id, $res->name, $res->lvl, $res->path, $res->number_children, $res->resource_type);
+            $br = new BookingResource($res->resource_id, $res->name, $res->level, $res->path, $res->number_children, $res->resource_type);
 
             // if parent exists, add child to parent... otherwise set it as root
             if ($res->parent_resource_id != '' && isset($return_val_map[$res->parent_resource_id])) {

@@ -3792,7 +3792,6 @@ error_log($av->toXml());
                 $simple_sql = "CREATE TABLE ".$wpdb->prefix ."bookingresources (
                             resource_id bigint(20) unsigned NOT NULL auto_increment,
                             name varchar(50) NOT NULL,
-                            capacity bigint(20) unsigned,
                             parent_resource_id bigint(20) unsigned,
                             resource_type varchar(10) NOT NULL,
                             room_type varchar(2),
@@ -3802,6 +3801,22 @@ error_log($av->toXml());
                             last_updated_date datetime NOT NULL,
                             PRIMARY KEY (resource_id),
                             FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
+                        ) $charset_collate;";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_table_exists('mv_resources_by_path') ) { 
+                $simple_sql = "CREATE TABLE ".$wpdb->prefix ."mv_resources_by_path (
+                            resource_id bigint(20) unsigned NOT NULL,
+                            name varchar(50) NOT NULL,
+                            parent_resource_id bigint(20) unsigned,
+                            path varchar(100) NOT NULL,
+                            resource_type varchar(10) NOT NULL,
+                            room_type varchar(2),
+                            level int(10) unsigned NOT NULL,
+                            number_children int(10) unsigned NOT NULL,
+                            capacity int(10) unsigned NOT NULL,
+                            PRIMARY KEY (resource_id)
                         ) $charset_collate;";
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
@@ -3922,12 +3937,12 @@ error_log($av->toXml());
             if ( ! $this->is_table_exists('v_resources_by_path') ) {
                 $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
                         SELECT resource_id, name, parent_resource_id, path, resource_type, room_type,
-                               LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS lvl,
+                               LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS level,
                                (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) AND resource_type = 'bed') AS number_children,
                                (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE (s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) OR s1.path = s.path) AND resource_type = 'bed') AS capacity
                           FROM ".$wpdb->prefix."v_resources_sub1 s
                          ORDER BY path";
-// FIXME: remove number_children, capacity ==> number_beds
+// FIXME: remove number_children, rename capacity ==> number_beds
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
@@ -3949,7 +3964,7 @@ error_log($av->toXml());
                                rp.capacity, 
                                bc.used_capacity,
                                CAST(rp.capacity - IFNULL(bc.used_capacity, 0) AS SIGNED) AS avail_capacity 
-                          FROM ".$wpdb->prefix."v_resources_by_path rp
+                          FROM ".$wpdb->prefix."mv_resources_by_path rp
                           LEFT OUTER JOIN ".$wpdb->prefix."v_booked_capacity bc ON rp.resource_id = bc.resource_id
                          WHERE rp.number_children = 0
                          ORDER BY bc.booking_date, rp.path";
@@ -3978,6 +3993,46 @@ error_log($av->toXml());
                 $wpdb->query($wpdb->prepare($simple_sql));
             }
 
+            if ( ! $this->is_trigger_exists('trg_mv_resources_by_path_ins') ) {
+                $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_ins
+                    -- this will update the materialized view
+                    -- whenever an insert is made on the underlying table
+                    AFTER INSERT ON ".$wpdb->prefix."bookingresources FOR EACH ROW 
+                    BEGIN
+                        INSERT INTO ".$wpdb->prefix."mv_resources_by_path
+                        SELECT * FROM ".$wpdb->prefix."v_resources_by_path
+                         WHERE resource_id = NEW.resource_id;
+                    END";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_trigger_exists('trg_mv_resources_by_path_upd') ) {
+                $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_upd
+                    -- this will update the materialized view
+                    -- whenever an update is made on the underlying table
+                    AFTER UPDATE ON ".$wpdb->prefix."bookingresources FOR EACH ROW 
+                    BEGIN
+                        DELETE FROM ".$wpdb->prefix."mv_resources_by_path
+                         WHERE resource_id = OLD.resource_id;
+
+                        INSERT INTO ".$wpdb->prefix."mv_resources_by_path
+                        SELECT * FROM ".$wpdb->prefix."v_resources_by_path
+                         WHERE resource_id = NEW.resource_id;
+                    END";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
+
+            if ( ! $this->is_trigger_exists('trg_mv_resources_by_path_del') ) {
+                $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_del
+                    -- this will update the materialized view
+                    -- whenever a delete is made on the underlying table
+                    AFTER DELETE ON ".$wpdb->prefix."bookingresources FOR EACH ROW 
+                    BEGIN
+                        DELETE FROM ".$wpdb->prefix."mv_resources_by_path
+                         WHERE resource_id = OLD.resource_id;
+                    END";
+                $wpdb->query($wpdb->prepare($simple_sql));
+            }
             // if( $this->wpdev_bk_personal !== false )  $this->wpdev_bk_personal->pro_activate();
             make_bk_action('wpdev_booking_activation');
 
