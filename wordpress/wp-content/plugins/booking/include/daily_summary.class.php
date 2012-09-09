@@ -7,10 +7,10 @@ class DailySummary extends DailySummaryData {
 
     /**
      * Default constructor.
-     * $selectionDate : date to display summary for (DateTime)
+     * $selectionDate : date to display summary for (DateTime) (defaults to now)
      */
-    function DailySummary($selectionDate) {
-        parent::DailySummaryData($selectionDate);
+    function DailySummary($selectionDate = null) {
+        parent::DailySummaryData($selectionDate == null ? new DateTime() : $selectionDate);
     }
     
     /**

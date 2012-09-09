@@ -331,6 +331,9 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php'))           // C L A S S    B o o k i n g
         { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/lib/wp_hostel_backoffice.php'))           // B O O T S T R A P
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wp_hostel_backoffice.php' ); }
+
     //////////////////////// BEGIN CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/xsl_transform.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/xsl_transform.class.php' ); }
@@ -413,6 +416,9 @@ Change Log and Features for Future Releases :
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/daily_summary.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/settings.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/settings.class.php' ); }
+
     //////////////////////// END CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
         
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,5 +433,6 @@ Change Log and Features for Future Releases :
     // RUN //
     error_reporting(E_ALL);
     session_start();
-    $wpdev_bk = new wpdev_booking(); 
+    //$wpdev_bk = new wpdev_booking(); 
+    $wpdev_bk = new WP_HostelBackoffice();
 ?>

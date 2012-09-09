@@ -21,11 +21,11 @@ class BookingView extends XslTransform {
      * $resourceId : id of resource to match (if parent resource, searches all children; optional)
      * $matchName : (partial) name to match with * as wildcard (not case sensitive; optional)
      */
-    function BookingView($minDate, $maxDate, 
+    function BookingView($minDate = null, $maxDate = null, 
             $dateMatchType = 'checkin', $status = 'all', $resourceId = null, $matchName = null) {
         // default date to today
-        $this->minDate = $minDate;
-        $this->maxDate = $maxDate;
+        $this->minDate = $minDate == null ? new DateTime() : $minDate;
+        $this->maxDate = $maxDate == null ? new DateTime() : $maxDate;
         $this->dateMatchType = $dateMatchType;
         $this->resourceId = $resourceId;
         $this->status = $status;
