@@ -744,16 +744,17 @@ if (!class_exists('wpdev_booking')) {
 
         //Show content
         function on_show_page_adminmenu($html_id, $icon, $title, $content_type) {
-            ?>
-            <div id="<?php echo $html_id; ?>-general" class="wrap bookingpage">
-            <?php
+            /*?
+            <div id="?php echo $html_id; ?>-general" class="wrap bookingpage">
+            ?php
             if ($content_type > 2 )
                 echo '<div class="icon32" style="margin:5px 40px 10px 10px;"><img src="'. WPDEV_BK_PLUGIN_URL . $icon .'"><br /></div>' ;
             else
                 echo '<div class="icon32" style="margin:10px 25px 10px 10px;"><img src="'. WPDEV_BK_PLUGIN_URL . $icon .'"><br /></div>' ; ?>
 
-            <h2><?php echo $title; ?></h2>
-            <?php
+            <h2><php echo $title;></h2>
+            <php
+            */
             switch ($content_type) {
                 case 1: $this->content_of_booking_page();
                     break;
@@ -768,9 +769,9 @@ if (!class_exists('wpdev_booking')) {
                 case 6: $this->content_of_summary_page();
                     break;
                 default: break;
-            } ?>
+            } /*?
             </div>
-            <?php
+            ?php*/
         }
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // </editor-fold>

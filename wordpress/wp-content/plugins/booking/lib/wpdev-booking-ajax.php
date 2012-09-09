@@ -401,7 +401,7 @@ error_log("wpdev_edit_resource $resourceId");
 
     ?> 
     <script type="text/javascript">
-        document.getElementById('meta-wrapper').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
+        document.getElementById('wpdev-bookingresources-content').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
     </script>
     <?php
 }
@@ -427,7 +427,7 @@ error_log("wpdev_delete_resource $resourceId");
 
     ?> 
     <script type="text/javascript">
-        document.getElementById('meta-wrapper').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
+        document.getElementById('wpdev-bookingresources-content').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
     </script>
     <?php
 }
@@ -458,7 +458,7 @@ error_log("wpdev_save_resource $resourceId $resourceName");
 
     ?> 
     <script type="text/javascript">
-        document.getElementById('meta-wrapper').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
+        document.getElementById('wpdev-bookingresources-content').innerHTML = <?php echo json_encode($resources->toHtml()); ?>;
     </script>
     <?php
 }
