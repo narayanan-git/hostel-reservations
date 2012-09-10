@@ -45,37 +45,37 @@ class WP_HostelBackoffice {
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $pagehook1 = add_menu_page( __('Bookings', 'wpdev-booking'),  $title, 'administrator',
                 WPDEV_BK_FILE . 'wpdev-booking', array(&$this, 'content_of_bookings_page'),  WPDEV_BK_PLUGIN_URL . '/img/calendar-16x16.png'  );
-        add_action("admin_print_scripts-" . $pagehook1 , array( &$this, 'add_admin_js_css_files'));
+        add_action("admin_print_scripts-" . $pagehook1 , array( &$this, 'add_js_css_files'));
             
         ///////////////// ALLOCATIONS VIEW /////////////////////////////////////////////
         $pagehook6 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Allocations', 'wpdev-booking'), __('Allocations', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-allocations', array(&$this, 'content_of_allocations_page')  );
-        add_action("admin_print_scripts-" . $pagehook6 , array( &$this, 'add_admin_js_css_files'));
+        add_action("admin_print_scripts-" . $pagehook6 , array( &$this, 'add_js_css_files'));
             
         ///////////////// DAILY SUMMARY /////////////////////////////////////////////
         $pagehook5 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Summary', 'wpdev-booking'), __('Summary', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-summary', array(&$this, 'content_of_summary_page')  );
-        add_action("admin_print_scripts-" . $pagehook5 , array( &$this, 'add_admin_js_css_files'));
+        add_action("admin_print_scripts-" . $pagehook5 , array( &$this, 'add_js_css_files'));
             
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // A D D     R E S E R V A T I O N
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $pagehook2 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Add Booking', 'wpdev-booking'), __('Add Booking', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-reservation', array(&$this, 'content_of_edit_booking_page')  );
-        add_action("admin_print_scripts-" . $pagehook2 , array( &$this, 'add_admin_js_css_files'));
+        add_action("admin_print_scripts-" . $pagehook2 , array( &$this, 'add_js_css_files'));
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // A D D     R E S O U R C E S     Management
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $pagehook4 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Resources', 'wpdev-booking'), __('Resources', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-resources', array(&$this, 'content_of_resource_page')  );
-        add_action("admin_print_scripts-" . $pagehook4 , array( &$this, 'add_admin_js_css_files'));
+        add_action("admin_print_scripts-" . $pagehook4 , array( &$this, 'add_js_css_files'));
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // S E T T I N G S
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $pagehook3 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Booking settings customizations', 'wpdev-booking'), __('Settings', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-option', array(&$this, 'content_of_settings_page')  );
-        add_action("admin_print_scripts-" . $pagehook3 , array( &$this, 'add_admin_js_css_files'));
+        add_action("admin_print_scripts-" . $pagehook3 , array( &$this, 'add_js_css_files'));
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
@@ -97,7 +97,7 @@ error_log("is this used? jquery-ui-dialog");
     /**
      * Add hook for printing scripts only when displaying pages for this plugin.
      */
-    function add_admin_js_css_files() {
+    function add_js_css_files() {
         // Write inline scripts and CSS at HEAD
         add_action('admin_head', array(&$this, 'print_js_css' ));
     }
@@ -111,40 +111,8 @@ error_log('print scripts: jquery');
         wp_print_scripts('jquery');
         //wp_print_scripts('jquery-ui-core');
 
-        ?> <!--  J a v a S c r i p t -->
-        <script  type="text/javascript">
-            var wpdev_bk_plugin_url = '<?php echo WPDEV_BK_PLUGIN_URL; ?>';
-
-            // Check for correct URL based on Location.href URL, its need for correct aJax request
-            var real_domain = window.location.href;
-            var start_url = '';
-            var pos1 = real_domain.indexOf('//'); //get http
-            if (pos1 > -1 ) { start_url= real_domain.substr(0, pos1+2); real_domain = real_domain.substr(pos1+2);   }  //set without http
-            real_domain = real_domain.substr(0, real_domain.indexOf('/') );    //setdomain
-            var pos2 = wpdev_bk_plugin_url.indexOf('//');  //get http
-            if (pos2 > -1 ) wpdev_bk_plugin_url = wpdev_bk_plugin_url.substr(pos2+2);    //set without http
-            wpdev_bk_plugin_url = wpdev_bk_plugin_url.substr( wpdev_bk_plugin_url.indexOf('/') );    //setdomain
-            wpdev_bk_plugin_url = start_url + real_domain + wpdev_bk_plugin_url;
-            ///////////////////////////////////////////////////////////////////////////////////////
-
-            var wpdev_bk_plugin_filename = '<?php echo WPDEV_BK_PLUGIN_FILENAME; ?>';
-        </script>
-        <script type="text/javascript" src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/js/datepick/jquery.datepick.js"></script>  <?php
-        $locale = 'en_US'; // Load translation for calendar
-        if ( ( !empty( $locale ) ) && ( substr($locale,0,2) !== 'en')  )
-            if (file_exists(WPDEV_BK_PLUGIN_DIR. '/js/datepick/jquery.datepick-'. substr($locale,0,2) .'.js')) {
-                ?> <script type="text/javascript" src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/js/datepick/jquery.datepick-<?php echo substr($locale,0,2); ?>.js"></script>  <?php
-            }
-        ?> <script type="text/javascript" src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/js/wpdev.bk.js"></script>  
-
-        <!-- C S S -->
-        <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/css/skins/traditional.css" rel="stylesheet" type="text/css" /> 
-        <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/bs/css/bs.min.css" rel="stylesheet" type="text/css" />
-        <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/chosen/chosen.css" rel="stylesheet" type="text/css" />
-        <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/css/admin.css" rel="stylesheet" type="text/css" />
-        <script type="text/javascript" src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/bs/js/bs.min.js"></script>  
-        <script type="text/javascript" src="<?php echo WPDEV_BK_PLUGIN_URL; ?>/interface/chosen/chosen.jquery.min.js"></script>
-        <link href="<?php echo WPDEV_BK_PLUGIN_URL; ?>/css/client.css" rel="stylesheet" type="text/css" />  <?php
+        $hh = new HtmlHeaders();
+        echo $hh->toHtml();
     }
 
     /**
