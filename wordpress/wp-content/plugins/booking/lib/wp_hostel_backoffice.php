@@ -19,6 +19,9 @@ class WP_HostelBackoffice {
         add_action('admin_menu', array(&$this, 'create_admin_menu'));
         add_action('admin_head', array(&$this, 'enqueue_scripts'));
 
+        // top level admin menu option
+        add_action('admin_bar_menu', array(&$this, 'add_admin_bar_bookings_menu'), 70);
+
         // On client-side menu
         add_action('wp_head', array(&$this, 'enqueue_scripts'));
         add_action('wp_head', array(&$this, 'print_js_css' ));
@@ -266,6 +269,36 @@ error_log($rpp->toXml());
         $s->updateOptions($_POST);
 error_log($s->toXml());
         echo $s->toHtml();
+    }
+
+    /**
+     * Display a top-level menu dropdown on the admin menu (when logged in as admin).
+     */
+    function add_admin_bar_bookings_menu(){
+        global $wp_admin_bar;
+        
+        $title = __('Bookings', 'wpdev-booking');
+        $update_title = $title;
+
+        $link_bookings = admin_url('admin.php'). "?page=" . WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME . "wpdev-booking";
+        $link_settings = admin_url('admin.php'). "?page=" . WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME . "wpdev-booking-option";
+
+        $wp_admin_bar->add_menu(
+                array(
+                    'id' => 'booking_options',
+                    'title' => $update_title ,
+                    'href' => $link_bookings
+                    )
+                );
+
+        $wp_admin_bar->add_menu(
+                array(
+                    'parent' => 'booking_options',
+                    'title' => __( 'Settings', 'wpdev-booking' ),
+                    'href' => $link_settings,
+                    'id' => 'booking_settings'
+                    )
+                );
     }
 
     /**

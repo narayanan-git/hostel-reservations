@@ -101,7 +101,7 @@
                                     <xsl:apply-templates select="properties/property"/>
                                 </div>
                             </p>
-                            <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form,'en_US');" /></p>
+                            <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form);" /></p>
                         </div>
                     
                         <div style="float:left;">
@@ -117,7 +117,7 @@
                     <p><div id="booking_allocations"><xsl:apply-templates select="allocations" /><xsl:comment/></div></p>
                     <p><div id="ajax_respond"><xsl:comment/><!-- ajax response here--></div></p>
                 
-                    <p><input type="button" value="Save" onclick="mybooking_submit_v2(this.form);" /></p>
+                    <p><input type="button" value="Save" onclick="save_booking(this.form);" /></p>
                 </div>
             
             </form>

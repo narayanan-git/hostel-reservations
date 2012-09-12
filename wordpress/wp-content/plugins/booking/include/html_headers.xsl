@@ -32,7 +32,7 @@
         <script type="text/javascript" src="{pluginurl}/js/datepick/jquery.datepick-{substring(locale, 1, 2)}.js"><xsl:comment/></script>
     </xsl:if>
     
-    <script type="text/javascript" src="{pluginurl}/js/wpdev.bk.js"><xsl:comment/></script>  
+    <script type="text/javascript" src="{pluginurl}/js/common.js"><xsl:comment/></script>  
 
     <!-- C S S -->
     <link href="{pluginurl}/css/skins/traditional.css" rel="stylesheet" type="text/css" /> 
