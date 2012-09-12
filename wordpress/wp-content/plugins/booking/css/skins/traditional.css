@@ -94,6 +94,7 @@ border:0 solid #DDDDDD !important;
     display:block;
     font-weight:bold;
     text-shadow:0 1px 0 #FFFFFF;
+	text-decoration: none;
 }
 .datepick  .datepick-unselectable {          /* CELLS which have be UN SELECTED*/
 	color: #999999;
@@ -101,6 +102,7 @@ border:0 solid #DDDDDD !important;
 .datepick  .datepick-today a {               /* TODAY DAY*/
 	/*background: #f5f5b5;
 	border: 1px solid #d9bb73;/**/
+	text-decoration: none;
 }
 
 /*   S I Z E    */
