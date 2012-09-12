@@ -34,7 +34,7 @@
                             <td colspan="2" width="{60 * count(//dateheaders/datecol)}" valign="top">
                                 <table class="allocation_view" width="100%" cellspacing="0" cellpadding="3" border="0">
                                     <thead>
-                                        <tr>
+                                        <tr class="even">
                                             <th class="alloc_resource_attrib"><xsl:value-of select="name"/></th>
                                             <xsl:apply-templates select="//dateheaders/datecol" mode="availability_date_header"/>
                                         </tr>

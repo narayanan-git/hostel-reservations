@@ -16,8 +16,8 @@
 
 <xsl:template match="dataview">
 
-    <div style="float:left;">
-        <table width="420" cellspacing="0" cellpadding="3" border="1">
+    <div class="checkins_checkouts" style="float:left;">
+        <table width="420">
             <thead>
                 <tr>
                     <th width="200"><xsl:comment/></th>
@@ -31,8 +31,8 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><a id="collapse_checkouts" href="#" style="display:none" onclick="jQuery('#checkout_table').hide(); jQuery(this).hide(); jQuery('#expand_checkouts').show();"><img src="/wp-content/plugins/booking/img/collapse.gif"/></a>
-                        <a id="expand_checkouts" href="#" onclick="jQuery('#checkout_table').show(); jQuery(this).hide(); jQuery('#collapse_checkouts').show();"><img src="/wp-content/plugins/booking/img/expand.gif"/></a>
+                    <td><a id="collapse_checkouts" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkout_table').hide(); jQuery(this).hide(); jQuery('#expand_checkouts').show();"><img src="/wp-content/plugins/booking/img/collapse.gif"/></a>
+                        <a id="expand_checkouts" href="javascript:void(0)" onclick="jQuery('#checkout_table').show(); jQuery(this).hide(); jQuery('#collapse_checkouts').show();"><img src="/wp-content/plugins/booking/img/expand.gif"/></a>
                         &#160; Number of Checkouts
                     </td>
                     <td>19</td>
@@ -40,7 +40,7 @@
                 </tr>
             </tbody>
         </table>
-        <table id="checkout_table" style="display:none" width="420" cellspacing="0" cellpadding="3" border="1">
+        <table id="checkout_table" style="display:none" width="420">
             <tbody>
                 <tr>
                     <td width="200">&#160;&#160;&#160;&#160;Dorms</td>
@@ -66,14 +66,14 @@
         </table>
     </div>
     
-    <div style="float:right;margin-right:50px;">
+    <div class="checkins_checkouts" style="float:right;margin-right:50px;">
         <xsl:apply-templates select="checkins"/>
     </div>
         
 </xsl:template>
 
 <xsl:template match="checkins">
-    <table width="420" cellspacing="0" cellpadding="3" border="1">
+    <table width="420">
         <thead>
             <tr>
                 <th width="200"><xsl:comment/></th>
@@ -84,8 +84,8 @@
         <tbody>
             <tr>
                 <td width="200">
-                    <a id="collapse_checkins" href="#" style="display:none" onclick="jQuery('#checkin_table').hide(); jQuery(this).hide(); jQuery('#expand_checkins').show();"><img src="/wp-content/plugins/booking/img/collapse.gif"/></a>
-                    <a id="expand_checkins" href="#" onclick="jQuery('#checkin_table').show(); jQuery(this).hide(); jQuery('#collapse_checkins').show();"><img src="/wp-content/plugins/booking/img/expand.gif"/></a>
+                    <a id="collapse_checkins" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkin_table').hide(); jQuery(this).hide(); jQuery('#expand_checkins').show();"><img src="/wp-content/plugins/booking/img/collapse.gif"/></a>
+                    <a id="expand_checkins" href="javascript:void(0)" onclick="jQuery('#checkin_table').show(); jQuery(this).hide(); jQuery('#collapse_checkins').show();"><img src="/wp-content/plugins/booking/img/expand.gif"/></a>
                     &#160; Number of Checkins
                 </td>
                 <td width="110"><xsl:value-of select="@arrived"/></td>
@@ -93,7 +93,7 @@
             </tr>
         </tbody>
     </table>
-    <table id="checkin_table" style="display:none" width="420" cellspacing="0" cellpadding="3" border="1">
+    <table id="checkin_table" style="display:none" width="420">
         <tbody>
             <xsl:apply-templates select="checkin"/>
         </tbody>

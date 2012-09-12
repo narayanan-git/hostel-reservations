@@ -205,5 +205,6 @@ A c t u a l   T O D O   List:
     error_reporting(E_ALL);
     session_start();
     //$wpdev_bk = new wpdev_booking(); 
-    $wpdev_bk = new WP_HostelBackoffice();
+    $_SESSION['WP_HOSTELBACKOFFICE'] = new WP_HostelBackoffice();
+
 ?>

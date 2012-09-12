@@ -22,7 +22,7 @@
                 <td colspan="2" width="870" valign="top">
                     <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
                         <thead>
-                            <tr>
+                            <tr class="even">
                                 <th class="avail_attrib">Name</th>
                                 <th class="avail_attrib">Room</th>
                                 <th class="avail_attrib">Bed</th>
@@ -126,9 +126,9 @@
                     <td class="avail_attrib"><xsl:value-of select="resource"/></td>
                 </xsl:otherwise>
             </xsl:choose>
-        <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate > 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
+        <td class="avail_calendar_chevrons"><xsl:if test="bookingsBeforeMinDate &gt; 0">+<xsl:value-of select="bookingsBeforeMinDate"/></xsl:if></td>
         <xsl:apply-templates select="dates/date" mode="allocation_date"/>
-        <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate > 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
+        <td class="avail_calendar_chevrons"><xsl:if test="bookingsAfterMaxDate &gt; 0">+<xsl:value-of select="bookingsAfterMaxDate"/></xsl:if></td>
         <td class="avail_action_icons">
             <xsl:choose>
                 <xsl:when test="../editingRowId = rowid">

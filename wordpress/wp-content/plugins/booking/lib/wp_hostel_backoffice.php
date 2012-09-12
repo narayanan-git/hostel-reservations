@@ -18,13 +18,26 @@ class WP_HostelBackoffice {
         // Create admin menu
         add_action('admin_menu', array(&$this, 'create_admin_menu'));
         add_action('admin_head', array(&$this, 'enqueue_scripts'));
+
+        // On client-side menu
+        add_action('wp_head', array(&$this, 'enqueue_scripts'));
+        add_action('wp_head', array(&$this, 'print_js_css' ));
+
+        // Template fallback: this gets called when not on admin page
+        // TODO: can we create a template file the user references when creating a new page?
+        add_action("template_redirect", array(&$this, 'my_template_redirect'));
     }
 
     /**
      * Called once on install.
      */
     function activate() {
-        add_option( 'hbo_date_format' , get_option('date_format'));
+        add_option('hbo_date_format' , get_option('date_format'));
+        add_option('bookings_url', 'admin/bookings');
+        add_option('allocations_url', 'admin/allocations');
+        add_option('summary_url', 'admin/summary');
+        add_option('editbooking_url', 'edit-booking');
+        add_option('resources_url', 'resources');
         $this->build_db_tables();
     }
 
@@ -32,7 +45,12 @@ class WP_HostelBackoffice {
      * Called once on uninstall.
      */
     function deactivate() {
-        delete_option( 'hbo_date_format');
+        delete_option('hbo_date_format');
+        delete_option('bookings_url');
+        delete_option('allocations_url');
+        delete_option('summary_url');
+        delete_option('editbooking_url');
+        delete_option('resources_url');
     }
 
     /**
@@ -67,7 +85,7 @@ class WP_HostelBackoffice {
         // A D D     R E S O U R C E S     Management
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         $pagehook4 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Resources', 'wpdev-booking'), __('Resources', 'wpdev-booking'), 'administrator',
-                WPDEV_BK_FILE .'wpdev-booking-resources', array(&$this, 'content_of_resource_page')  );
+                WPDEV_BK_FILE .'wpdev-booking-resources', array(&$this, 'content_of_resources_page')  );
         add_action("admin_print_scripts-" . $pagehook4 , array( &$this, 'add_js_css_files'));
 
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,12 +222,13 @@ error_log($ds->toXml());
     /**
      * Write the contents of the booking resources page.
      */
-    function content_of_resource_page(){
+    function content_of_resources_page(){
 
         if (isset($_GET['editResourceId'])) {
 
             $rpp = new ResourcePropertyPage($_GET['editResourceId']);
 
+            // TODO: move to ResourcePropertyPage
             // SAVE button was pressed on the edit resource property page
             if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $propertyIds = isset($_POST['resource_property']) ? $_POST['resource_property'] : array();
@@ -224,6 +243,7 @@ error_log($rpp->toXml());
             $resources = new Resources();
     
             try {
+                // TODO: move to Resources page
                 // if the user has just submitted an "Add new resource" request
                 if ( isset($_POST['resource_name_new']) && $_POST['resource_name_new'] != '') {
                     ResourceDBO::insertResource($_POST['resource_name_new'], $_POST['resource_capacity_new'], 
@@ -243,7 +263,55 @@ error_log($rpp->toXml());
      */
     function content_of_settings_page() {
         $s = new Settings();
+        $s->updateOptions($_POST);
+error_log($s->toXml());
         echo $s->toHtml();
+    }
+
+    /**
+     * This will override the template for the pages associated with this plugin
+     * based on the name of the page.
+     * These can be set under the Settings for the plugin.
+     */
+    function my_template_redirect() {
+        $this->do_redirect_for_page(get_option('allocations_url'), 'allocations.php');
+        $this->do_redirect_for_page(get_option('bookings_url'), 'bookings.php');
+        $this->do_redirect_for_page(get_option('summary_url'), 'summary.php');
+        $this->do_redirect_for_page(get_option('editbooking_url'), 'edit-booking.php');
+        $this->do_redirect_for_page(get_option('resources_url'), 'resources.php');
+    }
+
+    /**
+     * Redirects to page if the current pagename matches $url.
+     * $url : url to redirect if matched
+     * $templatefile : name of template file to redirect to
+     */
+    function do_redirect_for_page($url, $templatefile) {
+        global $wp;
+        $plugindir = dirname( __FILE__ ) . '/..';
+
+        if (isset($wp->query_vars["pagename"]) && $wp->query_vars["pagename"] == $url) {
+            if (file_exists(TEMPLATEPATH . '/' . $templatefile)) {
+                $return_template = TEMPLATEPATH . '/' . $templatefile;
+            } else {
+                $return_template = $plugindir . '/templates/' . $templatefile;
+            }
+            $this->do_redirect($return_template);
+        }
+    }
+
+    /**
+     * Includes the php file specified and terminates.
+     * $url : location of php file to include.
+     */
+    function do_redirect($url) {
+        global $post, $wp_query;
+        if (have_posts()) {
+            include($url);
+            die();
+        } else {
+            $wp_query->is_404 = true;
+        }
     }
 
     /**

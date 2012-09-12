@@ -25,7 +25,7 @@
     
         <div style="clear:both;height:40px;"><xsl:comment/></div>
 
-        <div id="daily_summary_contents" class="wpdevbk">
+        <div id="daily_summary_contents">
             <xsl:call-template name="daily_summary_contents"/>
         </div>
     

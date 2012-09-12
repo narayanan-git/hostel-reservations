@@ -25,16 +25,35 @@
                                 <tbody>
                                     <tr valign="top">
                                         <th scope="row"><label for="admin_cal_count" >Admin email:</label></th>
-                                        <td><input id="email_reservation_adress"  name="email_reservation_adress" class="regular-text code" type="text" style="width:350px;" size="145" value="&quot;Booking system&quot; &lt;nowhere@dawbee.de&gt;" /><br/>
-                                            <span class="description">Type default <b>admin email</b> for checking bookings</span>
+                                        <td><input id="email_reservation_adress"  name="email_reservation_adress" class="regular-text code" type="text" style="width:350px;" size="145" value="&quot;Booking system&quot; &lt;nowhere@anonymous.net&gt;" /><br/>
+                                            <span class="description">The <b>return address</b> when sending automated emails</span>
                                         </td>
                                     </tr>
                                     <tr valign="top">
-                                        <th scope="row"><label for="is_use_hints_at_admin_panel" >Show hints:</label><br/>Show / hide hints</th>
-                                        <td><input id="is_use_hints_at_admin_panel" type="checkbox" checked="checked" value="On" name="is_use_hints_at_admin_panel"/>
-                                            <span class="description"> Check, if you want to show help hints at the admin panel.</span>
-                                        </td>
+                                        <th colspan="2" scope="row"><label for="backoffice_urls">URLs of pages to override when displaying on public site:</label><br/>
+                                            <span class="description">Create menus/pages for these URLs and they will be replaced with their associated content</span>
+                                        </th>
                                     </tr>
+                                    <tr valign="top">
+                                        <th scope="row"><label for="editbooking_url">New Booking Page</label></th>
+                                        <td><input id="editbooking_url"  name="editbooking_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{editbookingurl}" /></td>
+                                    </tr>  
+                                    <tr valign="top">
+                                        <th scope="row"><label for="bookings_url">Bookings Page</label></th>
+                                        <td><input id="bookings_url"  name="bookings_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{bookingsurl}" /></td>
+                                    </tr>  
+                                    <tr valign="top">
+                                        <th scope="row"><label for="allocations_url">Allocations Page</label></th>
+                                        <td><input id="allocations_url"  name="allocations_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{allocationsurl}" /></td>
+                                    </tr>  
+                                    <tr valign="top">
+                                        <th scope="row"><label for="summary_url">Daily Summary Page</label></th>
+                                        <td><input id="summary_url"  name="summary_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{summaryurl}" /></td>
+                                    </tr>  
+                                    <tr valign="top">
+                                        <th scope="row"><label for="resources_url">Resources Page</label></th>
+                                        <td><input id="resources_url"  name="resources_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{resourcesurl}" /></td>
+                                    </tr>  
                                     <tr valign="top"><td colspan="2"><div style="border-bottom:1px solid #cccccc;"><xsl:comment/></div></td></tr>
                                     <tr valign="top"> 
                                         <td colspan="2">

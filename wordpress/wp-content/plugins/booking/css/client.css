@@ -399,3 +399,85 @@
     padding: 14px;
 }
 
+/* these have been copied from the default wp-theme */
+.wrap {
+    margin: 4px 15px 0px 0px;
+}
+
+.icon32 {
+    float: left;
+    height: 34px;
+    margin: 7px 8px 0px 0px;
+    width: 36px;
+}
+
+body {
+    font-family: sans-serif;
+    font-size: 12px;
+    line-height: 1.4em;
+    color: rgb(51, 51, 51);
+}
+
+table, caption, tbody, tfoot, thead, tr, th, td {
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    clear: inherit;
+}
+
+.checkins_checkouts th, .checkins_checkouts td {
+    border-width: 1px;
+    border-style: solid;
+    padding: 3px; 
+    border-spacing: 0px; 
+}
+
+/** this overrides default max-width of 1000px in the twenty eleven theme */
+#page {
+    max-width: 100%;
+}
+
+/** copied from wp-admin colours-fresh.css */
+.button, .button-secondary, .submit input, input[type="button"], input[type="submit"] {
+    border-color: rgb(187, 187, 187);
+    color: rgb(70, 70, 70);
+}
+                
+/** copied from wp-admin */
+.submit input, .button, input.button, .button-primary, input.button-primary, .button-secondary, input.button-secondary, .button-highlighted, input.button-highlighted, #postcustomstuff .submit input {
+    text-decoration: none;
+    font-size: 12px !important;
+    line-height: 13px;
+    padding: 3px 8px;
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 11px 11px 11px 11px;
+    -moz-box-sizing: content-box;
+}
+
+input[type="text"]:focus, textarea:focus {
+    color: rgb(55, 55, 55);
+}
+
+input[type="text"] {
+    padding: 3px;
+}
+
+input[type="text"], input[type="password"], textarea {
+    background: none repeat scroll 0% 0% rgb(250, 250, 250);
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.1) inset;
+    border: 1px solid rgb(221, 221, 221);
+    color: rgb(136, 136, 136);
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 0px;
+}
+
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+    vertical-align: middle;
+}

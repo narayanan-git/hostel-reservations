@@ -51,8 +51,8 @@
 
                         <xsl:call-template name="show_allocation_view"/>
 
-                        <span id="show_link_advanced_booking_filter" class="tab-bottom tooltip_right" data-original-title="Show Legend"  rel="tooltip"><a href="#" onclick="javascript:jQuery('.advanced_booking_filter').show();jQuery('#show_link_advanced_booking_filter').hide();jQuery('#hide_link_advanced_booking_filter').show();"><span class="icon-chevron-down"></span></a></span>
-                        <span id="hide_link_advanced_booking_filter" style="display:none;" class="tab-bottom tooltip_right" data-original-title="Hide Legend" rel="tooltip" ><a href="#"  onclick="javascript:jQuery('.advanced_booking_filter').hide(); jQuery('#hide_link_advanced_booking_filter').hide(); jQuery('#show_link_advanced_booking_filter').show();"><span class="icon-chevron-up"></span></a></span>
+                        <span id="show_link_advanced_booking_filter" class="tab-bottom tooltip_right" data-original-title="Show Legend"  rel="tooltip"><a href="javascript:void(0)" onclick="javascript:jQuery('.advanced_booking_filter').show();jQuery('#show_link_advanced_booking_filter').hide();jQuery('#hide_link_advanced_booking_filter').show();"><span class="icon-chevron-down"></span></a></span>
+                        <span id="hide_link_advanced_booking_filter" style="display:none;" class="tab-bottom tooltip_right" data-original-title="Hide Legend" rel="tooltip" ><a href="javascript:void(0)"  onclick="javascript:jQuery('.advanced_booking_filter').hide(); jQuery('#hide_link_advanced_booking_filter').hide(); jQuery('#show_link_advanced_booking_filter').show();"><span class="icon-chevron-up"></span></a></span>
                     </div>
 
                     <div class="visibility_container" id="help" style="display:none;"><xsl:comment/></div>
