@@ -1,19 +1,17 @@
 <?php
 /*
-Plugin Name: Booking Calendar
-Plugin URI: http://wpbookingcalendar.com/demo/
-Description: Online reservation and availability checking service for your site.
-Version: 4.0
-Author: wpdevelop
-Author URI: http://wpbookingcalendar.com/
-Tested WordPress Versions: 2.8.3 - 3.3.2
+Plugin Name: Hostel Backoffice
+Plugin URI: http://demo.hostelbackoffice.net/
+Description: Backoffice reservations and administration services for hostels / B & Bs.
+Version: 0.1
+Author: sir_studly
+Author URI: http://www.hostelbackoffice.net
+Tested WordPress Versions: 3.3.2
 */
 
-/*  Copyright 2009 - 2012  www.wpbookingcalendar.com  (email: info@wpbookingcalendar.com),
+/*  Copyright 2009 - 2012  http://www.hostelbackoffice.net  (email: info@hostelbackoffice.net),
 
-    www.wpdevelop.com - custom wp-plugins development & WordPress solutions.
-
-    This file (and only this file wpdev-booking.php) is free software; you can redistribute it and/or modify
+    This file is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
@@ -29,7 +27,6 @@ Tested WordPress Versions: 2.8.3 - 3.3.2
 */
 
 
-// <editor-fold defaultstate="collapsed" desc=" T O D O : & Changelog lists ">
 /*
 -------------------------------------------------------
 A c t u a l   T O D O   List:
@@ -53,11 +50,6 @@ A c t u a l   T O D O   List:
  */
 // </editor-fold>
 
-
-    // Die if direct access to file
-//    if (   (! isset( $_GET['wpdev_bkpaypal_ipn'] ) ) &&    (! isset( $_GET['merchant_return_link'] ) ) && (! isset( $_GET['payed_booking'] ) ) && (!function_exists ('get_option')  )  && (! isset( $_POST['ajax_action'] ) ) ) {
-//        die('You do not have permission to direct access to this file !!!');
-//    }
 
     // A J A X /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     if ( isset( $_POST['ajax_action'] )) {
