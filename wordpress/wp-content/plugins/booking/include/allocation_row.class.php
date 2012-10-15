@@ -119,7 +119,7 @@ class AllocationRow {
         $result = null;
         foreach ($this->bookingDates as $bd) {
             if($result == null || $bd->bookingDate < $result) {
-                $result = $bd->bookingDate;
+                $result = clone $bd->bookingDate;
             }
         }
         return $result;
