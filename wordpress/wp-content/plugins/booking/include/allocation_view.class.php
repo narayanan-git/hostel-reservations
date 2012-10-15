@@ -81,6 +81,7 @@ class AllocationView extends XslTransform {
     function addSelfToDocument($domtree, $parentElement) {
         // create the root element for this allocation row
         $xmlRoot = $parentElement->appendChild($domtree->createElement('allocationview'));
+        $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
 
         // search criteria
         $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));

@@ -11,7 +11,7 @@
 <xsl:template match="/view">
 
     <div id="wpdev-booking-general" class="wrap bookingpage">
-        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="/wp-content/plugins/booking/img/notebook-48x48.jpg"/><br /></div>
+        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/notebook-48x48.jpg"/><br /></div>
         <h2>Daily Summary</h2>
 
         <div class="wpdevbk center">

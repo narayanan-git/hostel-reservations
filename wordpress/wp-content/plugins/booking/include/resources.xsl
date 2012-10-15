@@ -11,7 +11,7 @@
 <xsl:template match="/view">
 
     <div id="wpdev-bookingresources-content" class="wrap bookingpage" style="margin-left: 50px; margin-right: 50px;">
-        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="/wp-content/plugins/booking/img/Resources-64x64.png"/><br /></div>
+        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/Resources-64x64.png"/><br /></div>
         <h2>Resources</h2><br/>
         <div id="meta-wrapper">
             <div style="margin-top:10px;height:1px;clear:both;border-top:1px solid #bbc;"><xsl:comment/></div>

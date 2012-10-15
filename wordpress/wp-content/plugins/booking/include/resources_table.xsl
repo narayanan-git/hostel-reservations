@@ -78,23 +78,23 @@
                 <xsl:when test="../editResource = id">
                     <div style="text-align:center;">
                         <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:save_resource({id});" href="javascript:;">
-                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
+                            <img style="width:13px; height:13px;" src="{/view/homeurl}/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
                         </a>
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:if test="type = 'room'">
                         <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit Attributes" href="/wp-admin/admin.php?page=booking/wpdev-booking.phpwpdev-booking-resources&amp;editResourceId={id}">
-                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/notes_rd.png" title="Edit Attributes" alt="Edit Attributes"/>
+                            <img style="width:13px; height:13px;" src="{/view/homeurl}/wp-content/plugins/booking/img/notes_rd.png" title="Edit Attributes" alt="Edit Attributes"/>
                         </a>
                         <span style="padding-left: 10px;"><xsl:comment/></span>
                     </xsl:if>
                     <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:edit_resource({id});" href="javascript:;">
-                        <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
+                        <img style="width:13px; height:13px;" src="{/view/homeurl}/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
                     </a>
                     <span style="padding-left: 10px;"><xsl:comment/></span>
                     <a class="tooltip_bottom" rel="tooltip" data-original-title="Delete" onclick="javascript:delete_resource({id});" href="javascript:;">
-                        <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
+                        <img style="width:13px; height:13px;" src="{/view/homeurl}/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
                     </a>
                 </xsl:otherwise>
             </xsl:choose>

@@ -12,7 +12,7 @@
 <xsl:template match="/editbooking">
 
     <div id="wpdev-booking-reservation-general" class="wrap bookingpage" style="margin-left:100px; margin-right:100px;">
-        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="/wp-content/plugins/booking/img/add-1-48x48.png"/><br /></div>
+        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/add-1-48x48.png"/><br /></div>
         <h2>Add Booking</h2>
         <div id="ajax_working"><xsl:comment/></div>
         <div class="clear" style="margin:10px;"><xsl:comment/></div>

@@ -25,6 +25,7 @@ class Resources extends ResourcesTable {
     function addSelfToDocument($domtree, $parentElement) {    
         // create the root element for this class and append it to our parent
         $xmlRoot = $domtree->createElement('view');
+        $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
         $xmlRoot = $parentElement->appendChild($xmlRoot);
         if (isset($this->errorMessage)) {
             $xmlRoot->appendChild($domtree->createElement('errorMessage', $this->errorMessage));

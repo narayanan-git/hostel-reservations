@@ -12,7 +12,7 @@
 <xsl:template match="/bookingview">
 
     <div id="wpdev-booking-general" class="wrap bookingpage">
-        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="/wp-content/plugins/booking/img/calendar-48x48.png"/><br /></div>
+        <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/calendar-48x48.png"/><br /></div>
         <h2>Bookings</h2>
         <div class="wpdevbk">
             <div id="ajax_working"><xsl:comment/></div>
@@ -26,12 +26,12 @@
                     <div class="nav-tabs">
 
                         <a title=""  href="#" class="nav-tab nav-tab-active">
-                            <img class="menuicons" src="/wp-content/plugins/booking/img/actionservices24x24.png"/>Bookings
+                            <img class="menuicons" src="{homeurl}/wp-content/plugins/booking/img/actionservices24x24.png"/>Bookings
                         </a>
                                     
                         <span class="dropdown pull-right">
                             <a href="#" data-toggle="dropdown" class="dropdown-toggle nav-tab ">
-                                <img class="menuicons" src="/wp-content/plugins/booking/img/system-help22x22.png"/>Help <span class="caret" style="border-top-color: #333333 !important;"/>
+                                <img class="menuicons" src="{homeurl}/wp-content/plugins/booking/img/system-help22x22.png"/>Help <span class="caret" style="border-top-color: #333333 !important;"/>
                             </a>
                             <ul class="dropdown-menu" id="menu1" style="right:0px; left:auto;">
                                 <li><a href="/help/" target="_blank">Help</a></li>
@@ -256,7 +256,7 @@
         <div class="booking-listing-collumn span5 bktextcenter booking-actions">
             <div class="actions-fields-group">
                 <a href="admin.php?page=booking/wpdev-booking.phpwpdev-booking-reservation&amp;bookingid={id}" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
-                    <img src="/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
+                    <img src="{/bookingview/homeurl}/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
                 </a>
             </div>
         </div>

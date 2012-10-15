@@ -89,6 +89,7 @@ class DailySummaryData extends XslTransform {
      * $parentElement : DOM element where this object will be added
      */
     function addSelfToDocument($domtree, $parentElement) {
+        $parentElement->appendChild($domtree->createElement('homeurl', home_url()));
         $xmlRoot = $parentElement->appendChild($domtree->createElement('dataview'));
         $xmlRoot->appendChild($domtree->createElement('selectiondate', $this->selectionDate->format('d.m.Y')));
         
@@ -127,7 +128,7 @@ class DailySummaryData extends XslTransform {
       Generates the following xml:
         <view>
             <selectiondate>21.05.2012</selectiondate>
-            <checkins arrived="41" remaining="101" expanded="true">
+            <checkins arrived="41" remaining="101">
                 <checkin arrived="21" remaining="84">
                     <caption>10-Bed Dorms</caption>
                     <checkin arrived="7" remaining="1">
@@ -135,7 +136,7 @@ class DailySummaryData extends XslTransform {
                     </checkin>
                     ...
                 </checkin>
-                <checkin arrived="51" remaining="13" expanded="true">
+                <checkin arrived="51" remaining="13">
                     <caption>12-Bed Dorms</caption>
                     <checkin arrived="10" remaining="3">
                         <caption>Room 21</caption>
@@ -144,7 +145,7 @@ class DailySummaryData extends XslTransform {
                 </checkin>
                 ...
             </checkins>
-            <checkouts departed="21" remaining="31" expanded="true">
+            <checkouts departed="21" remaining="31">
                 <checkout departed="12" remaining="18">
                     <caption>10 Bed Dorms</caption>
                     <checkout departed="3" remaining="2">
@@ -153,7 +154,7 @@ class DailySummaryData extends XslTransform {
                 </checkout>
                 <checkout departed="7" remaining="2">
                     <caption>12 Bed Dorms</caption>
-                    <checkout departed="5" remaining="1" expanded="true">
+                    <checkout departed="5" remaining="1">
                         <caption>Room 11</caption>
                     </checkout>
                 </checkout>

@@ -246,6 +246,7 @@ error_log("reloaded booking $bookingId");
         $xmlRoot = $domtree->createElement('editbooking');
         $xmlRoot = $domtree->appendChild($xmlRoot);
     
+        $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
         $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('firstname', $this->firstname));
         $xmlRoot->appendChild($domtree->createElement('lastname', $this->lastname));
