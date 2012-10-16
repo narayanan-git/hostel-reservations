@@ -255,7 +255,7 @@
         
         <div class="booking-listing-collumn span5 bktextcenter booking-actions">
             <div class="actions-fields-group">
-                <a href="admin.php?page=booking/wpdev-booking.phpwpdev-booking-reservation&amp;bookingid={id}" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
+                <a href="{/bookingview/editbooking_url}?bookingid={id}" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
                     <img src="{/bookingview/homeurl}/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
                 </a>
             </div>

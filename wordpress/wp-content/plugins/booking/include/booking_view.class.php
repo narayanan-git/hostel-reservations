@@ -53,6 +53,7 @@ class BookingView extends XslTransform {
     function addSelfToDocument($domtree, $parentElement) {
         $xmlRoot = $parentElement->appendChild($domtree->createElement('bookingview'));
         $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
+        $xmlRoot->appendChild($domtree->createElement('editbooking_url', home_url()."/".get_option('hbo_editbooking_url')));
 
         // search criteria
         $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
