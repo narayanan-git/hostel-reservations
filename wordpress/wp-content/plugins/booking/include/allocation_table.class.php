@@ -245,6 +245,7 @@ error_log("allocation table.save() : ".var_export(array(array_keys($oldAllocatio
     function addSelfToDocument($domtree, $parentElement) {
         // create the root element of the xml tree
         $xmlRoot = $parentElement->appendChild($domtree->createElement('allocations'));
+        $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
     
         if($this->showMinDate != null) {
             $xmlRoot->appendChild($domtree->createElement('showMinDate', $this->showMinDate->format('d.m.Y')));

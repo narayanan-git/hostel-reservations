@@ -134,7 +134,7 @@
                 <xsl:when test="../editingRowId = rowid">
                     <div style="text-align:center;">
                         <a class="tooltip_bottom" rel="tooltip" data-original-title="Save" onclick="javascript:save_allocation({rowid});" href="javascript:;">
-                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
+                            <img style="width:13px; height:13px;" src="{../homeurl}/wp-content/plugins/booking/img/accept-24x24.gif" title="Save" alt="Save"/>
                         </a>
                     </div>
                 </xsl:when>
@@ -142,11 +142,11 @@
                     <!-- only show edit/delete buttons on remainder of rows if we aren't editing a row already -->
                     <xsl:if test="not(../editingRowId)">
                         <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit" onclick="javascript:edit_allocation({rowid});" href="javascript:;">
-                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
+                            <img style="width:13px; height:13px;" src="{../homeurl}/wp-content/plugins/booking/img/edit_type.png" title="Edit" alt="Edit"/>
                         </a>
                         <span style="padding-left: 10px;"></span>
                         <a class="tooltip_bottom" rel="tooltip" data-original-title="Delete" onclick="javascript:delete_allocation({rowid});" href="javascript:;">
-                            <img style="width:13px; height:13px;" src="/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
+                            <img style="width:13px; height:13px;" src="{../homeurl}/wp-content/plugins/booking/img/delete_type.png" title="Delete" alt="Delete"/>
                         </a>
                     </xsl:if>
                 </xsl:otherwise>

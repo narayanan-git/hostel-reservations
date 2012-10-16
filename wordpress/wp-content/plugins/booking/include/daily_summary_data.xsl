@@ -31,8 +31,8 @@
             </thead>
             <tbody>
                 <tr>
-                    <td><a id="collapse_checkouts" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkout_table').hide(); jQuery(this).hide(); jQuery('#expand_checkouts').show();"><img src="/wp-content/plugins/booking/img/collapse.gif"/></a>
-                        <a id="expand_checkouts" href="javascript:void(0)" onclick="jQuery('#checkout_table').show(); jQuery(this).hide(); jQuery('#collapse_checkouts').show();"><img src="/wp-content/plugins/booking/img/expand.gif"/></a>
+                    <td><a id="collapse_checkouts" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkout_table').hide(); jQuery(this).hide(); jQuery('#expand_checkouts').show();"><img src="{homeurl}/wp-content/plugins/booking/img/collapse.gif"/></a>
+                        <a id="expand_checkouts" href="javascript:void(0)" onclick="jQuery('#checkout_table').show(); jQuery(this).hide(); jQuery('#collapse_checkouts').show();"><img src="{homeurl}/wp-content/plugins/booking/img/expand.gif"/></a>
                         &#160; Number of Checkouts
                     </td>
                     <td>19</td>
@@ -84,8 +84,8 @@
         <tbody>
             <tr>
                 <td width="200">
-                    <a id="collapse_checkins" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkin_table').hide(); jQuery(this).hide(); jQuery('#expand_checkins').show();"><img src="/wp-content/plugins/booking/img/collapse.gif"/></a>
-                    <a id="expand_checkins" href="javascript:void(0)" onclick="jQuery('#checkin_table').show(); jQuery(this).hide(); jQuery('#collapse_checkins').show();"><img src="/wp-content/plugins/booking/img/expand.gif"/></a>
+                    <a id="collapse_checkins" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkin_table').hide(); jQuery(this).hide(); jQuery('#expand_checkins').show();"><img src="{/view/homeurl}/wp-content/plugins/booking/img/collapse.gif"/></a>
+                    <a id="expand_checkins" href="javascript:void(0)" onclick="jQuery('#checkin_table').show(); jQuery(this).hide(); jQuery('#collapse_checkins').show();"><img src="{/view/homeurl}/wp-content/plugins/booking/img/expand.gif"/></a>
                     &#160; Number of Checkins
                 </td>
                 <td width="110"><xsl:value-of select="@arrived"/></td>
@@ -252,7 +252,7 @@
                             jQuery(this).hide();
                             jQuery(this).next().show();
                         </xsl:attribute>
-                        <img src="/wp-content/plugins/booking/img/expand.gif"/>
+                        <img src="{/view/homeurl}/wp-content/plugins/booking/img/expand.gif"/>
                     </a>
                     <a id="collapse{translate(../path, '/', '_')}" href="javascript:void()" style="display:none; text-decoration:none">
                         <!-- when collapsing, collapse all children -->
@@ -269,7 +269,7 @@
                                 return this.id == 'expand' + res_path || this.id.match(new RegExp('expand' + res_path + '_.*', 'g')); 
                             }).show();
                         </xsl:attribute>
-                        <img src="/wp-content/plugins/booking/img/collapse.gif"/>
+                        <img src="{/view/homeurl}/wp-content/plugins/booking/img/collapse.gif"/>
                     </a>
                     &#160;<strong><xsl:value-of select="../name"/></strong>
                 </span>
