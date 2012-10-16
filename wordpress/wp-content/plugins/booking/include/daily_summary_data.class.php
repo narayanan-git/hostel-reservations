@@ -120,8 +120,6 @@ class DailySummaryData extends XslTransform {
         foreach ($this->dailySummaryResources as $res) {
             $res->addCheckOutsToDocument($domtree, $checkoutRoot);
         }
-
-        $this->allocationView->addSelfToDocument($domtree, $xmlRoot);
     }
     
     /** 
