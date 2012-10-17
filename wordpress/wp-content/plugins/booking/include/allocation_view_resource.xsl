@@ -98,7 +98,7 @@
             <xsl:attribute name="colspan"><xsl:value-of select="@span"/></xsl:attribute>
         </xsl:if>
         <xsl:if test="id &gt; 0">
-            <a>
+            <a href="{/allocationview/editbooking_url}?bookingid={bookingid}">
                 <xsl:attribute name="class">
                     booking_item <xsl:value-of select="render"/> status_<xsl:value-of select="status"/><xsl:if test="checkedout = 'true'">_checkout</xsl:if>
                 </xsl:attribute>

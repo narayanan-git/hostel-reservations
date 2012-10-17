@@ -486,7 +486,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         // fetch all matching allocations; key => resource id, value => array[AllocationRow]
         $nameToMatch = $name == null ? '__ALL__' : '%'.str_replace('*', '%', strtolower($name)).'%';
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT alloc.allocation_id, alloc.guest_name, alloc.gender, alloc.resource_id, bk.firstname, bk.lastname
+            "SELECT alloc.allocation_id, alloc.guest_name, alloc.gender, alloc.resource_id, bk.booking_id, bk.firstname, bk.lastname
                FROM ".$wpdb->prefix."allocation alloc
                JOIN ".$wpdb->prefix."booking bk ON alloc.booking_id = bk.booking_id
                JOIN ".$wpdb->prefix."mv_resources_by_path res ON alloc.resource_id = res.resource_id
@@ -520,7 +520,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         foreach ($resultset as $res) {
             foreach (self::fetchBookingDates($res->allocation_id) as $bookingDate => $bdObj) {
                 $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
-                    new AllocationCell($res->allocation_id, $res->guest_name, $res->gender, $bdObj->status, null, $bdObj->checkedOut);
+                    new AllocationCell($res->allocation_id, $res->booking_id, $res->guest_name, $res->gender, $bdObj->status, null, $bdObj->checkedOut);
             }
         }
         

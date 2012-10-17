@@ -82,6 +82,7 @@ class AllocationView extends XslTransform {
         // create the root element for this allocation row
         $xmlRoot = $parentElement->appendChild($domtree->createElement('allocationview'));
         $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
+        $xmlRoot->appendChild($domtree->createElement('editbooking_url', home_url()."/".get_option('hbo_editbooking_url')));
 
         // search criteria
         $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
