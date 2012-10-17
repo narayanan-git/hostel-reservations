@@ -521,7 +521,7 @@ a.checkout_link {
 	text-decoration:none;
 	display:block;
 	position:absolute;
-	right:-1px; 
+	right:2px; 
 }
 
 .allocation_view_resource_title {
