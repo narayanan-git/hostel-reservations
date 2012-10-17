@@ -114,7 +114,7 @@
             <xsl:choose>
                 <xsl:when test="../editingRowId = rowid">
                     <td colspan="2">
-                        <select id="booking_resource{rowid}" name="booking_resource{rowid}">
+                        <select id="booking_resource{rowid}" name="booking_resource{rowid}" style="width:160px">
                             <xsl:apply-templates select="../resources/resource" mode="resource_selection">
                                 <xsl:with-param name="resource_id"><xsl:value-of select="resourceid"/></xsl:with-param>
                             </xsl:apply-templates>
