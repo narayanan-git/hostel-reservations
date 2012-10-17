@@ -270,7 +270,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
         $sqlparams[] = $maxDate->format('d.m.Y');
         $sqlparams[] = $startRow;
         $sqlparams[] = $maxRows;
-debuge($sql, $sqlparams);
+//debuge($sql, $sqlparams);
         // execute our query 
         $resultset = $wpdb->get_results($wpdb->prepare($sql, $sqlparams));
         
@@ -298,7 +298,7 @@ debuge($sql, $sqlparams);
             $result[$res->booking_id]->bookingDates = 
                 AllocationDBO::fetchDatesForBookingId($res->booking_id);
         }
-debuge($result);
+//debuge($result);
         return $result;
     }
     
