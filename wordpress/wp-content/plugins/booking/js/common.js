@@ -3,8 +3,27 @@ function makeScroll(object_name) {
         var targetOffset = jQuery( object_name ).offset().top;
         targetOffset = targetOffset - 50;
         if (targetOffset<0) targetOffset = 0;
-        jQuery('html,body').animate({scrollTop: targetOffset}, 1000)
-         
+        jQuery('html,body').animate({scrollTop: targetOffset}, 1000);
+}
+
+// Display error message directly under a form element
+// element : form element in error
+// errorMessage : message to display
+function showErrorMessage( element , errorMessage) {
+
+    jQuery("[name='"+ element.name +"']")
+            .fadeOut( 350 ).fadeIn( 300 )
+            .fadeOut( 350 ).fadeIn( 400 )
+            .animate( {opacity: 1}, 4000 )
+    ;  // mark red border
+    jQuery("[name='"+ element.name +"']")
+            .after('<div class="wpdev-help-message">'+ errorMessage +'</div>'); // Show message
+    jQuery(".wpdev-help-message")
+            .css( {'color' : 'red'} )
+            .animate( {opacity: 1}, 10000 )
+            .fadeOut( 2000 );   // hide message
+    element.focus();    // make focus to elemnt
+    return;
 }
 
 // Adds a new set of allocations to a booking
@@ -12,11 +31,15 @@ function makeScroll(object_name) {
 function add_booking_allocation(submit_form) {
 
     if(submit_form.firstname.value === '') {
-        showErrorMessage( submit_form.firstname, message_verif_requred );
+        showErrorMessage( submit_form.firstname, 'This field is required' );
+        return;
+    }
+    else if(submit_form.num_visitors.value === '') {
+        showErrorMessage( submit_form.num_visitors, 'This field is required' );
         return;
     }
     else if(submit_form.booking_resource.value === '0') {
-        showErrorMessage( submit_form.booking_resource, message_verif_requred );
+        showErrorMessage( submit_form.booking_resource, 'This field is required' );
         return;
     }
     else if(typeof document.getElementById('calendar_booking1').value === "undefined" || 
@@ -189,28 +212,22 @@ function add_booking_comment(submit_form) {
 function save_booking(submit_form){
 
     // Simple form validation here
-    for (i=0; i<submit_form.elements.length; i++)   {
+    for (i=0; i<submit_form.elements.length; i++) {
         var element = submit_form.elements[i];
-            
+
         if ( (element.type !=='button') && (element.type !=='hidden') && ( element.name !== ('calendar_booking1') )   ) {           // Skip buttons and hidden element - type
-
             // Validation Check --- Requred fields
-            if ( element.className.indexOf('wpdev-validates-as-required') !== -1 ){             
-                if  ( element.value === '')   {showErrorMessage( element , message_verif_requred);return;}
+            if ( element.className.indexOf('wpdev-validates-as-required') !== -1 ){
+                if  ( element.value === '')   {
+                    showErrorMessage( element , 'This field is required'); 
+                    return;
+                }
             }
-
         }
 
     }  // End Fields Loop
 
-    //Show message if no selected days
-    // TODO: server side check
-//        if (document.getElementById('date_booking1').value == '')  {
-//            alert(message_verif_selectdts);
-//        }
-
     jQuery('#submitting').html('<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>');
-
     jQuery.ajax({                                           // Start Ajax Sending
         url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
         type:'POST',
@@ -295,3 +312,20 @@ function select_daily_summary_date(selected_date) {
     });
 }
 
+function generate_test_data(submit_form){
+    jQuery('#submitting').html('<div style="height:20px;width:100%;text-align:center;margin:15px auto;"><img src="'+wpdev_bk_plugin_url+'/img/ajax-loader.gif"><//div>');
+
+    jQuery.ajax({                                           // Start Ajax Sending
+        url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+        type:'POST',
+        success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+        error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+        data:{
+            ajax_action : 'GENERATE_TEST_DATA',
+            firstname: submit_form.firstname.value,
+            lastname: submit_form.lastname.value,
+            referrer: submit_form.referrer.value
+        }
+    });
+}
+    
