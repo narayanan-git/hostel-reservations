@@ -67,7 +67,6 @@ class BookingView extends XslTransform {
     function addSelfToDocument($domtree, $parentElement) {
         $xmlRoot = $parentElement->appendChild($domtree->createElement('bookingview'));
         $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
-        $xmlRoot->appendChild($domtree->createElement('editbooking_url', home_url()."/".get_option('hbo_editbooking_url')));
 
         // search criteria
         $filterRoot = $xmlRoot->appendChild($domtree->createElement('filter'));
@@ -85,7 +84,8 @@ class BookingView extends XslTransform {
 
     /** 
       Generates the following xml:
-        <view>
+        <bookingview>
+            <homeurl>http://localhost:16571</homeurl>
             <filter>
                 <mindate>2012-06-21</mindate>
                 <maxdate>2012-06-28</maxdate>
@@ -129,7 +129,7 @@ class BookingView extends XslTransform {
             <booking>
                 ...
             </booking>
-        </view>
+        </bookingview>
      */
     function toXml() {
         // create a dom document with encoding utf8

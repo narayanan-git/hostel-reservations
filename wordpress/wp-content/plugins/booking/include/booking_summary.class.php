@@ -40,8 +40,9 @@ class BookingSummary extends XslTransform {
      */
     function addSelfToDocument($domtree, $parentElement) {
         // create the root element for this allocation row
-        $xmlRoot = $domtree->createElement('booking');
-        $xmlRoot = $parentElement->appendChild($xmlRoot);
+        $xmlRoot = $parentElement->appendChild($domtree->createElement('booking'));
+        $xmlRoot->appendChild($domtree->createElement('homeurl', home_url()));
+        $xmlRoot->appendChild($domtree->createElement('editbooking_url', home_url()."/".get_option('hbo_editbooking_url')));
 
         $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('firstname', $this->firstname));
@@ -137,6 +138,8 @@ class BookingSummary extends XslTransform {
     /** 
       Generates the following xml:
         <booking>
+            <homeurl>http://localhost:16571</homeurl>
+            <editbooking_url>http://localhost:16571/edit-booking</editbooking_url>
             <id>3</id>
             <firstname>Megan</firstname>
             <lastname>Female</lastname>

@@ -47,12 +47,12 @@
         
         <div class="booking-listing-collumn span5 bktextcenter booking-actions">
             <div class="actions-fields-group">
-                <a href="{/bookingview/editbooking_url}?bookingid={id}" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
-                    <img src="{/bookingview/homeurl}/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
+                <a href="{editbooking_url}?bookingid={id}" data-original-title="Edit Booking" rel="tooltip" class="tooltip_bottom">
+                    <img src="{homeurl}/wp-content/plugins/booking/img/edit_type.png" style="width:12px; height:13px;"/>
                 </a>
                 <xsl:if test="allowCheckout = 'true'">
                     <a href="javascript:toggle_checkout_for_booking({id})" data-original-title="Checkout" rel="tooltip" class="tooltip_bottom">
-                        <img src="{/bookingview/homeurl}/wp-content/plugins/booking/img/checkout.png" style="margin-left:5px"/>
+                        <img src="{homeurl}/wp-content/plugins/booking/img/checkout.png" style="margin-left:5px"/>
                     </a>
                 </xsl:if>
             </div>
