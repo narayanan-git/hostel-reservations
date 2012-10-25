@@ -330,29 +330,6 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
      * Returns array() of DailySummaryResource for date
      */
     static function fetchDailySummaryResources($selectedDate) {
-        global $wpdb;
-
-        // check-ins for the day: find all allocations for a given day where no reservation exists the day before
-        $dayBefore = clone $selectedDate;
-        $dayBefore->sub(new DateInterval('P1D'));
-        $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT r.parent_resource_id AS resource_id,
-                    SUM(IF(d.status = 'reserved', 0, 1)) AS checkedin_count,
-                    SUM(IF(d.status = 'reserved', 1, 0)) AS checkedin_remain
-               FROM ".$wpdb->prefix."bookingresources r
-               LEFT OUTER JOIN ".$wpdb->prefix."allocation a ON r.resource_id = a.resource_id
-               LEFT OUTER JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
-              WHERE d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y')
-                AND NOT EXISTS (SELECT 1 FROM ".$wpdb->prefix."bookingdates d
-                                 WHERE a.allocation_id = d.allocation_id
-                                   AND d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y'))
-              GROUP BY r.parent_resource_id", 
-            $selectedDate->format('d.m.Y'), $dayBefore->format('d.m.Y')));
-        
-        if($wpdb->last_error) {
-            throw new DatabaseException($wpdb->last_error);
-        }
-        
         // keep track of all resources above 'bed' level
         $return_val = array();
         foreach (self::getAllResources() as $res) {
@@ -368,7 +345,8 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
         }
 
         // now go thru our counts and update our return object array
-        foreach ($resultset as $rs) {
+        // for checkins
+        foreach (self::fetchCheckedInCountRecordset($selectedDate) as $rs) {
             $return_val[$rs->resource_id]->checkedInCount = $rs->checkedin_count;
             $return_val[$rs->resource_id]->checkedInRemaining = $rs->checkedin_remain;
 
@@ -379,6 +357,18 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
             }
         }
 
+        // for checkouts
+        foreach (self::fetchCheckedOutCountRecordset($selectedDate) as $rs) {
+            $return_val[$rs->resource_id]->checkedOutCount = $rs->checkedout_count;
+            $return_val[$rs->resource_id]->checkedOutRemaining = $rs->checkedout_remain;
+
+            // increment parent counts
+            for ($resId = $return_val[$rs->resource_id]->parentId; $resId != ''; $resId = $return_val[$resId]->parentId) {
+                $return_val[$resId]->checkedOutCount += $rs->checkedout_count;  
+                $return_val[$resId]->checkedOutRemaining += $rs->checkedout_remain;
+            }
+        }
+
         // we don't actually need a handle on child resources as they will be linked from their parent
         foreach ($return_val as $rv) {
             if ($rv->level > 1) {
@@ -386,6 +376,66 @@ error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, t
             }
         }
         return $return_val;
+    }
+
+    /**
+     * Queries and returns the recordset of checkins for the selected date with the following fields:
+     *     resource_id : id of (one up from leaf-level) resource
+     *     checkedin_count : number of checkins on resource
+     *     checkedin_remain : number of checkins remaining on resource
+     */
+    private static function fetchCheckedInCountRecordset($selectedDate) {
+        global $wpdb;
+
+        // check-ins for the day: find all allocations for a given day where no reservation exists the day before
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT r.parent_resource_id AS resource_id,
+                    SUM(IF(d.status = 'reserved', 0, 1)) AS checkedin_count,
+                    SUM(IF(d.status = 'reserved', 1, 0)) AS checkedin_remain
+               FROM ".$wpdb->prefix."bookingresources r
+               LEFT OUTER JOIN ".$wpdb->prefix."allocation a ON r.resource_id = a.resource_id
+               LEFT OUTER JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
+              WHERE d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                AND NOT EXISTS (SELECT 1 FROM ".$wpdb->prefix."bookingdates d2
+                                 WHERE a.allocation_id = d2.allocation_id
+                                   AND d2.booking_date = DATE_SUB(d.booking_date, INTERVAL 1 DAY))
+              GROUP BY r.parent_resource_id", 
+            $selectedDate->format('d.m.Y')));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+        return $resultset;
+    }
+    
+    /**
+     * Queries and returns the recordset of checkouts for the selected date with the following fields:
+     *     resource_id : id of (one up from leaf-level) resource
+     *     checkedout_count : number of checkouts on resource
+     *     checkedout_remain : number of checkouts remaining on resource
+     */
+    private static function fetchCheckedOutCountRecordset($selectedDate) {
+        global $wpdb;
+
+        // check-ins for the day: find all allocations for a given day where no reservation exists the day before
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT r.parent_resource_id AS resource_id,
+                    SUM(IF(d.status IN ('paid', 'hours', 'free') AND IFNULL(d.checked_out, 'N') = 'Y', 1, 0)) AS checkedout_count,
+                    SUM(IF(d.status IN ('paid', 'hours', 'free') AND IFNULL(d.checked_out, 'N') = 'Y', 0, 1)) AS checkedout_remain
+               FROM ".$wpdb->prefix."bookingresources r
+               LEFT OUTER JOIN ".$wpdb->prefix."allocation a ON r.resource_id = a.resource_id
+               LEFT OUTER JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
+              WHERE d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                AND NOT EXISTS (SELECT 1 FROM ".$wpdb->prefix."bookingdates d2
+                                 WHERE a.allocation_id = d2.allocation_id
+                                   AND d2.booking_date = DATE_ADD(d.booking_date, INTERVAL 1 DAY))
+              GROUP BY r.parent_resource_id", 
+            $selectedDate->format('d.m.Y')));
+        
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+        return $resultset;
     }
     
     /**

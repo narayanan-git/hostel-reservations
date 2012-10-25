@@ -17,59 +17,55 @@
 <xsl:template match="dataview">
 
     <div class="checkins_checkouts" style="float:left;">
-        <table width="420">
-            <thead>
-                <tr>
-                    <th width="200"><xsl:comment/></th>
-                    <th width="110">
-                        Checked-Out
-                    </th>
-                    <th>
-                        Remaining
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><a id="collapse_checkouts" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkout_table').hide(); jQuery(this).hide(); jQuery('#expand_checkouts').show();"><img src="{homeurl}/wp-content/plugins/booking/img/collapse.gif"/></a>
-                        <a id="expand_checkouts" href="javascript:void(0)" onclick="jQuery('#checkout_table').show(); jQuery(this).hide(); jQuery('#collapse_checkouts').show();"><img src="{homeurl}/wp-content/plugins/booking/img/expand.gif"/></a>
-                        &#160; Number of Checkouts
-                    </td>
-                    <td>19</td>
-                    <td>36</td>
-                </tr>
-            </tbody>
-        </table>
-        <table id="checkout_table" style="display:none" width="420">
-            <tbody>
-                <tr>
-                    <td width="200">&#160;&#160;&#160;&#160;Dorms</td>
-                    <td width="110">21</td>
-                    <td>18</td>
-                </tr>
-                <tr>
-                    <td>&#160;&#160;&#160;&#160;Double</td>
-                    <td>8</td>
-                    <td>4</td>
-                </tr>
-                <tr>
-                    <td>&#160;&#160;&#160;&#160;Twin</td>
-                    <td>4</td>
-                    <td>2</td>
-                </tr>
-                <tr>
-                    <td>&#160;&#160;&#160;&#160;Triple</td>
-                    <td>3</td>
-                    <td>3</td>
-                </tr>
-            </tbody>
-        </table>
+        <xsl:apply-templates select="checkouts"/>
     </div>
     
     <div class="checkins_checkouts" style="float:right;margin-right:50px;">
         <xsl:apply-templates select="checkins"/>
     </div>
         
+</xsl:template>
+
+<xsl:template match="checkouts">
+    <table width="420">
+        <thead>
+            <tr>
+                <th width="200"><xsl:comment/></th>
+                <th width="110">Checked-Out</th>
+                <th>Remaining</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td width="200">
+                    <a id="collapse_checkouts" href="javascript:void(0)" style="display:none" onclick="jQuery('#checkout_table').hide(); jQuery(this).hide(); jQuery('#expand_checkouts').show();"><img src="{/view/homeurl}/wp-content/plugins/booking/img/collapse.gif"/></a>
+                    <a id="expand_checkouts" href="javascript:void(0)" onclick="jQuery('#checkout_table').show(); jQuery(this).hide(); jQuery('#collapse_checkouts').show();"><img src="{/view/homeurl}/wp-content/plugins/booking/img/expand.gif"/></a>
+                    &#160; Number of Checkouts
+                </td>
+                <td width="110"><xsl:value-of select="@departed"/></td>
+                <td><xsl:value-of select="@remaining"/></td>
+            </tr>
+        </tbody>
+    </table>
+    <table id="checkout_table" style="display:none" width="420">
+        <tbody>
+            <xsl:apply-templates select="checkout"/>
+        </tbody>
+    </table>
+</xsl:template>
+
+<xsl:template match="checkout">
+    <tr>
+        <td width="200">
+            <div style="margin-left:{20 * count(ancestor::*) - 20}px">
+                <xsl:value-of select="caption"/>
+            </div>
+        </td>
+        <td width="110"><xsl:value-of select="@departed"/></td>
+        <td><xsl:value-of select="@remaining"/></td>
+    </tr>
+    <!-- recursive -->
+    <xsl:apply-templates select="checkout"/>
 </xsl:template>
 
 <xsl:template match="checkins">
