@@ -45,6 +45,20 @@ class BookingView extends XslTransform {
     }
 
     /**
+     * Checks-out all applicable allocations for the given booking id.
+     * $bookingId : id of booking to checkout
+     * Returns booking summary for booking id, null if not found
+     */
+    function doCheckoutForBooking($bookingId) {
+        if (isset($this->bookings[$bookingId])) {
+            $this->bookings[$bookingId] = AllocationDBO::doCheckoutsForBooking($bookingId);
+            // if we made it this far, successfully checked out
+            return $this->bookings[$bookingId];
+        }
+        return null;
+    }
+
+    /**
      * Adds this BookingView to the DOMDocument/XMLElement specified.
      * See toXml() for details.
      * $domtree : DOM document root

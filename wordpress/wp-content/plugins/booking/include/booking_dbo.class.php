@@ -280,26 +280,46 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
         }
         $result = array();
         foreach ($resultset as $res) {
-            $result[$res->booking_id] = new BookingSummary(
+            $result[$res->booking_id] = self::fetchBookingSummaryForId($res->booking_id);
+        }
+//debuge($result);
+        return $result;
+    }
+
+    /**
+     * Returns a new BookingSummary object for the given booking id.
+     * $bookingId : id of booking to get
+     * Returns non-null object. Throws DatabaseException if not found.
+     */
+    static function fetchBookingSummaryForId($bookingId) {
+        global $wpdb;
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            "SELECT bk.booking_id, bk.firstname, bk.lastname, bk.referrer, bk.created_by, bk.created_date
+               FROM ".$wpdb->prefix."booking bk
+              WHERE bk.booking_id = %d", $bookingId));
+        
+        if($wpdb->last_error) {
+            error_log("Failed to execute query " . $wpdb->last_query);
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        foreach ($resultset as $res) {
+            $summary = new BookingSummary(
                 $res->booking_id, 
                 $res->firstname, 
                 $res->lastname, 
                 $res->referrer, 
                 $res->created_by, 
                 new DateTime($res->created_date));
-            $result[$res->booking_id]->guests = 
-                AllocationDBO::fetchGuestNamesForBookingId($res->booking_id);
-            $result[$res->booking_id]->statuses = 
-                AllocationDBO::fetchStatusesForBookingId($res->booking_id);
-            $result[$res->booking_id]->resources = 
-                ResourceDBO::fetchResourcesForBookingId($res->booking_id);
-            $result[$res->booking_id]->comments = 
-                self::fetchBookingComments($res->booking_id, BookingComment::COMMENT_TYPE_USER);
-            $result[$res->booking_id]->bookingDates = 
-                AllocationDBO::fetchDatesForBookingId($res->booking_id);
+            $summary->guests = AllocationDBO::fetchGuestNamesForBookingId($res->booking_id);
+            $summary->statuses = AllocationDBO::fetchStatusesForBookingId($res->booking_id);
+            $summary->resources = ResourceDBO::fetchResourcesForBookingId($res->booking_id);
+            $summary->comments = self::fetchBookingComments($res->booking_id, BookingComment::COMMENT_TYPE_USER);
+            $summary->bookingDates = AllocationDBO::fetchDatesForBookingId($res->booking_id);
+            $summary->isCheckoutAllowed = AllocationDBO::isCheckoutAllowedForBookingId($res->booking_id);
+            return $summary;
         }
-//debuge($result);
-        return $result;
+        throw new DatabaseException("Booking ID $bookingId not found!");
     }
     
 }

@@ -83,6 +83,11 @@ class AjaxController {
                 $this->toggle_checkout_for_allocation();
                 break;
             
+            // toggle the checkout state of a booking from the booking view
+            case  'TOGGLE_CHECKOUT_FOR_BOOKING':
+                $this->toggle_checkout_for_booking();
+                break;
+            
             case  'PAGE_AVAILABILITY_TABLE_LEFT_RIGHT':
                 $this->page_availability_table_left_right();
                 break;
@@ -426,15 +431,11 @@ error_log(var_export($_POST, true));
 error_log('begin TOGGLE_CHECKOUT_FOR_ALLOCATION');
         if(isset($_SESSION['ALLOCATION_VIEW'])) {
             $av = $_SESSION['ALLOCATION_VIEW'];
-error_log('begin db write');
             $av->toggleCheckoutOnBookingDate($allocationId, $posn);
-error_log('end db write');
         
             // create a new allocation view for the updated resource
-error_log('begin search');
             $viewForResource = new AllocationViewResource($resourceId, $av->showMinDate, $av->showMaxDate);
             $viewForResource->doSearch();
-error_log('end search');
         
             ?> 
             <script type="text/javascript">
@@ -442,6 +443,30 @@ error_log('end search');
             </script>
             <?php
 error_log('end TOGGLE_CHECKOUT_FOR_ALLOCATION');
+        }
+    }
+
+    /**
+     * Sets all applicable allocations on the specified booking to checkedout.
+     * Requires POST variables:
+     *   booking_id : id of booking to checkout
+     */
+    function toggle_checkout_for_booking() {
+        $bookingId = $_POST['booking_id'];
+
+error_log('begin TOGGLE_CHECKOUT_FOR_BOOKING '.$bookingId);
+        if(isset($_SESSION['BOOKING_VIEW'])) {
+            $bv = $_SESSION['BOOKING_VIEW'];
+            $summary = $bv->doCheckoutForBooking($bookingId);
+        
+            if ($summary != null) {
+                ?> 
+                <script type="text/javascript">
+                    document.getElementById('booking_row_<?php echo $bookingId;?>').innerHTML = <?php echo json_encode($summary->toHtml()); ?>;
+                </script>
+                <?php
+            }
+error_log('end TOGGLE_CHECKOUT_FOR_BOOKING '.$bookingId);
         }
     }
 

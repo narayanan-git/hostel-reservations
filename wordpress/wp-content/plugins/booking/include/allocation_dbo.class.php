@@ -877,6 +877,77 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             }
         } 
     }
+
+    /**
+     * Checks-out all applicable allocations for the given booking id and checkout date.
+     * $bookingId : id of booking to check out
+     * $forDate : date of checkout (default today)
+     * Returns updated BookingSummary for booking id
+     */
+    function doCheckoutsForBooking($bookingId, $forDate = null) {
+        if ($forDate == null) {
+            $forDate = new DateTime();
+        }
+
+        // find all allocations that can be checked-out for the given date and toggle checkout
+        $allocationIds = self::findAllowableCheckoutsForBooking($bookingId, $forDate);
+        foreach ($allocationIds as $allocationId) {
+            self::toggleCheckoutOnBookingDate($allocationId, $forDate);
+        }
+
+        return BookingDBO::fetchBookingSummaryForId($bookingId);
+    }
+
+    /**
+     * Returns array of allocation ids that can be checked-out for the given booking id 
+     * and checkout date.
+     * $bookingId : ID of booking
+     * $forDate : checkout date (default: today)
+     * Returns non-null array of allocation id. 
+     */
+    static function findAllowableCheckoutsForBooking($bookingId, $forDate = null) {
+        global $wpdb;
+
+        if ($forDate == null) {
+            $forDate = new DateTime();
+        }
+
+        $resultset = $wpdb->get_results($wpdb->prepare(
+            // allocation exists on forDate with a non-checked out day
+            "SELECT a.allocation_id FROM ".$wpdb->prefix."allocation a
+               JOIN ".$wpdb->prefix."bookingdates d ON a.allocation_id = d.allocation_id
+              WHERE a.booking_id = %d
+                AND IFNULL(d.checked_out, 'N') = 'N'
+                AND d.booking_date = STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                AND d.status IN ('paid', 'free', 'hours')
+                AND NOT EXISTS(SELECT 1 FROM ".$wpdb->prefix."bookingdates d2  -- no allocation for the subsequent day
+                                WHERE d2.allocation_id = d.allocation_id
+                                  AND d2.booking_date = DATE_ADD(d.booking_date, INTERVAL 1 DAY))", 
+            $bookingId, $forDate->format('d.m.Y')));
+
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        $return_val = array();
+        foreach ($resultset as $res) {
+            $return_val[] = $res->allocation_id;
+        }
+        return $return_val;
+    }
+
+    /**
+     * Returns true if and only if there is at least one guest eligible to check out
+     * for the current date.
+     * $bookingId : ID of booking
+     * $forDate : date to check for (default: today)
+     * Returns boolean. 
+     */
+    static function isCheckoutAllowedForBookingId($bookingId, $forDate = null) {
+        // checkout allowed if returned allocation array is not empty
+        $allocationIds = self::findAllowableCheckoutsForBooking($bookingId, $forDate);
+        return false === empty($allocationIds);
+    }
 }
 
 ?>

@@ -3,7 +3,7 @@
 /**
  * Summary for a single booking.
  */
-class BookingSummary {
+class BookingSummary extends XslTransform {
     var $id;  
     var $firstname;
     var $lastname;
@@ -15,6 +15,7 @@ class BookingSummary {
     var $resources; // unique array of String (one for each resource) for this booking
     var $bookingDates; // unique array of DateTime (one for each day an allocation exists)
     var $comments; // array of String (user comments) for this booking
+    var $isCheckoutAllowed;  // boolean : true if checkout can be applied to booking, false otherwise
 
     function BookingSummary($id = 0, $firstname = null, $lastname = null, $referrer = null, $createdBy = null, $createdDate = null) {
         $this->id = $id;
@@ -28,6 +29,7 @@ class BookingSummary {
         $this->resources = array();
         $this->bookingDates = array();
         $this->comments = array();
+        $this->isCheckoutAllowed = false;
     }
     
     /**
@@ -71,6 +73,10 @@ class BookingSummary {
 
         $datesRoot = $xmlRoot->appendChild($domtree->createElement('dates'));
         $this->appendDatesToXmlElement($domtree, $datesRoot);
+
+        if ($this->isCheckoutAllowed) {
+            $xmlRoot->appendChild($domtree->createElement('allowCheckout', 'true'));
+        }
     }
     
     /**
@@ -164,6 +170,7 @@ class BookingSummary {
                     <to>August 6, 2012</to>
                 </daterange>
             </dates>
+            <allowCheckout>true</allowCheckout>
         </booking>
      */
     function toXml() {
@@ -173,6 +180,12 @@ class BookingSummary {
         return $domtree->saveXML();
     }
     
+    /**
+     * Returns the filename for the stylesheet to use during transform.
+     */
+    function getXslFilename() {
+        return WPDEV_BK_PLUGIN_DIR. '/include/booking_summary.xsl';
+    }
 }
 
 ?>

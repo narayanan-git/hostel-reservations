@@ -175,6 +175,22 @@ function toggle_checkout_for_allocation(resource_id, allocation_id, posn) {
     });
 }
 
+// this will toggle the checkout status of all applicable allocations for the given booking id
+// booking_id : id of booking
+function toggle_checkout_for_booking(booking_id) {
+
+    jQuery.ajax({                                           // Start Ajax Sending
+        url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+        type:'POST',
+        success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+        error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+        data:{
+            ajax_action : 'TOGGLE_CHECKOUT_FOR_BOOKING',
+            booking_id : booking_id
+        }
+    });
+}
+
 /**
     * This will shift the dates on the calendar.
     * direction : one of 'left' or 'right'
