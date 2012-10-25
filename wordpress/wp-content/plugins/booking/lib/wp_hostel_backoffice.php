@@ -36,11 +36,11 @@ class WP_HostelBackoffice {
      */
     function activate() {
         add_option('hbo_date_format' , get_option('date_format'));
-        add_option('bookings_url', 'admin/bookings');
-        add_option('allocations_url', 'admin/allocations');
-        add_option('summary_url', 'admin/summary');
-        add_option('editbooking_url', 'edit-booking');
-        add_option('resources_url', 'resources');
+        add_option('hbo_bookings_url', 'admin/bookings');
+        add_option('hbo_allocations_url', 'admin/allocations');
+        add_option('hbo_summary_url', 'admin/summary');
+        add_option('hbo_resources_url', 'admin/resources');
+        add_option('hbo_editbooking_url', 'edit-booking');
         $this->build_db_tables();
     }
 
@@ -49,11 +49,11 @@ class WP_HostelBackoffice {
      */
     function deactivate() {
         delete_option('hbo_date_format');
-        delete_option('bookings_url');
-        delete_option('allocations_url');
-        delete_option('summary_url');
-        delete_option('editbooking_url');
-        delete_option('resources_url');
+        delete_option('hbo_bookings_url');
+        delete_option('hbo_allocations_url');
+        delete_option('hbo_summary_url');
+        delete_option('hbo_resources_url');
+        delete_option('hbo_editbooking_url');
     }
 
     /**
@@ -266,8 +266,11 @@ error_log($rpp->toXml());
      */
     function content_of_settings_page() {
         $s = new Settings();
-        $s->updateOptions($_POST);
+        if (false === empty($_POST)) {
+            $s->updateOptions($_POST);
+        }
 error_log($s->toXml());
+error_log(var_export($_POST, TRUE));
         echo $s->toHtml();
     }
 
@@ -307,11 +310,11 @@ error_log($s->toXml());
      * These can be set under the Settings for the plugin.
      */
     function my_template_redirect() {
-        $this->do_redirect_for_page(get_option('allocations_url'), 'allocations.php');
-        $this->do_redirect_for_page(get_option('bookings_url'), 'bookings.php');
-        $this->do_redirect_for_page(get_option('summary_url'), 'summary.php');
-        $this->do_redirect_for_page(get_option('editbooking_url'), 'edit-booking.php');
-        $this->do_redirect_for_page(get_option('resources_url'), 'resources.php');
+        $this->do_redirect_for_page(get_option('hbo_allocations_url'), 'allocations.php');
+        $this->do_redirect_for_page(get_option('hbo_bookings_url'), 'bookings.php');
+        $this->do_redirect_for_page(get_option('hbo_summary_url'), 'summary.php');
+        $this->do_redirect_for_page(get_option('hbo_editbooking_url'), 'edit-booking.php');
+        $this->do_redirect_for_page(get_option('hbo_resources_url'), 'resources.php');
     }
 
     /**
@@ -369,7 +372,10 @@ error_log($s->toXml());
                         last_updated_date datetime NOT NULL,
                         PRIMARY KEY (booking_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
 
         if ( false == $this->does_table_exist('bookingresources') ) { 
@@ -386,7 +392,10 @@ error_log($s->toXml());
                         PRIMARY KEY (resource_id),
                         FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
 
         if ( false == $this->does_table_exist('mv_resources_by_path') ) { 
@@ -402,7 +411,10 @@ error_log($s->toXml());
                         capacity int(10) unsigned NOT NULL,
                         PRIMARY KEY (resource_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
             
         if ( false == $this->does_table_exist('resource_properties') ) { 
@@ -411,7 +423,10 @@ error_log($s->toXml());
                         description varchar(20) NOT NULL,
                         PRIMARY KEY (property_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
                 
             $simple_sql = "INSERT INTO ".$wpdb->prefix ."resource_properties (property_id, description)
                             VALUES(%d, %s)";
@@ -433,7 +448,10 @@ error_log($s->toXml());
                         FOREIGN KEY (resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id),
                         FOREIGN KEY (property_id) REFERENCES ".$wpdb->prefix ."resource_properties(property_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
             
         if ( false == $this->does_table_exist('bookingcomment') ) { 
@@ -447,7 +465,10 @@ error_log($s->toXml());
                         PRIMARY KEY (comment_id),
                         FOREIGN KEY (booking_id) REFERENCES ".$wpdb->prefix ."booking(booking_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
             
         if ( false == $this->does_table_exist('allocation') ) {
@@ -465,7 +486,10 @@ error_log($s->toXml());
                         FOREIGN KEY (booking_id) REFERENCES ".$wpdb->prefix ."booking(booking_id),
                         FOREIGN KEY (resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id) 
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
 
         if ( false == $this->does_table_exist('bookingdates') ) {
@@ -480,7 +504,10 @@ error_log($s->toXml());
                         last_updated_date datetime NOT NULL,
                         FOREIGN KEY (allocation_id) REFERENCES ".$wpdb->prefix ."allocation(allocation_id)
                     ) $charset_collate;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
             
         if( false == $this->does_routine_exist('walk_tree_path')) {
@@ -508,54 +535,61 @@ error_log($s->toXml());
                     RETURN return_val;
                     
                 END;";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
             
-        if ( false == $this->does_table_exist('v_resources_sub1') ) {
-            $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 AS
-                    SELECT resource_id, name, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type, room_type
-                    FROM ".$wpdb->prefix."bookingresources";
-            $wpdb->query($wpdb->prepare($simple_sql));
+        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 AS
+                SELECT resource_id, name, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type, room_type
+                FROM ".$wpdb->prefix."bookingresources";
+
+        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
         }
 
-        if ( false == $this->does_table_exist('v_resources_by_path') ) {
-            $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
-                    SELECT resource_id, name, parent_resource_id, path, resource_type, room_type,
-                            LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS level,
-                            (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) AND resource_type = 'bed') AS number_children,
-                            (SELECT COUNT(*) FROM wp_v_resources_sub1 s1 WHERE (s1.path LIKE CAST(CONCAT(s.path, '/%') AS CHAR) OR s1.path = s.path) AND resource_type = 'bed') AS capacity
-                      FROM ".$wpdb->prefix."v_resources_sub1 s
-                     ORDER BY path";
+        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
+                SELECT resource_id, name, parent_resource_id, path, resource_type, room_type,
+                        LENGTH(path) - LENGTH(REPLACE(path, '/', '')) AS level,
+                        (SELECT COUNT(*) FROM ".$wpdb->prefix."v_resources_sub1 s1 WHERE s1.path LIKE CAST(CONCAT(s.path, '/%%') AS CHAR) AND resource_type = 'bed') AS number_children,
+                        (SELECT COUNT(*) FROM ".$wpdb->prefix."v_resources_sub1 s1 WHERE (s1.path LIKE CAST(CONCAT(s.path, '/%%') AS CHAR) OR s1.path = s.path) AND resource_type = 'bed') AS capacity
+                    FROM ".$wpdb->prefix."v_resources_sub1 s
+                    ORDER BY path";
 // FIXME: remove number_children, rename capacity ==> number_beds
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
         }
 
-        if ( false == $this->does_table_exist('v_booked_capacity') ) {
-            $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_booked_capacity (booking_date, resource_id, used_capacity) AS
-                    SELECT bd.booking_date, alloc.resource_id, COUNT(*) used_capacity
-                      FROM ".$wpdb->prefix."bookingdates bd
-                      JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
-                     GROUP BY bd.booking_date, alloc.resource_id";
-            $wpdb->query($wpdb->prepare($simple_sql));
+        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_booked_capacity (booking_date, resource_id, used_capacity) AS
+                SELECT bd.booking_date, alloc.resource_id, COUNT(*) used_capacity
+                    FROM ".$wpdb->prefix."bookingdates bd
+                    JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
+                    GROUP BY bd.booking_date, alloc.resource_id";
+
+        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
         }
 
-        if ( false == $this->does_table_exist('v_resource_availability') ) {
-            $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resource_availability (booking_date, resource_id, resource_name, path, capacity, used_capacity, avail_capacity) AS
-                    SELECT bc.booking_date, 
-                           rp.resource_id, 
-                           rp.name AS resource_name,
-                           rp.path, 
-                           rp.capacity, 
-                           bc.used_capacity,
-                           CAST(rp.capacity - IFNULL(bc.used_capacity, 0) AS SIGNED) AS avail_capacity 
-                      FROM ".$wpdb->prefix."mv_resources_by_path rp
-                      LEFT OUTER JOIN ".$wpdb->prefix."v_booked_capacity bc ON rp.resource_id = bc.resource_id
-                     WHERE rp.number_children = 0
-                     ORDER BY bc.booking_date, rp.path";
-            $wpdb->query($wpdb->prepare($simple_sql));
+        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resource_availability (booking_date, resource_id, resource_name, path, capacity, used_capacity, avail_capacity) AS
+                SELECT bc.booking_date, 
+                        rp.resource_id, 
+                        rp.name AS resource_name,
+                        rp.path, 
+                        rp.capacity, 
+                        bc.used_capacity,
+                        CAST(rp.capacity - IFNULL(bc.used_capacity, 0) AS SIGNED) AS avail_capacity 
+                    FROM ".$wpdb->prefix."mv_resources_by_path rp
+                    LEFT OUTER JOIN ".$wpdb->prefix."v_booked_capacity bc ON rp.resource_id = bc.resource_id
+                    WHERE rp.number_children = 0
+                    ORDER BY bc.booking_date, rp.path";
+
+        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
         }
 
-        if ( false == $this->does_trigger_exista('trg_enforce_availability') ) {
+        if ( false == $this->does_trigger_exist('trg_enforce_availability') ) {
             $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_enforce_availability
                 -- this will raise an error by selecting from a non-existent table
                 -- in order to enforce availability for a particular resource/date
@@ -574,10 +608,13 @@ error_log($s->toXml());
                         WHERE SANITY_CHECK_RESERVATION_CONFLICT_FOUND.id = NEW.allocation_id;
                     END IF;
                 END";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
 
-        if ( false == $this->does_trigger_exista('trg_mv_resources_by_path_ins') ) {
+        if ( false == $this->does_trigger_exist('trg_mv_resources_by_path_ins') ) {
             $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_ins
                 -- this will update the materialized view
                 -- whenever an insert is made on the underlying table
@@ -586,11 +623,20 @@ error_log($s->toXml());
                     INSERT INTO ".$wpdb->prefix."mv_resources_by_path
                     SELECT * FROM ".$wpdb->prefix."v_resources_by_path
                         WHERE resource_id = NEW.resource_id;
+
+                    -- update the child count (could be clever by splitting path)
+                    UPDATE ".$wpdb->prefix."mv_resources_by_path m
+                      JOIN ".$wpdb->prefix."v_resources_by_path v
+                        ON m.resource_id = v.resource_id
+                       SET m.number_children = v.number_children;
                 END";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
 
-        if ( false == $this->does_trigger_exista('trg_mv_resources_by_path_upd') ) {
+        if ( false == $this->does_trigger_exist('trg_mv_resources_by_path_upd') ) {
             $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_upd
                 -- this will update the materialized view
                 -- whenever an update is made on the underlying table
@@ -602,11 +648,20 @@ error_log($s->toXml());
                     INSERT INTO ".$wpdb->prefix."mv_resources_by_path
                     SELECT * FROM ".$wpdb->prefix."v_resources_by_path
                      WHERE resource_id = NEW.resource_id;
+
+                    -- update the child count (could be clever by splitting path)
+                    UPDATE ".$wpdb->prefix."mv_resources_by_path m
+                      JOIN ".$wpdb->prefix."v_resources_by_path v
+                        ON m.resource_id = v.resource_id
+                       SET m.number_children = v.number_children;
                 END";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
 
-        if ( false == $this->does_trigger_exista('trg_mv_resources_by_path_del') ) {
+        if ( false == $this->does_trigger_exist('trg_mv_resources_by_path_del') ) {
             $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_del
                 -- this will update the materialized view
                 -- whenever a delete is made on the underlying table
@@ -614,8 +669,17 @@ error_log($s->toXml());
                 BEGIN
                     DELETE FROM ".$wpdb->prefix."mv_resources_by_path
                      WHERE resource_id = OLD.resource_id;
+
+                    -- update the child count (could be clever by splitting path)
+                    UPDATE ".$wpdb->prefix."mv_resources_by_path m
+                      JOIN ".$wpdb->prefix."v_resources_by_path v
+                        ON m.resource_id = v.resource_id
+                       SET m.number_children = v.number_children;
                 END";
-            $wpdb->query($wpdb->prepare($simple_sql));
+
+            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            }
         }
     }
 
