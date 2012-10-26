@@ -36,23 +36,23 @@
                                     </tr>
                                     <tr valign="top">
                                         <th scope="row"><label for="editbooking_url">New Booking Page</label></th>
-                                        <td><input id="editbooking_url"  name="editbooking_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{editbookingurl}" /></td>
+                                        <td><input id="editbooking_url"  name="hbo_editbooking_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{editbookingurl}" /></td>
                                     </tr>  
                                     <tr valign="top">
                                         <th scope="row"><label for="bookings_url">Bookings Page</label></th>
-                                        <td><input id="bookings_url"  name="bookings_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{bookingsurl}" /></td>
+                                        <td><input id="bookings_url"  name="hbo_bookings_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{bookingsurl}" /></td>
                                     </tr>  
                                     <tr valign="top">
                                         <th scope="row"><label for="allocations_url">Allocations Page</label></th>
-                                        <td><input id="allocations_url"  name="allocations_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{allocationsurl}" /></td>
+                                        <td><input id="allocations_url"  name="hbo_allocations_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{allocationsurl}" /></td>
                                     </tr>  
                                     <tr valign="top">
                                         <th scope="row"><label for="summary_url">Daily Summary Page</label></th>
-                                        <td><input id="summary_url"  name="summary_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{summaryurl}" /></td>
+                                        <td><input id="summary_url"  name="hbo_summary_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{summaryurl}" /></td>
                                     </tr>  
                                     <tr valign="top">
                                         <th scope="row"><label for="resources_url">Resources Page</label></th>
-                                        <td><input id="resources_url"  name="resources_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{resourcesurl}" /></td>
+                                        <td><input id="resources_url"  name="hbo_resources_url" class="regular-text code" type="text" style="width:350px;" size="145" value="{resourcesurl}" /></td>
                                     </tr>  
                                     <tr valign="top"><td colspan="2"><div style="border-bottom:1px solid #cccccc;"><xsl:comment/></div></td></tr>
                                     <tr valign="top"> 
@@ -561,11 +561,11 @@
                                     <table class="bk_table">
                                         <tr class="first">
                                             <td style="width:35%;text-align: right;;" class="">Version:</td>
-                                            <td style="text-align: left;color: red; font-weight: bold;" class="bk_spec_font">4.0</td>
+                                            <td style="text-align: left; font-weight: bold;" class="bk_spec_font">0.1</td>
                                         </tr>
                                         <tr>
                                             <td style="width:35%;text-align: right;" class="first b">Release date:</td>
-                                            <td style="text-align: left;  font-weight: bold;" class="bk_spec_font">08.09.2012</td>
+                                            <td style="text-align: left;  font-weight: bold;" class="bk_spec_font">15.10.2012</td>
                                         </tr>
                                     </table>
                                 </div>
@@ -574,19 +574,19 @@
                                     <span class="bk_header">Support:</span>
                                     <table class="bk_table">
                                         <tr class="first">
-                                            <td style="text-align:center;" class="bk_spec_font"><a href="mailto:support@wpbookingcalendar.com">Contact email</a></td>
+                                            <td style="text-align:center;" class="bk_spec_font"><a href="mailto:support@www.hostelbackoffice.net">Contact email</a></td>
                                         </tr>
                                         <tr>
-                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://wpbookingcalendar.com/faq/">FAQ</a></td>
+                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://www.hostelbackoffice.net/faq/">FAQ</a></td>
                                         </tr>
                                         <tr>
-                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://wpbookingcalendar.com/help/">Have a questions?</a></td>
+                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://www.hostelbackoffice.net/help/">Have a questions?</a></td>
                                         </tr>
                                         <tr>
-                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://wordpress.org/extend/plugins/booking">Rate plugin</a></td>
+                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://wordpress.org/extend/plugins/hostel_backoffice">Rate plugin</a></td>
                                         </tr>
                                         <tr>
-                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://wpbookingcalendar.com/features/">Check other versions</a></td>
+                                            <td style="text-align:center;" class="bk_spec_font"><a target="_blank" href="http://www.hostelbackoffice.net/features/">Check other versions</a></td>
                                         </tr>
                                     </table>
                                 </div>
@@ -596,7 +596,7 @@
                                 <div style="width:95%;border:none; clear:both;margin:10px 0px;" id="bk_news_section"> <!-- Section 4 -->
 
                                     <div style="width: 96%; margin-right: 0px;; ">
-                                        <span class="bk_header">Booking Calendar News:</span>
+                                        <span class="bk_header">Hostel Backoffice News:</span>
                                         <br/><br/>
                                         <div id="bk_news"> <span style="font-size:11px;text-align:center;">Loading...</span></div>
                                         <div id="ajax_bk_respond"><xsl:comment/></div>
@@ -684,16 +684,19 @@
 
                 <div class='meta-box'>
                     <div id="bk_general_settings_uninstall" class="postbox"> 
-                        <div title="Click to toggle" class="handlediv" onclick="javascript:verify_window_opening(1, 'bk_general_settings_uninstall');"><br/></div>
-                        <h3 class='hndle'><span>Uninstall / deactivation</span></h3> 
+                        <h3 class='hndle'><span>Uninstall / Deactivate</span></h3> 
                         <div class="inside">
                             <table class="form-table">
                                 <tbody>
                                     <tr valign="top">
-                                        <th scope="row"><label for="is_delete_if_deactive" >Delete booking data:</label><br/>when plugin deactivated</th>
-                                        <td><input id="is_delete_if_deactive" type="checkbox" value="Off" name="is_delete_if_deactive"
-                                                onclick="javascript: if (this.checked) {{ var answer = confirm('Warning! If you check this option, at uninstall process of this plugin all your booking data will be deleted. Do you really want to do this?'); if ( answer){{ this.checked = true; }} else {{this.checked = false;}} }}"/>
-                                            <span class="description"> Check, if you want delete booking data during uninstalling plugin.</span>
+                                        <th scope="row"><label for="is_delete_if_deactive" >Delete all data:</label><br/>when plugin is deactivated</th>
+                                        <td><input id="hbo_delete_db_on_deactivate" type="checkbox" value="{delete_on_deactivate}" name="hbo_delete_db_on_deactivate"
+                                                onclick="javascript: if (this.checked) {{ var answer = confirm('Warning! If you check this option, all booking data will be deleted when plugin is deactivated. Do you really want to do this?'); if ( answer){{ this.checked = true;}} else {{this.checked = false;}} }}">
+                                                <xsl:if test="delete_on_deactivate = 'On'">
+                                                    <xsl:attribute name="checked">checked</xsl:attribute>
+                                                </xsl:if>
+                                            </input>
+                                            <span class="description"> Check, if you want delete booking data when plugin is deactivated.</span>
                                         </td>
                                     </tr>
                                 </tbody>

@@ -20,11 +20,12 @@ class Settings extends XslTransform {
     function addSelfToDocument($domtree, $parentElement) {    
         // create the root element for this class and append it to our parent
         $xmlRoot = $parentElement->appendChild($domtree->createElement('view'));
-        $xmlRoot->appendChild($domtree->createElement('bookingsurl', get_option('bookings_url')));
-        $xmlRoot->appendChild($domtree->createElement('allocationsurl', get_option('allocations_url')));
-        $xmlRoot->appendChild($domtree->createElement('summaryurl', get_option('summary_url')));
-        $xmlRoot->appendChild($domtree->createElement('editbookingurl', get_option('editbooking_url')));
-        $xmlRoot->appendChild($domtree->createElement('resourcesurl', get_option('resources_url')));
+        $xmlRoot->appendChild($domtree->createElement('bookingsurl', get_option('hbo_bookings_url')));
+        $xmlRoot->appendChild($domtree->createElement('allocationsurl', get_option('hbo_allocations_url')));
+        $xmlRoot->appendChild($domtree->createElement('summaryurl', get_option('hbo_summary_url')));
+        $xmlRoot->appendChild($domtree->createElement('editbookingurl', get_option('hbo_editbooking_url')));
+        $xmlRoot->appendChild($domtree->createElement('resourcesurl', get_option('hbo_resources_url')));
+        $xmlRoot->appendChild($domtree->createElement('delete_on_deactivate', get_option('hbo_delete_db_on_deactivate')));
     }
 
     /**
@@ -32,11 +33,13 @@ class Settings extends XslTransform {
      * $optionsArray : array of option name => option values
      */
     function updateOptions($optionsArray) {
-        $this->setOptionIfNotEmpty($optionsArray, 'bookings_url');
-        $this->setOptionIfNotEmpty($optionsArray, 'allocations_url');
-        $this->setOptionIfNotEmpty($optionsArray, 'summary_url');
-        $this->setOptionIfNotEmpty($optionsArray, 'editbooking_url');
-        $this->setOptionIfNotEmpty($optionsArray, 'resources_url');
+        $this->setOptionIfNotEmpty($optionsArray, 'hbo_bookings_url');
+        $this->setOptionIfNotEmpty($optionsArray, 'hbo_allocations_url');
+        $this->setOptionIfNotEmpty($optionsArray, 'hbo_summary_url');
+        $this->setOptionIfNotEmpty($optionsArray, 'hbo_editbooking_url');
+        $this->setOptionIfNotEmpty($optionsArray, 'hbo_resources_url');
+
+        update_option('hbo_delete_db_on_deactivate', isset($optionsArray['hbo_delete_db_on_deactivate']) ? 'On' : 'Off');
     }
 
     /**
