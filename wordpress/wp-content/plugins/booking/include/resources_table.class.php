@@ -24,8 +24,7 @@ class ResourcesTable extends XslTransform {
      */
     function addSelfToDocument($domtree, $parentElement) {
         // create the root element for this class and append it to our parent
-        $xmlRoot = $domtree->createElement('resources');
-        $xmlRoot = $parentElement->appendChild($xmlRoot);
+        $xmlRoot = $parentElement->appendChild($domtree->createElement('resources'));
     
         // if we are editing, then we create a new element
         if( $this->editResourceId != '' ) {
@@ -34,6 +33,7 @@ class ResourcesTable extends XslTransform {
         
         foreach (ResourceDBO::getAllResources() as $res) {
             $resourceRow = $domtree->createElement('resource');
+            $resourceRow->appendChild($domtree->createElement('resources_url', home_url()."/".get_option('hbo_resources_url')));
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));
             $resourceRow->appendChild($domtree->createElement('path', $res->path));

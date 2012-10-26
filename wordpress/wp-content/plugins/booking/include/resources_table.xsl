@@ -84,7 +84,7 @@
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:if test="type = 'room'">
-                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit Attributes" href="/wp-admin/admin.php?page=booking/wpdev-booking.phpwpdev-booking-resources&amp;editResourceId={id}">
+                        <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit Attributes" href="{resources_url}?editResourceId={id}">
                             <img style="width:13px; height:13px;" src="{/view/homeurl}/wp-content/plugins/booking/img/notes_rd.png" title="Edit Attributes" alt="Edit Attributes"/>
                         </a>
                         <span style="padding-left: 10px;"><xsl:comment/></span>

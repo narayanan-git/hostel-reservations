@@ -25,8 +25,8 @@ class ResourcePropertyPage extends XslTransform {
      */
     function addSelfToDocument($domtree, $parentElement) {
         // create the root element for this class and append it to our parent
-        $xmlRoot = $domtree->createElement('view');
-        $xmlRoot = $parentElement->appendChild($xmlRoot);
+        $xmlRoot = $parentElement->appendChild($domtree->createElement('view'));
+        $xmlRoot->appendChild($domtree->createElement('resources_url', home_url()."/".get_option('hbo_resources_url')));
 
         if ($this->isSaved) {
             $xmlRoot->appendChild($domtree->createElement('saved', 'true'));

@@ -7,21 +7,23 @@
 //*****************************************************************************
 -->
 <xsl:template match="view">
-    <div style="margin-top:10px;height:1px;clear:both;"><xsl:comment/></div>
-    <h3>Resource Properties for <xsl:value-of select="resourceName"/></h3>
-    <form method="post" action="" name="post_resource_properties">
-        <xsl:apply-templates select="properties/property"/>
-        <xsl:if test="saved = 'true'">
-            <p style="color:green">Update successful.</p>
-        </xsl:if>
-        <input class="button-secondary" type="submit" value="Save"/>
-    </form>
+    <div class="resource_prop_container">
+        <div style="margin-top:10px; height:1px; clear:both;"><xsl:comment/></div>
+        <h3>Resource Properties for <xsl:value-of select="resourceName"/></h3>
+        <form method="post" action="" name="post_resource_properties">
+            <xsl:apply-templates select="properties/property"/>
+            <xsl:if test="saved = 'true'">
+                <p style="color:green">Update successful.</p>
+            </xsl:if>
+            <p><input class="button-secondary" type="submit" value="Save"/></p>
+        </form>
     
-    <xsl:if test="saved = 'true'">
-        <script language="javascript">
-            window.location.href="/wp-admin/admin.php?page=booking/wpdev-booking.phpwpdev-booking-resources";
-        </script>
-    </xsl:if>
+        <xsl:if test="saved = 'true'">
+            <script language="javascript">
+                window.location.href="<xsl:value-of select="resources_url"/>";
+            </script>
+        </xsl:if>
+    </div>
 </xsl:template>
 
 <xsl:template match="property">
