@@ -227,9 +227,11 @@ error_log("updating allocation $this->id");
         $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
-        $xmlRoot->appendChild($domtree->createElement('resourceid', $this->resourceId));
-        $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]->name));
-        $xmlRoot->appendChild($domtree->createElement('parentresource', $this->resourceMap[$this->resourceId]->parent_name));
+        if ($this->resourceId != null) {
+            $xmlRoot->appendChild($domtree->createElement('resourceid', $this->resourceId));
+            $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]->name));
+            $xmlRoot->appendChild($domtree->createElement('parentresource', $this->resourceMap[$this->resourceId]->parent_name));
+        }
 
         $dateRow = $domtree->createElement('dates');
         $xmlRoot->appendChild($dateRow);

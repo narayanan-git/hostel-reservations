@@ -26,7 +26,7 @@ class AddBooking extends XslTransform {
      * Adds a number of allocations with the specified attributes.
      * numVisitors : number of guests to add
      * gender : Male/Female
-     * resourceId : id of resource to allocate to
+     * resourceId : id of resource to allocate to (null for any)
      * dates : array of dates (String) in format dd.MM.yyyy
      * resourceProps : array of resource property ids (allocate only to resources with these properties)
      */

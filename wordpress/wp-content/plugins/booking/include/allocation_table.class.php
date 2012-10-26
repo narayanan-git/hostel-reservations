@@ -26,7 +26,7 @@ class AllocationTable extends XslTransform {
      * numVisitors : number of guests to add
      * bookingName : name booking is under
      * gender : Male/Female
-     * resourceId : id of resource to allocate to
+     * resourceId : id of resource to allocate to (null for any)
      * dates : array of dates (String) in format dd.MM.yyyy
      * resourceProps : array of resource property ids (allocate only to resources with these properties)
      * Throws AllocationException if there aren't enough "leaf" resources to add the given
@@ -270,6 +270,7 @@ error_log("allocation table.save() : ".var_export(array(array_keys($oldAllocatio
             $resourceRow->appendChild($domtree->createElement('id', $res->resource_id));
             $resourceRow->appendChild($domtree->createElement('name', $res->name));
             $resourceRow->appendChild($domtree->createElement('level', $res->level));
+            $resourceRow->appendChild($domtree->createElement('resource_type', $res->resource_type));
             $resourcesRoot->appendChild($resourceRow);
         }
         

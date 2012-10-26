@@ -81,8 +81,8 @@
                             </p>
                             <p>Room/Bed:<br />  
                                 <span class="wpdev-form-control-wrap"> 
-                                    <select id="booking_resource" name="booking_resource">
-                                        <option value="0"> - </option>
+                                    <select id="booking_resource" name="booking_resource" onchange="resource_changed(this);">
+                                        <option value="0" resource_type="group">Any Free Bed...</option>
                                         <xsl:apply-templates select="allocations/resources/resource" mode="resource_selection"/>
                                     </select>
                                 </span>
@@ -96,11 +96,13 @@
                                     </select>
                                 </span>
                             </p>
-                            <p>Assign To:<br />  
-                                <div style="margin-left:30px;">
-                                    <xsl:apply-templates select="properties/property"/>
-                                </div>
-                            </p>
+                            <div id="resource_property_selection">
+                                <p>Assign To:<br />  
+                                    <div style="margin-left:30px;">
+                                        <xsl:apply-templates select="properties/property"/>
+                                    </div>
+                                </p>
+                            </div>
                             <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form);" /></p>
                         </div>
                     
@@ -151,6 +153,16 @@
                         }
                 );
             });
+
+            // hide the resource property selection if a 'bed' is selected
+            function resource_changed(form_component) {
+                var selectedType = form_component.options[form_component.selectedIndex].getAttribute("resource_type");
+                if (selectedType == 'bed') {
+                    jQuery('#resource_property_selection').fadeOut(500);
+                } else {
+                    jQuery('#resource_property_selection').fadeIn(500);
+                }
+            }
         </script>
     </div>    
 </xsl:template>

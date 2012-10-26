@@ -38,10 +38,6 @@ function add_booking_allocation(submit_form) {
         showErrorMessage( submit_form.num_visitors, 'This field is required' );
         return;
     }
-    else if(submit_form.booking_resource.value === '0') {
-        showErrorMessage( submit_form.booking_resource, 'This field is required' );
-        return;
-    }
     else if(typeof document.getElementById('calendar_booking1').value === "undefined" || 
             document.getElementById('calendar_booking1').value === '') {
         jQuery('#ajax_respond').html("Select a date or date-range for the booking.")
@@ -53,16 +49,20 @@ function add_booking_allocation(submit_form) {
 
     // build our list of space-delimited resource properties
     var resource_properties = "";
-    for(var i = 0; i < submit_form.resource_property.length; i++){
-        if (submit_form.resource_property[i].checked)
-            resource_properties += submit_form.resource_property[i].value + ",";
-    }
-    if(resource_properties.length <= 0) {
-        jQuery('#ajax_respond').html("At least one property must be selected")
-            .css( {'color' : 'red'} )
-            .animate( {opacity: 1}, 10000 )
-            .fadeOut( 2000 );   // hide message
-        return;
+    if (jQuery('#resource_property_selection').is(":visible")) {
+        for (var i = 0; i < submit_form.resource_property.length; i++) {
+            if (submit_form.resource_property[i].checked)
+                resource_properties += submit_form.resource_property[i].value + ",";
+        }
+
+        // only validate if resource properties are visible
+        if (resource_properties.length <= 0) {
+            jQuery('#ajax_respond').html("At least one property must be selected")
+            .css({ 'color': 'red' })
+            .animate({ opacity: 1 }, 10000)
+            .fadeOut(2000);   // hide message
+            return;
+        }
     }
         
     jQuery.ajax({                                           // Start Ajax Sending

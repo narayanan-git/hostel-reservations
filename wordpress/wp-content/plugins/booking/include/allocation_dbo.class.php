@@ -9,9 +9,10 @@ class AllocationDBO {
      * Queries availability for the given resourceId and booking dates.
      * Returns a map of available resources (beds) by resourceId which
      * have availability for *ALL* those dates. 
-     * $resourceId  : id of resource id to get availability
+     * $resourceId  : id of resource id to get availability (null for all)
      * $bookingDates : array() of booking dates in format d.m.Y
      * $resourceProps : array of resource property ids (allocate only to resources with these properties)
+     *                  if null, properties will not be filtered
      * Returns map of key => $resourceId, value => $capacity
      */
     static function fetchAvailability($resourceId, $bookingDates, $resourceProps) {
@@ -26,16 +27,18 @@ error_log("fetch availability resource id : $resourceId booking dates : " . size
         $resultset = $wpdb->get_results($wpdb->prepare(
             "SELECT p.resource_id, p.capacity as avail_capacity 
                FROM ".$wpdb->prefix."mv_resources_by_path p 
-              WHERE p.resource_type = 'bed' AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')
+              WHERE p.resource_type = 'bed' 
+                " . ($resourceId == null ? "" : "AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')") . "
                 AND NOT EXISTS(
                         SELECT 1 FROM ".$wpdb->prefix."bookingdates dt 
                           JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
                          WHERE dt.booking_date IN ($bookingDatesString)
                            AND a.resource_id = p.resource_id)
+                " . ($resourceProps == null ? "" : "
                 AND EXISTS( -- only match those resources with the properties specified
                         SELECT 1 FROM ".$wpdb->prefix."resource_properties_map m
                          WHERE m.resource_id = p.parent_resource_id  -- match against room only
-                           AND m.property_id IN (".implode(',', $resourceProps)."))"));
+                           AND m.property_id IN (".implode(',', $resourceProps)."))")));
 
 error_log("fetch availability " . $wpdb->last_query);
 

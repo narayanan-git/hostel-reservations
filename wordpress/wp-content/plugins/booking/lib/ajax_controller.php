@@ -273,7 +273,7 @@ error_log("save_resource $resourceId $resourceName");
         $gender = $_POST['gender'];
         $dates = $_POST['dates'];
         $res = $_POST['booking_resource'];
-        $resource_property = $_POST['resource_property'];
+        $resource_property = trim($_POST['resource_property'], " ,");
 
         // keep allocations in a datastructure saved to session
         // { allocation_id, resource_id, gender, array[dates] }
@@ -285,17 +285,19 @@ error_log("save_resource $resourceId $resourceName");
             $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
             $booking->firstname = $firstname;
             try {
-                $booking->addAllocation($num_visitors, $gender, $res, 
-                    explode(",", trim($dates, " ,")), explode(",", trim($resource_property, " ,")));
+                $booking->addAllocation($num_visitors, $gender, $res == "0" ? null : $res, 
+                    explode(",", trim($dates, " ,")), 
+                    empty($resource_property) ? null : explode(",", $resource_property));
 
             } catch (AllocationException $ae) {
                 ?> 
                 <script type="text/javascript">
-                    document.getElementById('ajax_respond').innerHTML = "There is not enough availability for the room (type) and dates chosen.";
+                    document.getElementById('ajax_respond').innerHTML = <?php echo json_encode($ae->getMessage()); ?>;
                     jQuery("#ajax_respond")
                         .css( {'color' : 'red'} );
                 </script>
                 <?php
+                return;
             }
         } else {
             ?> 

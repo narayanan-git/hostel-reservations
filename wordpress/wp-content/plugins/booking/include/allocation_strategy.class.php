@@ -49,6 +49,11 @@ error_log($alloc->resourceId ." has this many children : ".$this->resourceMap[$a
             $numberOfAllocationsSharingThisParent = $this->collectDatesWithResourceId($allocationRows, $alloc->resourceId, $bookingDates);
 error_log("after collectDatesWithResourceId numberOfAllocationsSharingThisParent:$numberOfAllocationsSharingThisParent bookingDates : ".sizeof($bookingDates));
 
+            // check that the user didn't do anything stupid like try to assign two people into the same bed
+            if ($numberOfAllocationsSharingThisParent > 1 && $this->resourceMap[$alloc->resourceId]->resource_type == 'bed') {
+                throw new AllocationException("You cannot assign more than one person into the same bed!");
+            }
+
             // resourceIds : Map of key = resourceId, value = capacity
             // these are all resources that have availability across ALL $bookingDates
             // TODO: actually, all resources should be beds so capacity = 1 always??
@@ -60,7 +65,7 @@ foreach ($resourceIds as $k => $v) {
             
             // if "parent" node, we need to assign a specific leaf (bed)
             // first, try to fit everyone into the same room
-            if($this->resourceMap[$alloc->resourceId]->number_children > 0) {
+            if($alloc->resourceId == null || $this->resourceMap[$alloc->resourceId]->number_children > 0) {
                 // reservedResourceIds : Map of key = resourceId, value = capacity
                 $reservedResourceIds = AllocationDBO::fetchResourcesUnderOneParentResource(array_keys($resourceIds), $numberOfAllocationsSharingThisParent);
 error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
@@ -110,14 +115,14 @@ error_log("exit fetchAvailableCapacity ".sizeof($resultMap));
     /**
      * Collect all dates for all allocations sharing the specified resourceId.
      * $allocationRows : array() of AllocationRow
-     * $resourceId : id of parent resource id to filter on
+     * $resourceId : id of parent resource id to filter on (null for any)
      * $bookingDates : reference to array() to save booking dates with matching $resourceId
      * Returns : number of allocations sharing this parent resource id
      */
     function collectDatesWithResourceId($allocationRows, $resourceId, &$bookingDates) {
         $result = 0;
         foreach ($allocationRows as $alloc) {
-            if ($alloc->resourceId === $resourceId) {
+            if ($alloc->resourceId === $resourceId || $resourceId == null) {
                 $result++;
                 $bookingDates = array_merge($bookingDates, $alloc->getBookingDates());
             }

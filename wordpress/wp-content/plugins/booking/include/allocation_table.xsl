@@ -202,7 +202,7 @@
 <!-- builds drill-down of resource id, name -->
 <xsl:template mode="resource_selection" match="resource">
     <xsl:param name="resource_id"/>
-    <option value="{id}">
+    <option value="{id}" resource_type="{resource_type}">
         <xsl:if test="$resource_id = id">
             <xsl:attribute name="selected">selected</xsl:attribute>
         </xsl:if>
