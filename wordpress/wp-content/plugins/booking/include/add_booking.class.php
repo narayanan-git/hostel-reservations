@@ -27,11 +27,12 @@ class AddBooking extends XslTransform {
      * numVisitors : number of guests to add
      * gender : Male/Female
      * resourceId : id of resource to allocate to
-     * dates : comma-delimited list of dates in format dd.MM.yyyy
+     * dates : array of dates (String) in format dd.MM.yyyy
+     * resourceProps : array of resource property ids (allocate only to resources with these properties)
      */
-    function addAllocation($numVisitors, $gender, $resourceId, $dates) {
+    function addAllocation($numVisitors, $gender, $resourceId, $dates, $resourceProps) {
 error_log("addAllocation $numVisitors, $gender, $resourceId");
-        $this->allocationTable->addAllocation($this->firstname, $numVisitors, $gender, $resourceId, $dates);
+        $this->allocationTable->addAllocation($this->firstname, $numVisitors, $gender, $resourceId, $dates, $resourceProps);
         
         if($this->allocationTable->showMinDate == null || $this->allocationTable->showMaxDate == null) {
             $this->allocationTable->setDefaultMinMaxDates();

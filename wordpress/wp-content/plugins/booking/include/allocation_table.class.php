@@ -27,23 +27,23 @@ class AllocationTable extends XslTransform {
      * bookingName : name booking is under
      * gender : Male/Female
      * resourceId : id of resource to allocate to
-     * dates : comma-delimited list of dates in format dd.MM.yyyy
+     * dates : array of dates (String) in format dd.MM.yyyy
+     * resourceProps : array of resource property ids (allocate only to resources with these properties)
      * Throws AllocationException if there aren't enough "leaf" resources to add the given
      *        number of allocations.
      */
-    function addAllocation($bookingName, $numVisitors, $gender, $resourceId, $dates) {
-        $datearr = explode(",", $dates);
+    function addAllocation($bookingName, $numVisitors, $gender, $resourceId, $dates, $resourceProps) {
         $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
         $newAllocationRows = array();  // the new allocations we will be adding
         for($i = 0; $i < $numVisitors; $i++) {
             $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId, $this->resourceMap);
-            foreach ($datearr as $dt) {
+            foreach ($dates as $dt) {
                 $allocationRow->toggleStatusForDate(trim($dt));
             }
             $newAllocationRows[] = $allocationRow;
         }
         // this will perform the individual assignments to beds if a parent resource id is specified
-        $this->allocationStrategy->assignResourcesForAllocations($newAllocationRows, $this->allocationRows);
+        $this->allocationStrategy->assignResourcesForAllocations($newAllocationRows, $this->allocationRows, $resourceProps);
         
         // check that all of the ones we just added have been assigned "leaf" resources (beds)
         foreach ($newAllocationRows as $newAlloc) {

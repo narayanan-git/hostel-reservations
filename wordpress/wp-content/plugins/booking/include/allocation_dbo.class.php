@@ -11,16 +11,16 @@ class AllocationDBO {
      * have availability for *ALL* those dates. 
      * $resourceId  : id of resource id to get availability
      * $bookingDates : array() of booking dates in format d.m.Y
+     * $resourceProps : array of resource property ids (allocate only to resources with these properties)
      * Returns map of key => $resourceId, value => $capacity
      */
-    static function fetchAvailability($resourceId, $bookingDates) {
+    static function fetchAvailability($resourceId, $bookingDates, $resourceProps) {
         global $wpdb;
-error_log("fetch availability resource id : $resourceId booking dates : " . sizeof($bookingDates));
+error_log("fetch availability resource id : $resourceId booking dates : " . sizeof($bookingDates) . " props " . implode(',', $resourceProps));
         foreach ($bookingDates as $bd) {
             $bookingDatesString .= "STR_TO_DATE('$bd', '%%d.%%m.%%Y'),";
         }
         $bookingDatesString = rtrim($bookingDatesString, ',');
-error_log("fetch availability $bookingDatesString");
 
         // this will bring back all beds that have no allocations for any of the dates given
         $resultset = $wpdb->get_results($wpdb->prepare(
@@ -28,14 +28,22 @@ error_log("fetch availability $bookingDatesString");
                FROM ".$wpdb->prefix."mv_resources_by_path p 
               WHERE p.resource_type = 'bed' AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')
                 AND NOT EXISTS(
-                    SELECT 1
-                      FROM ".$wpdb->prefix."bookingdates dt 
-                      JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
-                     WHERE dt.booking_date IN ($bookingDatesString)
-                       AND a.resource_id = p.resource_id
-                    )"));
+                        SELECT 1 FROM ".$wpdb->prefix."bookingdates dt 
+                          JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
+                         WHERE dt.booking_date IN ($bookingDatesString)
+                           AND a.resource_id = p.resource_id)
+                AND EXISTS( -- only match those resources with the properties specified
+                        SELECT 1 FROM ".$wpdb->prefix."resource_properties_map m
+                         WHERE m.resource_id = p.parent_resource_id  -- match against room only
+                           AND m.property_id IN (".implode(',', $resourceProps)."))"));
 
-error_log("fetch availability ".$wpdb->last_query);
+error_log("fetch availability " . $wpdb->last_query);
+
+        if($wpdb->last_error) {
+            error_log("Failed to execute query " . $wpdb->last_query);
+            throw new DatabaseException($wpdb->last_error);
+        }
+
         $result = array();
         foreach ($resultset as $res) {
             $result[$res->resource_id] = $res->avail_capacity;
@@ -72,9 +80,14 @@ error_log("fetchResourcesUnderOneParentResource ".implode(',', $resourceIds)." a
                     ) available_rooms 
                JOIN ".$wpdb->prefix."bookingresources br 
                  ON br.parent_resource_id = available_rooms.parent_resource_id AND br.resource_id IN (".implode(',', $resourceIds).")
-              WHERE avail_capacity >= $numGuests
-              ORDER BY avail_capacity, br.parent_resource_id, br.resource_id"));
+              WHERE avail_capacity >= %d
+              ORDER BY avail_capacity, br.parent_resource_id, br.resource_id", $numGuests));
         
+        if($wpdb->last_error) {
+            error_log("Failed to execute query " . $wpdb->last_query);
+            throw new DatabaseException($wpdb->last_error);
+        }
+
         $result = array();
         foreach ($resultset as $res) {
             $result[$res->resource_id] = 1;  // TODO: this is always 1, should we change this?

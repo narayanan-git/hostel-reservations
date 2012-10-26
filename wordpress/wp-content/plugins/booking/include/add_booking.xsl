@@ -157,7 +157,7 @@
 
 <xsl:template match="property">
     <div style="text-align:left;">
-        <input type="checkbox" name="resource_property[]" value="{id}">
+        <input type="checkbox" name="resource_property" value="{id}">
             &#160;<xsl:value-of select="value"/>
         </input>
     </div>

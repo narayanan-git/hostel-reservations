@@ -264,6 +264,7 @@ error_log("save_resource $resourceId $resourceName");
      *   gender : gender of guests to allocate
      *   dates : comma delimited list of dates for allocation (dd.MM.yyyy)
      *   booking_resource : id of resource to allocate to
+     *   resource_property : comma delimited list of resource property ids to allocate to
      */
     function add_booking_allocation() {
 
@@ -272,7 +273,7 @@ error_log("save_resource $resourceId $resourceName");
         $gender = $_POST['gender'];
         $dates = $_POST['dates'];
         $res = $_POST['booking_resource'];
-//        $resource_property = $_POST['resource_property'];  TODO: set of properties to allocate to
+        $resource_property = $_POST['resource_property'];
 
         // keep allocations in a datastructure saved to session
         // { allocation_id, resource_id, gender, array[dates] }
@@ -284,7 +285,8 @@ error_log("save_resource $resourceId $resourceName");
             $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
             $booking->firstname = $firstname;
             try {
-                $booking->addAllocation($num_visitors, $gender, $res, $dates);
+                $booking->addAllocation($num_visitors, $gender, $res, 
+                    explode(",", trim($dates, " ,")), explode(",", trim($resource_property, " ,")));
 
             } catch (AllocationException $ae) {
                 ?> 

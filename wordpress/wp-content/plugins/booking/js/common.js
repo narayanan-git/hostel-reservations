@@ -45,7 +45,23 @@ function add_booking_allocation(submit_form) {
     else if(typeof document.getElementById('calendar_booking1').value === "undefined" || 
             document.getElementById('calendar_booking1').value === '') {
         jQuery('#ajax_respond').html("Select a date or date-range for the booking.")
-            .css( {'color' : 'red'} );
+            .css( {'color' : 'red'} )
+            .animate( {opacity: 1}, 10000 )
+            .fadeOut( 2000 );   // hide message
+        return;
+    }
+
+    // build our list of space-delimited resource properties
+    var resource_properties = "";
+    for(var i = 0; i < submit_form.resource_property.length; i++){
+        if (submit_form.resource_property[i].checked)
+            resource_properties += submit_form.resource_property[i].value + ",";
+    }
+    if(resource_properties.length <= 0) {
+        jQuery('#ajax_respond').html("At least one property must be selected")
+            .css( {'color' : 'red'} )
+            .animate( {opacity: 1}, 10000 )
+            .fadeOut( 2000 );   // hide message
         return;
     }
         
@@ -60,7 +76,8 @@ function add_booking_allocation(submit_form) {
             firstname: submit_form.firstname.value,
             num_visitors : submit_form.num_visitors.value,
             gender : submit_form.gender.value,
-            booking_resource : submit_form.booking_resource.value
+            booking_resource : submit_form.booking_resource.value,
+            resource_property : resource_properties
         }
     });
 }

@@ -26,8 +26,9 @@ class AllocationStrategy {
      * 
      * $allocationRows : array() of AllocationRow to update
      * $existingAllocationRows : current array() of (uncommitted) AllocationRow
+     * $resourceProps : array of resource property ids (allocate only to resources with these properties)
      */
-    function assignResourcesForAllocations($allocationRows, $existingAllocationRows) {
+    function assignResourcesForAllocations($allocationRows, $existingAllocationRows, $resourceProps) {
 
         // for all allocations
         // if allocation is a "parent" node,
@@ -51,7 +52,7 @@ error_log("after collectDatesWithResourceId numberOfAllocationsSharingThisParent
             // resourceIds : Map of key = resourceId, value = capacity
             // these are all resources that have availability across ALL $bookingDates
             // TODO: actually, all resources should be beds so capacity = 1 always??
-            $resourceIds = $this->fetchAvailableCapacity($alloc->resourceId, $bookingDates, $existingAllocationRows);
+            $resourceIds = $this->fetchAvailableCapacity($alloc->resourceId, $bookingDates, $existingAllocationRows, $resourceProps);
 error_log("available capacity:");
 foreach ($resourceIds as $k => $v) {
     error_log("resource_id $k => $v");
@@ -82,12 +83,13 @@ error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
      * $parentResourceId : resource id of parent to calculate availability for
      * $bookingDates : array() of booking dates in format d.M.y
      * $existingAllocationRows : current array() of (uncommitted) AllocationRow
+     * $resourceProps : array of resource property ids (allocate only to resources with these properties)
      * Returns map of key => $resourceId, value => $availableCapacity
      */
-    function fetchAvailableCapacity($parentResourceId, $bookingDates, $existingAllocationRows) {
+    function fetchAvailableCapacity($parentResourceId, $bookingDates, $existingAllocationRows, $resourceProps) {
         // map of resourceId => capacity from db
 error_log(var_export(array("begin fetchAvailableCapacity", $parentResourceId, $bookingDates), true));
-        $resultMap = AllocationDBO::fetchAvailability($parentResourceId, $bookingDates);
+        $resultMap = AllocationDBO::fetchAvailability($parentResourceId, $bookingDates, $resourceProps);
 error_log(var_export($resultMap, true));
         
         // adjust against those currently in this allocation (as these haven't been committed yet)
