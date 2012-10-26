@@ -246,6 +246,16 @@
     margin: 0 !important;
     color:#555 !important;
 }
+                
+.resource_prop_container {
+    padding-left: 30px;                
+}
+
+.resource_prop_container h3 {
+    font-size: 16px;
+    font-weight: bold;
+    font-family: sans-serif;
+}
 
 .booking_search_form input.search_booking {
     float:right;
