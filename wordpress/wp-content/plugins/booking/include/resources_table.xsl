@@ -83,7 +83,7 @@
                     </div>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:if test="type = 'room'">
+                    <xsl:if test="type = 'room' or type = 'private'">
                         <a class="tooltip_bottom" rel="tooltip" data-original-title="Edit Attributes" href="{resources_url}?editResourceId={id}">
                             <img style="width:13px; height:13px;" src="{/view/homeurl}/wp-content/plugins/booking/img/notes_rd.png" title="Edit Attributes" alt="Edit Attributes"/>
                         </a>
