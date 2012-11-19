@@ -25,8 +25,9 @@ error_log("fetch availability resource id : $resourceId booking dates : " . size
 
         // this will bring back all beds that have no allocations for any of the dates given
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT p.resource_id, p.capacity as avail_capacity 
+            "SELECT p.resource_id, p.capacity as avail_capacity, p2.resource_type AS parent_resource_type 
                FROM ".$wpdb->prefix."mv_resources_by_path p 
+               LEFT OUTER JOIN ".$wpdb->prefix."mv_resources_by_path p2 ON p.parent_resource_id = p2.resource_id
               WHERE p.resource_type = 'bed' 
                 " . ($resourceId == null ? "" : "AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')") . "
                 AND NOT EXISTS(
@@ -34,6 +35,16 @@ error_log("fetch availability resource id : $resourceId booking dates : " . size
                           JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
                          WHERE dt.booking_date IN ($bookingDatesString)
                            AND a.resource_id = p.resource_id)
+                -- if we are looking at a private room, only include beds where ALL beds are available for the given date(s)
+                AND (p2.resource_type <> 'private'    -- shared dorm
+                     OR (p2.resource_type = 'private' -- or private room
+                            AND NOT EXISTS(
+                                SELECT 1 FROM ".$wpdb->prefix."v_resource_availability ra
+                                  JOIN wp_bookingresources r2 on r2.resource_id = ra.resource_id
+                                 WHERE r2.parent_resource_id = p.parent_resource_id -- resources share the same parent
+                                   AND ra.booking_date IN ($bookingDatesString)
+                                   AND ra.used_capacity > 0
+                         )))
                 " . ($resourceProps == null ? "" : "
                 AND EXISTS( -- only match those resources with the properties specified
                         SELECT 1 FROM ".$wpdb->prefix."resource_properties_map m
