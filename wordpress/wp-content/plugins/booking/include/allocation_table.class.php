@@ -88,6 +88,15 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
     }
     
     /**
+     * Toggles the gender for the given allocation row
+     * $rowid : id of allocation row to toggle
+     */
+    function toggleGender($rowid) {
+        $ar = $this->allocationRows[$rowid];
+        return $ar->toggleGender();
+    }
+
+    /**
      * This will update the state of a booking allocation.
      * $rowid : unique id of allocation row
      * $dt : date if format 'd.m.Y'

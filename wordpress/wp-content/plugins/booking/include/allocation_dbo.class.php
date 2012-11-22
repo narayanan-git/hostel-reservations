@@ -148,9 +148,10 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
      * $allocationId : id of existing allocation record to update
      * $resourceId : id of resource to assign this allocation
      * $name : name of guest
+     * $gender : gender (one of 'M', 'F', 'X')
      * $resourceMap : array() of resource recordset indexed by resource id
      */
-    static function updateAllocation($mysqli, $allocationId, $resourceId, $name, $resourceMap) {
+    static function updateAllocation($mysqli, $allocationId, $resourceId, $name, $gender, $resourceMap) {
         global $wpdb;
         
         // fetch allocation details
@@ -163,6 +164,9 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         if ($resourceId != $allocationRs->resource_id) {
             $auditMsgs[] = "Updating allocation $allocationId ($allocationRs->guest_name) : changing resource from ".$resourceMap[$allocationRs->resource_id]->name ." to ".$resourceMap[$resourceId]->name;
         }
+        if ($gender != $allocationRs->gender) {
+            $auditMsgs[] = "Updating allocation $allocationId ($allocationRs->guest_name) : changing from ". $allocationRs->gender ." to ".$gender;
+        }
         
         // update the allocation if any changes exist
         if (sizeof($auditMsgs) > 0) {
@@ -170,11 +174,12 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
                 "UPDATE ".$wpdb->prefix."allocation 
                     SET resource_id = ?,
                         guest_name = ?, 
+                        gender = ?,
                         last_updated_by = ?, 
                         last_updated_date = NOW()
                 WHERE allocation_id = ?");
                 
-            $stmt->bind_param('issi', $resourceId, $name, wp_get_current_user()->user_login, $allocationId);
+            $stmt->bind_param('isssi', $resourceId, $name, $gender, wp_get_current_user()->user_login, $allocationId);
             
             if(false === $stmt->execute()) {
                 throw new DatabaseException("Error during UPDATE: " . $mysqli->error);

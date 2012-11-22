@@ -153,6 +153,22 @@ function toggle_booking_date(rowid, booking_date) {
     });
 }
 
+// this will toggle the gender of the given allocation
+// rowid : row id in allocation table
+function toggle_gender(rowid) {
+
+    jQuery.ajax({                                           // Start Ajax Sending
+        url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
+        type:'POST',
+        success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+        error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
+        data:{
+            ajax_action : 'TOGGLE_GENDER',
+            rowid : rowid
+        }
+    });
+}
+
 // this will toggle the checkout status of a booking date
 // rowid : row id in allocation table
 // booking_date : date in format dd.MM.yyyy

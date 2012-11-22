@@ -73,6 +73,14 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
         }
         return $errors;
     }
+
+    /**
+     * Toggles the gender for the given allocation row
+     * $rowid : id of allocation row to toggle
+     */
+    function toggleGender($rowid) {
+        $this->allocationTable->toggleGender($rowid);
+    }
     
     /**
      * This will update the state of a booking allocation.

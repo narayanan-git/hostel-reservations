@@ -16,6 +16,7 @@ class AllocationRow {
     var $bookingDates = array();  // key = booking date (d.m.Y), value = BookingDate()
     private $resourceMap;  // array of resource_id -> resource recordset
     private $STATUSES = array('reserved', 'paid', 'free', 'hours', 'cancelled'); 
+    private $GENDERS = array('M', 'F', 'X');
 
     /**
      * Default constructor.
@@ -84,6 +85,16 @@ class AllocationRow {
                 $dateRunner->sub(new DateInterval('P1D'));
             }
         }
+    }
+
+    /**
+     * Toggles the gender for this allocation row.
+     */
+    function toggleGender() {
+        $key = array_search($this->gender, $this->GENDERS);
+            
+        // toggle the next gender
+        $this->gender = $this->GENDERS[($key + 1) % sizeof($this->GENDERS)];
     }
 
     /**
@@ -195,7 +206,7 @@ error_log("inserted allocation $allocationId");
             $this->isAvailable = AllocationDBO::insertBookingDates($mysqli, $allocationId, $this->bookingDates);
 
         } else { // update the existing allocation
-            AllocationDBO::updateAllocation($mysqli, $this->id, $this->resourceId, $this->name, $this->resourceMap);
+            AllocationDBO::updateAllocation($mysqli, $this->id, $this->resourceId, $this->name, $this->gender, $this->resourceMap);
 error_log("updating allocation $this->id");
 
             // clear out those with blank statuses (these are dates now marked as 'available')

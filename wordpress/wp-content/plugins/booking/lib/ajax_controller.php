@@ -68,6 +68,11 @@ class AjaxController {
                 $this->delete_allocation();
                 break;
 
+            // toggle the gender of an allocation
+            case  'TOGGLE_GENDER':
+                $this->toggle_gender();
+                break;
+
             // toggle the state of a booking date in the availability table
             case  'TOGGLE_BOOKING_DATE':
                 $this->toggle_booking_date();
@@ -514,6 +519,25 @@ error_log('end TOGGLE_CHECKOUT_FOR_BOOKING '.$bookingId);
             <script type="text/javascript">
                 document.getElementById('comment_log').innerHTML = <?php echo json_encode($booking->getCommentLogHtml()); ?>;
                 document.getElementById('booking_comment').value = '';
+            </script>
+            <?php
+        }
+    }
+
+    /**
+     * Toggles gender for an allocation.
+     * Requires POST variables:
+     *   row_id : id of allocation row to toggle
+     */
+    function toggle_gender() {
+        $rowId = $_POST['rowid'];
+        if(isset($_SESSION['ADD_BOOKING_CONTROLLER'])) {
+            $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
+            $booking->toggleGender($rowId);
+            ?> 
+            <script type="text/javascript">
+                // reload allocation table
+                document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
             </script>
             <?php
         }
