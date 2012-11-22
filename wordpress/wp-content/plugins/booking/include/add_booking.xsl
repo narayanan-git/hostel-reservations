@@ -11,6 +11,15 @@
 
 <xsl:template match="/editbooking">
 
+    <script type="text/javascript">
+        // update the total field to 2 decimal places (readonly)
+        function updateTotal() {
+            var total = parseFloat(jQuery('#deposit_paid').val()) + parseFloat(jQuery('#amount_to_pay').val());
+            jQuery('#total_amount').val(total.toFixed(2));
+        }
+        window.onload=updateTotal;  // update on page load
+    </script>
+
     <div id="wpdev-booking-reservation-general" class="wrap bookingpage" style="margin-left:100px; margin-right:100px;">
         <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/add-1-48x48.png"/><br /></div>
         <h2>Add Booking</h2>
@@ -23,9 +32,9 @@
                 <div id="ajax_respond_insert"><xsl:comment/><!-- record inserted success message --></div>
                 <div style="float:left; text-align:left; width:450px;">
                     <input type="hidden" name="bookingid" value="{id}"/>
-                    <p>First Name (required):<br />  <span class="wpdev-form-control-wrap firstname"><input type="text" name="firstname" value="{firstname}" class="wpdev-validates-as-required" size="40" /></span> </p>
-                    <p>Last Name:<br />  <span class="wpdev-form-control-wrap lastname"><input type="text" name="lastname" value="{lastname}" size="40"/></span> </p>
-                    <p>Booked by:
+                    <p>First Name (required):<br />  <input type="text" name="firstname" value="{firstname}" class="wpdev-validates-as-required" size="40" /> </p>
+                    <p>Last Name:<br />  <input type="text" name="lastname" value="{lastname}" size="40"/></p>
+                    <p><span class="edit_booking_header">Booked by: </span>
                         <select id="referrer" name="referrer">
                             <option value="">--</option>
                             <option value="hostelworld">
@@ -50,6 +59,9 @@
                             </option>
                         </select>
                     </p>
+                    <p><span class="edit_booking_header">Deposit Paid: </span><input type="text" class="wpdev-validates-as-currency" id="deposit_paid" name="deposit_paid" value="{depositpaid}" onchange="updateTotal()" size="5"/> </p>
+                    <p><span class="edit_booking_header">Amount to Pay: </span><input type="text"  class="wpdev-validates-as-currency" id="amount_to_pay" name="amount_to_pay" value="{amounttopay}" onchange="updateTotal()" size="5"/> </p>
+                    <p><span class="edit_booking_header">Total for Booking: </span><input type="text" id="total_amount" name="total_amount" value="" size="5" readonly="readonly"/> </p>
                 </div>
                 <div class="metabox-holder" style="float:left;">
                     <h3>Audit Log/Comments</h3>

@@ -62,6 +62,12 @@
                 .booking_form .main_div {float:left;}
                 .booking_form_div {text-align:left;}
                 .booking_form .submit {float:left;}
+                
+                .booking_form span.edit_booking_header {
+                    float:left; 
+                    width: 140px;
+                    padding: 3px;
+                }
 
                 .booking_form_div input[type="button"]:hover, .booking_SagePayForm input[type="button"]:hover {
                     cursor:pointer !important;

@@ -124,6 +124,8 @@ error_log("ajax save_booking : begin");
             $booking->firstname = $_POST['firstname'];
             $booking->lastname = $_POST['lastname'];
             $booking->referrer = $_POST['referrer'];
+            $booking->depositPaid = floatval($_POST['deposit_paid']);
+            $booking->amountToPay = floatval($_POST['amount_to_pay']);
         } else {
             throw new Exception("Session expired.");
         }
@@ -141,7 +143,7 @@ error_log("ajax save_booking : pre validate");
             ?> <script type="text/javascript">
                 document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;><?php echo $error_text; ?></div>';
                 jQuery("#submitting")
-                    .css( {'color' : 'red'} )
+                    .css( {'color' : 'red'} );
             </script>
             <?php
             return;
@@ -171,6 +173,8 @@ error_log("db save: $msg");
                 document.getElementById('booking_allocations').innerHTML = <?php echo json_encode($booking->getAllocationTableHtml()); ?>;
                 // update comments
                 document.getElementById('comment_log').innerHTML = <?php echo json_encode($booking->getCommentLogHtml()); ?>;
+                jQuery('#deposit_paid').val("<?php echo $booking->depositPaid; ?>");
+                jQuery('#amount_to_pay').val("<?php echo $booking->amountToPay; ?>");
 //           jQuery('#submitting').fadeOut(5000);
 //           location.href='admin.php?page=<?php echo WPDEV_BK_PLUGIN_DIRNAME . '/'. WPDEV_BK_PLUGIN_FILENAME ;?>wpdev-booking&booking_type=1&booking_id_selection=<?php echo  $my_booking_id;?>';
            </script>

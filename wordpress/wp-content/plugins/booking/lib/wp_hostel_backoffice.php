@@ -218,7 +218,6 @@ error_log($av->toXml());
     function content_of_summary_page() {
         $ds = new DailySummary();
         $ds->doSummaryUpdate();
-error_log($ds->toXml());
         echo $ds->toHtml();
     }
 
@@ -366,6 +365,8 @@ error_log(var_export($_POST, TRUE));
                         firstname varchar(50) NOT NULL,
                         lastname varchar(50),
                         referrer varchar(50),
+                        deposit_paid decimal(10,2),
+                        amount_to_pay decimal(10,2),
                         created_by varchar(20) NOT NULL,
                         created_date datetime NOT NULL,
                         last_updated_by varchar(20) NOT NULL,
@@ -512,7 +513,7 @@ error_log(var_export($_POST, TRUE));
             
         if( false == $this->does_routine_exist('walk_tree_path')) {
             $simple_sql = "CREATE FUNCTION walk_tree_path(p_resource_id BIGINT(20) UNSIGNED) RETURNS VARCHAR(255)
-                -- walks the wp_bookingresources table from the given resource_id down to the root
+                -- walks the bookingresources table from the given resource_id down to the root
                 -- returns the path walked delimited with /
                 BEGIN
                     DECLARE last_id BIGINT(20) UNSIGNED;
@@ -525,7 +526,7 @@ error_log(var_export($_POST, TRUE));
                     WHILE parent_id IS NOT NULL DO
                         
                         SELECT parent_resource_id INTO parent_id
-                        FROM wp_bookingresources
+                        FROM ".$wpdb->prefix ."bookingresources
                         WHERE resource_id = parent_id;
                     
                         SET return_val = CONCAT(IFNULL(parent_id, ''), '/', return_val);
@@ -628,7 +629,8 @@ error_log(var_export($_POST, TRUE));
                     UPDATE ".$wpdb->prefix."mv_resources_by_path m
                       JOIN ".$wpdb->prefix."v_resources_by_path v
                         ON m.resource_id = v.resource_id
-                       SET m.number_children = v.number_children;
+                       SET m.number_children = v.number_children,
+                           m.capacity = v.capacity;
                 END";
 
             if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
@@ -653,7 +655,8 @@ error_log(var_export($_POST, TRUE));
                     UPDATE ".$wpdb->prefix."mv_resources_by_path m
                       JOIN ".$wpdb->prefix."v_resources_by_path v
                         ON m.resource_id = v.resource_id
-                       SET m.number_children = v.number_children;
+                       SET m.number_children = v.number_children,
+                           m.capacity = v.capacity;
                 END";
 
             if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
@@ -674,7 +677,8 @@ error_log(var_export($_POST, TRUE));
                     UPDATE ".$wpdb->prefix."mv_resources_by_path m
                       JOIN ".$wpdb->prefix."v_resources_by_path v
                         ON m.resource_id = v.resource_id
-                       SET m.number_children = v.number_children;
+                       SET m.number_children = v.number_children,
+                           m.capacity = v.capacity;
                 END";
 
             if (false === $wpdb->query($wpdb->prepare($simple_sql))) {

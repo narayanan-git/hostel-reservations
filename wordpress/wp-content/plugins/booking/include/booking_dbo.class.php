@@ -14,7 +14,7 @@ class BookingDBO {
         global $wpdb;
         
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT booking_id, firstname, lastname, referrer
+            "SELECT booking_id, firstname, lastname, referrer, deposit_paid, amount_to_pay
                FROM ".$wpdb->prefix."booking b
               WHERE b.booking_id = %d", $bookingId));
         
@@ -33,22 +33,79 @@ class BookingDBO {
     }
 
     /**
+     * Inserts a new booking entry and set of allocations into the booking table in a single transaction.
+     * $firstname : first name (required)
+     * $lastname : last name (optional)
+     * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
+     * $depositPaid : deposit paid (decimal)
+     * $amountToPay : amount to pay less deposit (deposit)
+     * $allocationTable : table of allocations for this booking
+     * $commentLog : list of comments to be saved
+     * Returns id of inserted booking id
+     * Throws DatabaseException on insert error
+     */
+    static function insertNewBooking($firstname, $lastname, $referrer, $depositPaid, $amountToPay, &$allocationTable, &$commentLog) {
+        $dblink = new DbTransaction();
+        try{
+            $bookingId = self::insertBooking($dblink->mysqli, $firstname, $lastname, $referrer, $depositPaid, $amountToPay);
+            $allocationTable->save($dblink->mysqli, $bookingId);
+            $commentLog->save($dblink->mysqli, $bookingId);
+            $dblink->mysqli->commit();
+            $dblink->mysqli->close();
+            return $bookingId;
+
+        } catch(Exception $e) {
+            $dblink->mysqli->rollback();
+            $dblink->mysqli->close();
+            throw $e;
+        }
+    }
+
+    /**
+     * Updates an existing booking entry and set of allocations in a single transaction.
+     * $bookingId : booking id to update
+     * $firstname : first name (required)
+     * $lastname : last name (optional)
+     * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
+     * $depositPaid : deposit paid (decimal)
+     * $amountToPay : amount to pay less deposit (deposit)
+     * $allocationTable : table of allocations for this booking
+     * Throws DatabaseException on insert error
+     */
+    static function updateExistingBooking($bookingId, $firstname, $lastname, $referrer, $depositPaid, $amountToPay, &$allocationTable) {
+        $dblink = new DbTransaction();
+        try{
+            self::updateBooking($dblink->mysqli, $bookingId, $firstname, $lastname, $referrer, $depositPaid, $amountToPay);
+            $allocationTable->save($dblink->mysqli, $bookingId);
+            $dblink->mysqli->commit();
+            $dblink->mysqli->close();
+
+        } catch(Exception $e) {
+            $dblink->mysqli->rollback();
+            $dblink->mysqli->close();
+            throw $e;
+        }
+    }
+
+    /**
      * Inserts a new booking entry into the booking table.
      * $mysqli : manual db connection (for transaction handling)
      * $firstname : first name (required)
      * $lastname : last name (optional)
      * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
+     * $depositPaid : deposit paid (decimal)
+     * $amountToPay : amount to pay less deposit (deposit)
      * Returns id of inserted booking id
      * Throws DatabaseException on insert error
      */
-    static function insertBooking($mysqli, $firstname, $lastname, $referrer) {
+    static function insertBooking($mysqli, $firstname, $lastname, $referrer, $depositPaid, $amountToPay) {
     
         global $wpdb;
         $stmt = $mysqli->prepare(
-            "INSERT INTO ".$wpdb->prefix."booking(firstname, lastname, referrer, created_by, created_date, last_updated_by, last_updated_date)
-             VALUES(?, ?, ?, ?, NOW(), ?, NOW())");
+            "INSERT INTO ".$wpdb->prefix."booking(firstname, lastname, referrer, deposit_paid, amount_to_pay, created_by, created_date, last_updated_by, last_updated_date)
+             VALUES(?, ?, ?, ?, ?, ?, NOW(), ?, NOW())");
         $userLogin = wp_get_current_user()->user_login;
-        $stmt->bind_param('sssss', $firstname, $lastname, $referrer, $userLogin, $userLogin);
+        $stmt->bind_param('sssddss', $firstname, $lastname, $referrer, $depositPaid, $amountToPay, $userLogin, $userLogin);
         
         if(false === $stmt->execute()) {
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);
@@ -73,9 +130,11 @@ class BookingDBO {
      * $firstname : first name (required)
      * $lastname : last name (optional)
      * $referrer : hostelworld, hostelbookers, walkin, phone, etc... (optional)
+     * $depositPaid : deposit paid (decimal)
+     * $amountToPay : amount to pay less deposit (deposit)
      * Throws DatabaseException on update error
      */
-    static function updateBooking($mysqli, $bookingId, $firstname, $lastname, $referrer) {
+    static function updateBooking($mysqli, $bookingId, $firstname, $lastname, $referrer, $depositPaid, $amountToPay) {
         global $wpdb;
 error_log("updateBooking $bookingId, $firstname, $lastname, $referrer");
 
@@ -89,6 +148,12 @@ error_log("updateBooking $bookingId, $firstname, $lastname, $referrer");
         if ($referrer !== $bookingRs->referrer) {
             $auditMsgs[] = "Changing referrer from $bookingRs->referrer to $referrer";
         }
+        if ($depositPaid != $bookingRs->deposit_paid) {
+            $auditMsgs[] = "Changing deposit paid from $bookingRs->deposit_paid to $depositPaid";
+        }
+        if ($amountToPay != $bookingRs->amount_to_pay) {
+            $auditMsgs[] = "Changing amount to pay from $bookingRs->amount_to_pay to $amountToPay ";
+        }
 error_log(" is changed? auditMsg ".sizeof($auditMsgs));
 
         // only update if something has changed
@@ -98,11 +163,13 @@ error_log(" is changed? auditMsg ".sizeof($auditMsgs));
                     SET firstname = ?,
                         lastname = ?,
                         referrer = ?,
+                        deposit_paid = ?,
+                        amount_to_pay = ?,
                         last_updated_by = ?,
                         last_updated_date = NOW()
                 WHERE booking_id = ?");
             $userLogin = wp_get_current_user()->user_login;
-            $stmt->bind_param('ssssi', $firstname, $lastname, $referrer, $userLogin, $bookingId);
+            $stmt->bind_param('sssddsi', $firstname, $lastname, $referrer, $depositPaid, $amountToPay, $userLogin, $bookingId);
         
             if(false === $stmt->execute()) {
                 throw new DatabaseException("Error during UPDATE: " . $mysqli->error);

@@ -256,6 +256,15 @@ function save_booking(submit_form){
                     return;
                 }
             }
+
+            // check currency correctly formatted
+            if ( element.className.indexOf('wpdev-validates-as-currency') !== -1 ){
+                var is_numeric = /^\d*([\.]{0,1})\d*$/;  // only one separate between digits
+                if  ( ! is_numeric.test(element.value) )   {
+                    showErrorMessage( element , 'Only numeric values allowed. e.g. 9.90'); 
+                    return;
+                }
+            }
         }
 
     }  // End Fields Loop
@@ -270,7 +279,9 @@ function save_booking(submit_form){
             ajax_action : 'SAVE_BOOKING',
             firstname: submit_form.firstname.value,
             lastname: submit_form.lastname.value,
-            referrer: submit_form.referrer.value
+            referrer: submit_form.referrer.value,
+            deposit_paid: submit_form.deposit_paid.value,
+            amount_to_pay: submit_form.amount_to_pay.value
         }
     });
 }

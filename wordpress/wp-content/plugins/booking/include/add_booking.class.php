@@ -9,6 +9,8 @@ class AddBooking extends XslTransform {
     var $firstname;
     var $lastname;
     var $referrer;
+    var $depositPaid;  // deposit paid as decimal
+    var $amountToPay;  // amount to pay on arrival as decimal
     
     // all allocations for this booking (type AllocationTable)
     private $allocationTable;
@@ -176,33 +178,20 @@ error_log("addAllocation $numVisitors, $gender, $resourceId");
      */
     function save() {
     
-        $dblink = new DbTransaction();
-        try {
-            if ($this->id == 0) {  // new record
-error_log("inserting booking id $bookingId");
-                $bookingId = BookingDBO::insertBooking($dblink->mysqli, $this->firstname, $this->lastname, $this->referrer);
-                $this->commentLog->save($dblink->mysqli, $bookingId);  // not req'd on update as it will always be up to date
+        if ($this->id == 0) {  // new record
+            $this->id = BookingDBO::insertNewBooking($this->firstname, $this->lastname, $this->referrer, $this->depositPaid, $this->amountToPay, $this->allocationTable, $this->commentLog);
+error_log("inserted booking id $this->id");
 
-            } else { // existing record
-error_log("updating booking id $bookingId");
-                $bookingId = $this->id;
-                BookingDBO::updateBooking($dblink->mysqli, $bookingId, $this->firstname, $this->lastname, $this->referrer);
-            }
-
-            $this->allocationTable->save($dblink->mysqli, $bookingId);
-            $dblink->mysqli->commit();
-            $dblink->mysqli->close();
-            
-            // once everything has been saved, reload everything from db...
-            // this will set the ids on everything so saving again will do update not insert
-            $this->load($bookingId);
-error_log("reloaded booking $bookingId");
-
-        } catch(Exception $e) {
-            $dblink->mysqli->rollback();
-            $dblink->mysqli->close();
-            throw $e;
+        } else { // existing record
+            BookingDBO::updateExistingBooking($this->id, $this->firstname, $this->lastname, $this->referrer, $this->depositPaid, $this->amountToPay, $this->allocationTable);
+error_log("updated booking id $this->id");
         }
+
+        // once everything has been saved, reload everything from db...
+        // this will set the ids on everything so saving again will do update not insert
+        $this->load($this->id);
+error_log("reloaded booking $this->id");
+
     }
     
     /**
@@ -215,6 +204,8 @@ error_log("reloaded booking $bookingId");
         $this->firstname = $rs->firstname;
         $this->lastname = $rs->lastname;
         $this->referrer = $rs->referrer;
+        $this->depositPaid = $rs->deposit_paid;
+        $this->amountToPay = $rs->amount_to_pay;
         $this->allocationTable->load($bookingId);
         $this->commentLog->load($bookingId);
     }
@@ -226,6 +217,8 @@ error_log("reloaded booking $bookingId");
             <firstname>Megan</firstname>
             <lastname>Fox</lastname>
             <referrer>telephone</referrer>
+            <depositpaid>10.70</depositpaid>
+            <amounttopay>91.35</amounttopay>
             <allocations>
                 <bookingName>Megan-1</bookingName>
                 ...
@@ -252,6 +245,8 @@ error_log("reloaded booking $bookingId");
         $xmlRoot->appendChild($domtree->createElement('firstname', $this->firstname));
         $xmlRoot->appendChild($domtree->createElement('lastname', $this->lastname));
         $xmlRoot->appendChild($domtree->createElement('referrer', $this->referrer));
+        $xmlRoot->appendChild($domtree->createElement('depositpaid', number_format($this->depositPaid, 2, '.', '')));
+        $xmlRoot->appendChild($domtree->createElement('amounttopay', number_format($this->amountToPay, 2, '.', '')));
         
         // add current allocations
         $this->allocationTable->addSelfToDocument($domtree, $xmlRoot);
