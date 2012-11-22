@@ -22,7 +22,10 @@
 
     <div id="wpdev-booking-reservation-general" class="wrap bookingpage" style="margin-left:100px; margin-right:100px;">
         <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/add-1-48x48.png"/><br /></div>
-        <h2>Add Booking</h2>
+        <h2>
+            <xsl:if test="id = 0">Add Booking</xsl:if>
+            <xsl:if test="id > 0">Edit Booking</xsl:if>
+        </h2>
         <div id="ajax_working"><xsl:comment/></div>
         <div class="clear" style="margin:10px;"><xsl:comment/></div>
         <div style="clear:both;"><xsl:comment/></div>
