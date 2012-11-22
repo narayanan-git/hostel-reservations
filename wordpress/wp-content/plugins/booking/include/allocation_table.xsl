@@ -110,17 +110,17 @@
             &#160;&#160;
             <xsl:if test="gender = 'M'">
                 <a onclick="javascript:toggle_gender({rowid});" href="javascript:;">
-                    <img src="{homeurl}/wp-content/plugins/booking/img/male.png" title="Male" alt="Male"/>
+                    <img src="{../homeurl}/wp-content/plugins/booking/img/male.png" title="Male" alt="Male"/>
                 </a>
             </xsl:if>
             <xsl:if test="gender = 'F'">
                 <a onclick="javascript:toggle_gender({rowid});" href="javascript:;">
-                    <img src="{homeurl}/wp-content/plugins/booking/img/female.png" title="Female" alt="Female"/>
+                    <img src="{../homeurl}/wp-content/plugins/booking/img/female.png" title="Female" alt="Female"/>
                 </a>
             </xsl:if>
             <xsl:if test="gender = 'X'">
                 <a onclick="javascript:toggle_gender({rowid});" href="javascript:;">
-                    <img src="{homeurl}/wp-content/plugins/booking/img/male_female.png" title="Gender not specified" alt="Gender not specified"/>
+                    <img src="{../homeurl}/wp-content/plugins/booking/img/male_female.png" title="Gender not specified" alt="Gender not specified"/>
                 </a>
             </xsl:if>
         </td>
