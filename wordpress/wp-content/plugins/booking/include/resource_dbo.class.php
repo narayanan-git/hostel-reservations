@@ -120,22 +120,37 @@ class ResourceDBO {
 error_log("updateResourceProperties $resourceId , ".var_export($propertyArray, true));
 
         global $wpdb;
-        $wpdb->query($wpdb->prepare(
-                "DELETE FROM ".$wpdb->prefix ."resource_properties_map
-                  WHERE resource_id = %d", $resourceId));
-        if($wpdb->last_error) {
-            throw new DatabaseException($wpdb->last_error);
+        $dblink = new DbTransaction();
+        try {
+            $stmt = $dblink->mysqli->prepare(
+                    "DELETE FROM ".$wpdb->prefix ."resource_properties_map
+                      WHERE resource_id = ?");
+            $stmt->bind_param('i', $resourceId);
+            if(false === $stmt->execute()) {
+                throw new DatabaseException("Error occurred deleting from resource_properties_map :".$dblink->mysqli->error);
+            }
+            $stmt->close();
+
+            // iterate and insert
+            $stmt = $dblink->mysqli->prepare(
+                    "INSERT INTO ".$wpdb->prefix ."resource_properties_map (property_id, resource_id)
+                     VALUES(?, ?)");
+            foreach ($propertyArray as $propertyId) {
+                $stmt->bind_param('ii', $propertyId, $resourceId);
+                if(false === $stmt->execute()) {
+                    throw new DatabaseException("Error occurred inserting into resource_properties_map :".$dblink->mysqli->error);
+                }
+            }
+            $stmt->close();
+
+        } catch(Exception $ex) {
+            $dblink->mysqli->rollback();
+            $dblink->mysqli->close();
+            throw $e;
         }
 
-        // iterate and insert
-        foreach ($propertyArray as $propertyId) {
-            $wpdb->query($wpdb->prepare(
-                "INSERT INTO ".$wpdb->prefix ."resource_properties_map (property_id, resource_id)
-                 VALUES(%d, %d)", $propertyId, $resourceId));
-            if($wpdb->last_error) {
-                throw new DatabaseException($wpdb->last_error);
-            }
-        }
+        $dblink->mysqli->commit();
+        $dblink->mysqli->close();
     }
     
     /**
