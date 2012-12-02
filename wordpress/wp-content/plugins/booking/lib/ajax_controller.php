@@ -278,7 +278,9 @@ error_log("save_resource $resourceId $resourceName");
     function add_booking_allocation() {
 
         $firstname = $_POST['firstname'];
-        $num_visitors = $_POST['num_visitors'];
+        $num_guests['M'] = empty($_POST['num_guests_m']) ? 0 : intval($_POST['num_guests_m']);
+        $num_guests['F'] = empty($_POST['num_guests_f']) ? 0 : intval($_POST['num_guests_f']);
+        $num_guests['X'] = empty($_POST['num_guests_x']) ? 0 : intval($_POST['num_guests_x']);
         $gender = $_POST['gender'];
         $dates = $_POST['dates'];
         $res = $_POST['booking_resource'];
@@ -294,7 +296,7 @@ error_log("save_resource $resourceId $resourceName");
             $booking = $_SESSION['ADD_BOOKING_CONTROLLER'];
             $booking->firstname = $firstname;
             try {
-                $booking->addAllocation($num_visitors, $gender, $res == "0" ? null : $res, 
+                $booking->addAllocation($num_guests, $res == "0" ? null : $res, 
                     explode(",", trim($dates, " ,")), 
                     empty($resource_property) ? null : explode(",", $resource_property));
 

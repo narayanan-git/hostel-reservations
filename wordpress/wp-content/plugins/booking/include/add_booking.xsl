@@ -85,14 +85,10 @@
                     <div class="metabox-holder">
                         <h3>Allocations</h3>
                         <div style="float:left; width:450px;">
-                            <p>Add <input type="text" name="num_visitors" value="" size="5" /> Guest(s)</p>
-                            <p>Gender:<br />  <span class="wpdev-form-control-wrap">
-                                <select id="gender" name="gender" style="width:150px;">
-                                    <option value="X">Unspecified</option>
-                                    <option value="M">Male</option>
-                                    <option value="F">Female</option>
-                                </select>
-                                </span>
+                            <p>Add <input type="text" name="num_guests_m" value="" size="3" /> Male Guest(s)<br/>
+                               Add <input type="text" name="num_guests_f" value="" size="3" /> Female Guest(s)<br/>
+                               Add <input type="text" name="num_guests_x" value="" size="3" /> Unspecified Guest(s)<br/>
+                               <input type="hidden" name="num_guests"/> <xsl:comment>placeholder for error message</xsl:comment>
                             </p>
                             <p>Room/Bed:<br />  
                                 <span class="wpdev-form-control-wrap"> 

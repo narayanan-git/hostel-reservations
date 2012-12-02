@@ -34,8 +34,8 @@ function add_booking_allocation(submit_form) {
         showErrorMessage( submit_form.firstname, 'This field is required' );
         return;
     }
-    else if(submit_form.num_visitors.value === '') {
-        showErrorMessage( submit_form.num_visitors, 'This field is required' );
+    else if(submit_form.num_guests_m.value === '' && submit_form.num_guests_f.value === '' && submit_form.num_guests_x.value === '') {
+        showErrorMessage( submit_form.num_guests, 'At least one guest must be specified' );
         return;
     }
     else if(typeof document.getElementById('calendar_booking1').value === "undefined" || 
@@ -74,8 +74,9 @@ function add_booking_allocation(submit_form) {
             ajax_action : 'ADD_ALLOCATION',
             dates: document.getElementById('calendar_booking1').value,
             firstname: submit_form.firstname.value,
-            num_visitors : submit_form.num_visitors.value,
-            gender : submit_form.gender.value,
+            num_guests_m : submit_form.num_guests_m.value,
+            num_guests_f : submit_form.num_guests_f.value,
+            num_guests_x : submit_form.num_guests_x.value,
             booking_resource : submit_form.booking_resource.value,
             resource_property : resource_properties
         }
