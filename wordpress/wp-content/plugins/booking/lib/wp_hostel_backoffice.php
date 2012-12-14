@@ -479,6 +479,8 @@ error_log(var_export($_POST, TRUE));
                         resource_id bigint(20) unsigned NOT NULL,
                         guest_name varchar(50) NOT NULL,
                         gender varchar(1) NOT NULL,
+                        req_room_size varchar(3),
+                        req_room_type varchar(1),
                         created_by varchar(20) NOT NULL,
                         created_date datetime NOT NULL,
                         last_updated_by varchar(20) NOT NULL,
@@ -644,6 +646,16 @@ error_log(var_export($_POST, TRUE));
                 -- whenever an update is made on the underlying table
                 AFTER UPDATE ON ".$wpdb->prefix."bookingresources FOR EACH ROW 
                 BEGIN
+                    -- currently only updatable field is name
+                    IF NEW.name <> OLD.name AND NEW.resource_id = OLD.resource_id THEN
+                        UPDATE ".$wpdb->prefix."mv_resources_by_path m
+                          JOIN ".$wpdb->prefix."bookingresources br
+                            ON m.resource_id = br.resource_id
+                           SET m.name = br.name
+                         WHERE m.resource_id = NEW.resource_id;
+                    END IF;
+
+                    /** DISABLED: no way to update any fields in wp_bookingresources except name
                     DELETE FROM ".$wpdb->prefix."mv_resources_by_path
                      WHERE resource_id = OLD.resource_id;
 
@@ -657,6 +669,7 @@ error_log(var_export($_POST, TRUE));
                         ON m.resource_id = v.resource_id
                        SET m.number_children = v.number_children,
                            m.capacity = v.capacity;
+                     */
                 END";
 
             if (false === $wpdb->query($wpdb->prepare($simple_sql))) {

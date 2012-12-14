@@ -26,13 +26,18 @@ class AllocationTable extends XslTransform {
      * bookingName : name booking is under
      * $numGuests : (scalar) number of guests (allocation rows) to add
      * $gender : one of 'M', 'F', 'X'
-     * resourceId : id of resource to allocate to (null for any)
+     * $resourceId : id of resource to allocate to (null for any)
+     * $reqRoomSize : requested room size (e.g. 8, 10, 10+, P, etc..)
+     * $reqRoomType : requested room type (M/F/X)
      * $newAllocationRows : array() of allocation rows to insert into
      * dates : array of dates (String) in format dd.MM.yyyy
      */
-    private function insertNewAllocationRows($bookingName, $numGuests, $gender, $resourceId, &$newAllocationRows, $dates) {
+    private function insertNewAllocationRows($bookingName, $numGuests, $gender, $resourceId, $reqRoomSize, $reqRoomType, &$newAllocationRows, $dates) {
         for($i = 0; $i < $numGuests; $i++) {
-            $allocationRow = new AllocationRow($bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), $gender, $resourceId, $this->resourceMap);
+            $allocationRow = new AllocationRow(
+                    $bookingName.'-'.(sizeof($this->allocationRows) + sizeof($newAllocationRows)+1), 
+                    $gender, $resourceId, $reqRoomSize, $reqRoomType, $this->resourceMap);
+
             foreach ($dates as $dt) {
                 $allocationRow->toggleStatusForDate(trim($dt));
             }
@@ -46,17 +51,19 @@ class AllocationTable extends XslTransform {
      * bookingName : name booking is under
      * gender : Male/Female
      * resourceId : id of resource to allocate to (null for any)
+     * reqRoomSize : requested room size (e.g. 8, 10, 10+, P, etc..)
+     * reqRoomType : requested room type (M/F/X)
      * dates : array of dates (String) in format dd.MM.yyyy
      * resourceProps : array of resource property ids (allocate only to resources with these properties)
      * Throws AllocationException if there aren't enough "leaf" resources to add the given
      *        number of allocations.
      */
-    function addAllocation($bookingName, $numVisitors, $resourceId, $dates, $resourceProps) {
+    function addAllocation($bookingName, $numVisitors, $resourceId, $reqRoomSize, $reqRoomType, $dates, $resourceProps) {
         $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
         $newAllocationRows = array();  // the new allocations we will be adding
-        $this->insertNewAllocationRows($bookingName, $numVisitors['M'], 'M', $resourceId, $newAllocationRows, $dates);
-        $this->insertNewAllocationRows($bookingName, $numVisitors['F'], 'F', $resourceId, $newAllocationRows, $dates);
-        $this->insertNewAllocationRows($bookingName, $numVisitors['X'], 'X', $resourceId, $newAllocationRows, $dates);
+        $this->insertNewAllocationRows($bookingName, $numVisitors['M'], 'M', $resourceId, $reqRoomSize, $reqRoomType, $newAllocationRows, $dates);
+        $this->insertNewAllocationRows($bookingName, $numVisitors['F'], 'F', $resourceId, $reqRoomSize, $reqRoomType, $newAllocationRows, $dates);
+        $this->insertNewAllocationRows($bookingName, $numVisitors['X'], 'X', $resourceId, $reqRoomSize, $reqRoomType, $newAllocationRows, $dates);
 
         // this will perform the individual assignments to beds if a parent resource id is specified
         $this->allocationStrategy->assignResourcesForAllocations($newAllocationRows, $this->allocationRows, $resourceProps);

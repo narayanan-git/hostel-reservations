@@ -77,6 +77,8 @@ function add_booking_allocation(submit_form) {
             num_guests_m : submit_form.num_guests_m.value,
             num_guests_f : submit_form.num_guests_f.value,
             num_guests_x : submit_form.num_guests_x.value,
+            req_room_size : submit_form.req_room_size.value,
+            req_room_type : submit_form.req_room_type.value,
             booking_resource : submit_form.booking_resource.value,
             resource_property : resource_properties
         }

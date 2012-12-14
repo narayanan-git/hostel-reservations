@@ -23,7 +23,8 @@
                     <table class="availability" width="100%" cellspacing="0" cellpadding="3" border="0">
                         <thead>
                             <tr class="even">
-                                <th class="avail_attrib">Name</th>
+                                <th class="avail_name_attrib">Name</th>
+                                <th class="avail_req_room_attrib"><div title="Requested Room Type">Req</div></th>
                                 <th class="avail_attrib">Room</th>
                                 <th class="avail_attrib">Bed</th>
                                 <th class="avail_calendar_chevrons"><a href="javascript:shift_availability_calendar('left');">&lt;&lt;</a></th>
@@ -95,7 +96,7 @@
 <!-- adds row for each allocation in the availability table -->
 <xsl:template mode="allocation_dates" match="allocation">
     <tr>
-        <td class="avail_attrib">
+        <td class="avail_name_attrib">
             <xsl:if test="isAvailable != 'true'">
                 <xsl:attribute name="class">highlight_cell_red</xsl:attribute>
             </xsl:if>
@@ -122,6 +123,16 @@
                 <a onclick="javascript:toggle_gender({rowid});" href="javascript:;">
                     <img src="{../homeurl}/wp-content/plugins/booking/img/male_female.png" title="Gender not specified" alt="Gender not specified"/>
                 </a>
+            </xsl:if>
+        </td>
+        <td class="avail_req_room_attrib">
+            <xsl:if test="reqRoomSize = 'P'">
+                Private
+            </xsl:if>
+            <xsl:if test="reqRoomSize != 'P'">
+                <xsl:value-of select="reqRoomSize"/>
+                <xsl:if test="reqRoomType = 'X'">Mx</xsl:if>
+                <xsl:if test="reqRoomType != 'X'"><xsl:value-of select="reqRoomType"/></xsl:if>
             </xsl:if>
         </td>
             <xsl:choose>

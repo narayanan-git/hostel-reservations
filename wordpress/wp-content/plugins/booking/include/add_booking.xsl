@@ -6,6 +6,7 @@
 // Distributed under the GNU General Public Licence
 //*****************************************************************************
 -->
+<xsl:output method="html" indent="yes" version="4.0"/>
 <xsl:include href="allocation_table.xsl"/>
 <xsl:include href="booking_comment_log.xsl"/>
 
@@ -17,7 +18,63 @@
             var total = parseFloat(jQuery('#deposit_paid').val()) + parseFloat(jQuery('#amount_to_pay').val());
             jQuery('#total_amount').val(total.toFixed(2));
         }
-        window.onload=updateTotal;  // update on page load
+
+        // update selected attributes when room size has changed
+        function roomSizeChanged() {
+            if(jQuery('#req_room_size').val() == '4') {
+                toggleCheckedProperties(1);
+            }
+            else if(jQuery('#req_room_size').val() == '6') {
+                toggleCheckedProperties(1);
+            }
+            else if(jQuery('#req_room_size').val() == '8') {
+                toggleCheckedProperties(2);
+            }
+            else if(jQuery('#req_room_size').val() == '10') {
+                toggleCheckedProperties(3);
+            }
+            else if(jQuery('#req_room_size').val() == '10+') {
+                toggleCheckedProperties(3, 4, 5, 6);
+            }
+            else if(jQuery('#req_room_size').val() == '12') {
+                toggleCheckedProperties(4);
+            }
+            else if(jQuery('#req_room_size').val() == '14') {
+                toggleCheckedProperties(5);
+            }
+            else if(jQuery('#req_room_size').val() == '16') {
+                toggleCheckedProperties(6);
+            }
+        }
+
+        // toggles the checked attributes related to room size
+        // each argument corresponds with the id of the property to be checked
+        // any id not checked and related to room size with be unchecked
+        function toggleCheckedProperties() {
+
+            // only applicable for properties 1-9
+            for (var i = 0; i &lt; 10; i++) {
+                var i_is_checked = false;
+
+                // if id is specified in argument, tick property
+                for (var j = 0; j &lt; arguments.length; j++) {
+                    if (i == arguments[j]) {
+                        i_is_checked = true; 
+                        break;
+                    }
+                }
+                jQuery('#resource_property_' + i).attr('checked', i_is_checked);
+            }
+        }
+
+        // executes on initial page load
+        function initOnPageLoad() {
+            updateTotal();
+            jQuery('#req_room_size').val('10+');  // default selection
+            roomSizeChanged();
+        }
+
+        window.onload=initOnPageLoad;  // initialise form values
     </script>
 
     <div id="wpdev-booking-reservation-general" class="wrap bookingpage" style="margin-left:100px; margin-right:100px;">
@@ -100,8 +157,19 @@
                             </p>
                             <p>Requested Room Type:<br />  
                                 <span class="wpdev-form-control-wrap"> 
-                                    <select id="room_type" name="room_type" style="width:200px">
-                                        <option value="X">Mixed/Don't give a Toss</option>
+                                    <select id="req_room_size" name="req_room_size" onchange="roomSizeChanged()">
+                                        <option value="4">4 Bed</option>
+                                        <option value="6">6 Bed</option>
+                                        <option value="8">8 Bed</option>
+                                        <option value="10">10 Bed</option>
+                                        <option value="10+">10+ Bed</option>
+                                        <option value="12">12 Bed</option>
+                                        <option value="14">14 Bed</option>
+                                        <option value="16">16 Bed</option>
+                                        <option value="P">Private</option>
+                                    </select>
+                                    <select id="req_room_type" name="req_room_type">
+                                        <option value="X">Mixed</option>
                                         <option value="M">Male</option>
                                         <option value="F">Female</option>
                                     </select>
@@ -180,9 +248,8 @@
 
 <xsl:template match="property">
     <div style="text-align:left;">
-        <input type="checkbox" name="resource_property" value="{id}">
-            &#160;<xsl:value-of select="value"/>
-        </input>
+        <input type="checkbox" name="resource_property" id="resource_property_{id}" value="{id}"/>
+        &#160;<xsl:value-of select="value"/>
     </div>
 </xsl:template>
 

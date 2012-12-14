@@ -281,13 +281,14 @@ error_log("save_resource $resourceId $resourceName");
         $num_guests['M'] = empty($_POST['num_guests_m']) ? 0 : intval($_POST['num_guests_m']);
         $num_guests['F'] = empty($_POST['num_guests_f']) ? 0 : intval($_POST['num_guests_f']);
         $num_guests['X'] = empty($_POST['num_guests_x']) ? 0 : intval($_POST['num_guests_x']);
-        $gender = $_POST['gender'];
+        $reqRoomSize = $_POST['req_room_size'];
+        $reqRoomType = $_POST['req_room_type'];
         $dates = $_POST['dates'];
         $res = $_POST['booking_resource'];
         $resource_property = trim($_POST['resource_property'], " ,");
 
         // keep allocations in a datastructure saved to session
-        // { allocation_id, resource_id, gender, array[dates] }
+        // { allocation_id, resource_id, array[dates] }
         // display datastructure(s) as table from min(dates) for 2 weeks afterwards
         // editing table on screen updates datastructure in real-time
         // on submit, start transaction, validate allocations, save and end transaction
@@ -297,6 +298,7 @@ error_log("save_resource $resourceId $resourceName");
             $booking->firstname = $firstname;
             try {
                 $booking->addAllocation($num_guests, $res == "0" ? null : $res, 
+                    $reqRoomSize, $reqRoomType,
                     explode(",", trim($dates, " ,")), 
                     empty($resource_property) ? null : explode(",", $resource_property));
 

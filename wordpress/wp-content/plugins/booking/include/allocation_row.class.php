@@ -10,6 +10,8 @@ class AllocationRow {
     var $name;
     var $gender;
     var $resourceId;
+    var $reqRoomSize;   // requested room size (e.g. 8, 10, 10+, P, etc..) 
+    var $reqRoomType;   // requested room type (M/F/X) 
     var $showMinDate;   // minimum date to show on the table (DateTime)
     var $showMaxDate;   // maximum date to show on the table (DateTime)
     var $isAvailable;   // boolean : set this flag to true/false during allocation process (if resource is available or not)
@@ -23,14 +25,18 @@ class AllocationRow {
      * $name : guest name
      * $gender : guest gender
      * $resourceId : resource to assign to guest
+     * $reqRoomSize : requested room size (e.g. 8, 10, 10+, P, etc..)
+     * $reqRoomType : requested room type (M/F/X)
      * $status : current status of allocation (default: reserved)
      * $resourceMap : array() of resource id -> resource recordset (if not specified, query db for all resources)
      */
-    function AllocationRow($name, $gender, $resourceId, $resourceMap = null) {
+    function AllocationRow($name, $gender, $resourceId, $reqRoomSize, $reqRoomType, $resourceMap = null) {
         $this->id = 0;
         $this->name = $name;
         $this->gender = $gender;
         $this->resourceId = $resourceId;
+        $this->reqRoomSize = $reqRoomSize;
+        $this->reqRoomType = $reqRoomType;
         $this->isAvailable = true;
         if($resourceMap == null) {
             $this->resourceMap = ResourceDBO::getAllResources();
@@ -199,7 +205,7 @@ class AllocationRow {
         // create the allocation if it doesn't exist
         if ($this->id == 0) {
             $allocationId = AllocationDBO::insertAllocation(
-                $mysqli, $bookingId, $this->resourceId, $this->name, $this->gender);
+                $mysqli, $bookingId, $this->resourceId, $this->name, $this->gender, $this->reqRoomSize, $this->reqRoomType);
 error_log("inserted allocation $allocationId");
 
             // then create the booking dates for the allocation
@@ -238,6 +244,8 @@ error_log("updating allocation $this->id");
         $xmlRoot->appendChild($domtree->createElement('id', $this->id));
         $xmlRoot->appendChild($domtree->createElement('name', $this->name));
         $xmlRoot->appendChild($domtree->createElement('gender', $this->gender));
+        $xmlRoot->appendChild($domtree->createElement('reqRoomSize', $this->reqRoomSize));
+        $xmlRoot->appendChild($domtree->createElement('reqRoomType', $this->reqRoomType));
         if ($this->resourceId != null) {
             $xmlRoot->appendChild($domtree->createElement('resourceid', $this->resourceId));
             $xmlRoot->appendChild($domtree->createElement('resource', $this->resourceMap[$this->resourceId]->name));
@@ -308,6 +316,8 @@ error_log("updating allocation $this->id");
             <id>31</id>
             <name>Megan-1</name>
             <gender>Female</gender>
+            <reqRoomSize>4</reqRoomSize>
+            <reqRoomType>F</reqRoomType>
             <resourceid>21</resourceid>
             <resource>Bed A</resource>
             <parentresource>Room 12</parentresource>

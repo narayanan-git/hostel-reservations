@@ -117,19 +117,21 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
      * $bookingId : id of parent booking record
      * $resourceId : id of resource to assign this allocation
      * $name : name of guest
-     * $gender : M/F
+     * $gender : M/F/X
+     * $reqRoomSize : requested room size (e.g. 8, 10, 10+, P, etc..)
+     * $reqRoomType : requested room type (M/F/X)
      * Returns unique id of newly created allocation
      */
-    static function insertAllocation($mysqli, $bookingId, $resourceId, $name, $gender) {
+    static function insertAllocation($mysqli, $bookingId, $resourceId, $name, $gender, $reqRoomSize, $reqRoomType) {
         global $wpdb;
         
         // create the allocation
         $stmt = $mysqli->prepare(
-            "INSERT INTO ".$wpdb->prefix."allocation (booking_id, resource_id, guest_name, gender, created_by, created_date, last_updated_by, last_updated_date)
-             VALUES (?, ?, ?, ?, ?, NOW(), ?, NOW())");
+            "INSERT INTO ".$wpdb->prefix."allocation (booking_id, resource_id, guest_name, gender, req_room_size, req_room_type, created_by, created_date, last_updated_by, last_updated_date)
+             VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, NOW())");
             
         $userLogin = wp_get_current_user()->user_login;
-        $stmt->bind_param('iissss', $bookingId, $resourceId, $name, $gender, $userLogin, $userLogin);
+        $stmt->bind_param('iissssss', $bookingId, $resourceId, $name, $gender, $reqRoomSize, $reqRoomType, $userLogin, $userLogin);
         
         if(false === $stmt->execute()) {
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);
@@ -725,7 +727,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         $resourceMap = $resourceMap == null ? ResourceDBO::getAllResources() : $resourceMap;
         
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT a.allocation_id, a.guest_name, a.gender, a.resource_id
+            "SELECT a.allocation_id, a.guest_name, a.gender, a.resource_id, a.req_room_size, a.req_room_type
                FROM ".$wpdb->prefix."allocation a
               WHERE a.booking_id = %d
               ORDER BY a.resource_id, a.guest_name", $bookingId));
@@ -736,7 +738,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         
         $return_val = array();
         foreach ($resultset as $res) {
-            $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $resourceMap);
+            $ar = new AllocationRow($res->guest_name, $res->gender, $res->resource_id, $res->req_room_size, $res->req_room_type, $resourceMap);
             $ar->id = $res->allocation_id;
             if ($loadBookingDates) {
                 $ar->bookingDates = self::fetchBookingDates($res->allocation_id);
