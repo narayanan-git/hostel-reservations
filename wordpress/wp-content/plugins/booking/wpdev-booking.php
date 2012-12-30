@@ -6,7 +6,7 @@ Description: Backoffice reservations and administration services for hostels / B
 Version: 0.1
 Author: sir_studly
 Author URI: http://www.hostelbackoffice.net
-Tested WordPress Versions: 3.3.2
+Tested WordPress Versions: 3.4
 */
 
 /*  Copyright 2009 - 2012  http://www.hostelbackoffice.net  (email: info@hostelbackoffice.net),
@@ -126,9 +126,6 @@ A c t u a l   T O D O   List:
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/add_booking.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/add_booking.class.php' ); }
 
-    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php'))           // C L A S S    B o o k i n g
-        { require_once(WPDEV_BK_PLUGIN_DIR. '/lib/wpdev-booking-class.php' ); }
-
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/allocation_dbo.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/allocation_dbo.class.php' ); }
 
@@ -192,8 +189,8 @@ A c t u a l   T O D O   List:
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/help_page.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/help_page.class.php' ); }
 
-    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/help_page_factory.class.php')) 
-        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/help_page_factory.class.php' ); }
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/page_factory.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/page_factory.class.php' ); }
 
     //////////////////////// END CUSTOM CODE /////////////////////////////////////////////////////////////////////////////////////////////////////
         

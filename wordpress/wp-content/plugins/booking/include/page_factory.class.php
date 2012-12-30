@@ -1,14 +1,14 @@
 <?php
 
 /**
- * Facade for generating pre-defined help pages.
+ * Facade for generating pre-defined wordpress pages.
  */
-class HelpPageFactory {
+class PageFactory {
 
     /** 
      * Default constructor.
      */
-    function HelpPageFactory() {
+    function PageFactory() {
     }
 
     /**
@@ -41,10 +41,48 @@ class HelpPageFactory {
             error_log($post_id->get_error_message());
             $post_id = 0;
         } else {
-error_log("inserted page with id: $post_id");
             update_post_meta($post_id, '_wp_page_template', 'sidebar-page.php'); // add sidebar to page
         } 
         return $post_id;
+    }
+
+    /**
+     * Create placeholder pages which will be replaced with their respective template pages.
+     */
+    function createTemplatePages() {
+
+        // only create if not exists
+        if (get_page_by_path('edit-booking') == null) {
+            $new_booking_post_id = $this->createReadOnlyPage('edit-booking', 'New Booking', 'template content goes here', 0, 70);
+        }
+
+        if (get_page_by_path('admin') == null) {
+            $admin_id = $this->createReadOnlyPage('admin', 'Admin', 'template content goes here', 0, 80);
+            if ($admin_id > 0) {
+                $post_id = $this->createReadOnlyPage('allocations', 'Allocations', 'template content goes here', $admin_id, 10);
+                $post_id = $this->createReadOnlyPage('bookings', 'Bookings', 'template content goes here', $admin_id, 20);
+                $post_id = $this->createReadOnlyPage('summary', 'Daily Summary', 'template content goes here', $admin_id, 30);
+                $post_id = $this->createReadOnlyPage('resources', 'Resources', 'template content goes here', $admin_id, 40);
+            }
+        }
+    }
+
+    /**
+     * Forcefully removes all template placeholder pages created as part of createTemplatePages().
+     */
+    function deleteTemplatePages() {
+        
+        // find the parent page id for New/Edit Booking
+        $pg = get_page_by_path('edit-booking');
+        if ($pg != null) {
+            self::deletePages($pg->ID);
+        } 
+
+        // find the parent page id for Admin
+        $pg = get_page_by_path('admin');
+        if ($pg != null) {
+            self::deletePages($pg->ID);
+        } 
     }
 
     /**
@@ -52,6 +90,12 @@ error_log("inserted page with id: $post_id");
      * Returns post id of the newly created parent help page, 0 on failure.
      */
     function createHelpPages() {
+
+        // don't do anything if it already exists
+        $help_page = get_page_by_path('help');
+        if ( $help_page != null) {
+            return $help_page->ID;
+        }
 
         $hp = new HelpPage();
         $help_id = $this->createReadOnlyPage('help', 'Help', $hp->toHtml('help'), 0, 100);
@@ -108,27 +152,37 @@ error_log("inserted page with id: $post_id");
 
         // find the parent page id for Help
         $pg = get_page_by_path('help');
-        $pg_ids_to_del = array();
         if ($pg != null) {
-            $pg_ids_to_del[] = $pg->ID;
+            self::deletePages($pg->ID);
+        } 
+    }
 
-            // find the pages under Help
+    /**
+     * Deletes a given page by id.
+     * $page_id : ID of post/page to delete
+     * $include_children : true/false (default true) to delete all child pages from given page
+     */
+    function deletePages($page_id, $include_children = true) {
+
+        $pg_ids_to_del = array($page_id);
+
+        if ($include_children) {
+            // find the descendent pages
             $args = array(
-	            'child_of' => $pg->ID,
+	            'child_of' => $page_id,
 	            'post_type' => 'page',
 	            'post_status' => 'publish'
             ); 
             foreach (get_pages($args) as $p) {
                 $pg_ids_to_del[] = $p->ID;
             }
+        }
 
-            // we physically delete them in reverse order so children are removed before their parent
-            foreach (array_reverse($pg_ids_to_del) as $pid) {
-                wp_delete_post($pid, true);
-            }
-        } 
+        // we physically delete them in reverse order so children are removed before their parent
+        foreach (array_reverse($pg_ids_to_del) as $pid) {
+            wp_delete_post($pid, true);
+        }
     }
-
 
 }
 

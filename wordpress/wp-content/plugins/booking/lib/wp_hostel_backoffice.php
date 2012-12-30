@@ -41,7 +41,8 @@ class WP_HostelBackoffice {
         add_option('hbo_summary_url', 'admin/summary');
         add_option('hbo_resources_url', 'admin/resources');
         add_option('hbo_editbooking_url', 'edit-booking');
-        $this->build_db_tables();
+        self::build_db_schema();
+        self::insert_site_pages();
     }
 
     /**
@@ -54,6 +55,9 @@ class WP_HostelBackoffice {
         delete_option('hbo_summary_url');
         delete_option('hbo_resources_url');
         delete_option('hbo_editbooking_url');
+        self::delete_site_pages();
+        self::teardown_db_schema(get_option('hbo_delete_db_on_deactivate') == 'On');
+        delete_option('hbo_delete_db_on_deactivate');
     }
 
     /**
@@ -363,9 +367,9 @@ error_log(var_export($_POST, TRUE));
     }
 
     /**
-     * Create/update all tables required for this booking.
+     * Create/update all db objects required for this booking.
      */
-    function build_db_tables() {
+    function build_db_schema() {
         global $wpdb;
         $charset_collate = '';
         if (false === empty($wpdb->charset)) {
@@ -714,6 +718,48 @@ error_log(var_export($_POST, TRUE));
     }
 
     /**
+     * Removes db objects created as part of build_db_schema()
+     * $delete_data : bool (true to drop all transactional tables as well, false to keep transactional tables)
+     */
+    function teardown_db_schema($delete_data) {
+        global $wpdb;
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_del");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_upd");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_ins");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_enforce_availability");
+        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resource_availability");
+        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_booked_capacity");
+        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_by_path");
+        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_sub1");
+        self::execute_simple_sql("DROP FUNCTION walk_tree_path");
+        self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."mv_resources_by_path");
+        if ($delete_data) {
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."bookingdates");
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."allocation");
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."resource_properties_map");
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."resource_properties");
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."bookingresources");
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."bookingcomment");
+            self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."booking");
+        }
+    }
+
+    /**
+     * Executes a single SQL statement.
+     * $simple_sql : sql statement to execute
+     * $throw_ex_on_error : bool (when true, if error occurs, a DatabaseException() is thrown)
+     */
+    function execute_simple_sql($simple_sql, $throw_ex_on_error = false) {
+        global $wpdb;
+        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
+            if ($throw_ex_on_error) {
+                throw new DatabaseException($wpdb->last_error);
+            }
+        }
+    }
+
+    /**
      * Check if table exists.
      * $tablename : name of table to check (with or without wp prefix)
      * Returns true or false.
@@ -768,6 +814,24 @@ error_log(var_export($_POST, TRUE));
                   WHERE routine_schema = '". DB_NAME ."'
                     AND routine_name = %s", $routineName));
         return $res[0]->count > 0;
+    }
+
+    /**
+     * Create template placeholder and help pages for all users on the site.
+     */
+    function insert_site_pages() {
+        $pf = new PageFactory();
+        $pf->createTemplatePages();
+        $pf->createHelpPages();
+    }
+
+    /**
+     * Delete the template placeholder and help pages which were created from insert_site_pages.
+     */
+    function delete_site_pages() {
+        $pf = new PageFactory();
+        $pf->deleteTemplatePages();
+        $pf->deleteHelpPages();
     }
 }
 
