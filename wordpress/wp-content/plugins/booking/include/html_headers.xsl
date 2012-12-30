@@ -39,6 +39,7 @@
     <link href="{pluginurl}/interface/bs/css/bs.min.css" rel="stylesheet" type="text/css" />
     <link href="{pluginurl}/interface/chosen/chosen.css" rel="stylesheet" type="text/css" />
     <link href="{pluginurl}/css/admin.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="{pluginurl}/interface/bs/js/bs.js"><xsl:comment/></script>  
     <script type="text/javascript" src="{pluginurl}/interface/chosen/chosen.jquery.min.js"><xsl:comment/></script>
     <link href="{pluginurl}/css/client.css" rel="stylesheet" type="text/css" />
 </xsl:template>
