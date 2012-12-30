@@ -106,6 +106,10 @@ class AjaxController {
                 $this->select_daily_summary_day();
                 break;
 
+            case  'GENERATE_TEST_DATA':
+                $this->generate_test_data();
+                break;
+
             default:
                 error_log("ERROR: Undefined AJAX action  $action");
 
@@ -562,6 +566,37 @@ error_log('end TOGGLE_CHECKOUT_FOR_BOOKING '.$bookingId);
         <script type="text/javascript">
             document.getElementById('daily_summary_contents').innerHTML = <?php echo json_encode($ds->toHtml()); ?>;
         </script>
+        <?php
+    }
+
+    /**
+     * Create some test data from the current date.
+     */
+    function generate_test_data() {
+        $gtd = new GenerateTestData();
+        $msg = '';
+
+        try {
+            $gtd->reloadTestData();
+            $msg = $gtd->getScriptOutput();
+
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            $msg = $e->getMessage();
+        }
+
+error_log("done generate_test_data: $msg"); 
+
+        ?> <script type="text/javascript">
+                var msg = "<?php echo $msg; ?>";
+                document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
+                jQuery("#submitting")
+                    .css( {'font-style' : 'italic'} );
+                
+                if (msg.length == 0) {
+                    document.getElementById('ajax_respond').innerHTML = '<i>Script complete.</i>';
+                }
+           </script>
         <?php
     }
 }

@@ -6,6 +6,13 @@ function makeScroll(object_name) {
         jQuery('html,body').animate({scrollTop: targetOffset}, 1000);
 }
 
+// Show Yes/No dialog
+function are_you_sure( message_question ){
+        var answer = confirm( message_question );
+        if ( answer) { return true; }
+        else         { return false;}
+}
+
 // Display error message directly under a form element
 // element : form element in error
 // errorMessage : message to display
@@ -123,7 +130,7 @@ function save_allocation(rowid) {
 // rowid : row id in allocation table
 function delete_allocation(rowid) {
 
-    if (bk_are_you_sure('Remove allocation ' + document.getElementById('allocation_name'+rowid).innerHTML + '?')) {
+    if (are_you_sure('Remove allocation ' + document.getElementById('allocation_name'+rowid).innerHTML + '?')) {
         jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
@@ -325,7 +332,7 @@ function edit_resource(resource_id) {
 // resource_id : resource id to delete
 function delete_resource(resource_id) {
 
-    if (bk_are_you_sure('Are you sure you want to delete ' + document.getElementById('resource_name'+resource_id).innerHTML + '?')) {
+    if (are_you_sure('Are you sure you want to delete ' + document.getElementById('resource_name'+resource_id).innerHTML + '?')) {
         jQuery.ajax({                                           // Start Ajax Sending
             url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
             type:'POST',
@@ -384,10 +391,7 @@ function generate_test_data(submit_form){
         success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
         error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
         data:{
-            ajax_action : 'GENERATE_TEST_DATA',
-            firstname: submit_form.firstname.value,
-            lastname: submit_form.lastname.value,
-            referrer: submit_form.referrer.value
+            ajax_action : 'GENERATE_TEST_DATA'
         }
     });
 }

@@ -98,6 +98,11 @@ class WP_HostelBackoffice {
                 WPDEV_BK_FILE .'wpdev-booking-option', array(&$this, 'content_of_settings_page')  );
         add_action("admin_print_scripts-" . $pagehook3 , array( &$this, 'add_js_css_files'));
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // TEST DATA
+        $pagehook7 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Generate Test Data', 'wpdev-booking'), __('Test Data', 'wpdev-booking'), 'administrator',
+                WPDEV_BK_FILE .'wpdev-booking-testdata', array(&$this, 'content_of_testdata_page')  );
+        add_action("admin_print_scripts-" . $pagehook7, array( &$this, 'add_js_css_files'));
     }
 
     /**
@@ -271,6 +276,14 @@ error_log($rpp->toXml());
 error_log($s->toXml());
 error_log(var_export($_POST, TRUE));
         echo $s->toHtml();
+    }
+
+    /**
+     * Test generation page.
+     */
+    function content_of_testdata_page() {
+        $td = new GenerateTestData();
+        echo $td->toHtml();
     }
 
     /**
