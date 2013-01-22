@@ -573,31 +573,22 @@ error_log('end TOGGLE_CHECKOUT_FOR_BOOKING '.$bookingId);
      * Create some test data from the current date.
      */
     function generate_test_data() {
-        $gtd = new GenerateTestData();
+
         $msg = '';
+        if (isset($_SESSION['WP_HOSTELBACKOFFICE'])) {
+            $hbo = $_SESSION['WP_HOSTELBACKOFFICE'];
+            try {
+                $msg = $hbo->reset_sample_data();
 
-        try {
-            $gtd->reloadTestData();
-            $msg = $gtd->getScriptOutput();
-
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            $msg = $e->getMessage();
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                $msg = $e->getMessage();
+            }
         }
 
 error_log("done generate_test_data: $msg"); 
+        echo $msg;
 
-        ?> <script type="text/javascript">
-                var msg = "<?php echo $msg; ?>";
-                document.getElementById('submitting').innerHTML = '<div style=&quot;height:20px;width:100%;text-align:center;margin:15px auto;&quot;>' + msg + '</div>';
-                jQuery("#submitting")
-                    .css( {'font-style' : 'italic'} );
-                
-                if (msg.length == 0) {
-                    document.getElementById('ajax_respond').innerHTML = '<i>Script complete.</i>';
-                }
-           </script>
-        <?php
     }
 }
 

@@ -391,9 +391,7 @@ error_log(var_export($_POST, TRUE));
                         PRIMARY KEY (booking_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
 
         if ( false == $this->does_table_exist('bookingresources') ) { 
@@ -411,9 +409,7 @@ error_log(var_export($_POST, TRUE));
                         FOREIGN KEY (parent_resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
 
         if ( false == $this->does_table_exist('mv_resources_by_path') ) { 
@@ -430,9 +426,7 @@ error_log(var_export($_POST, TRUE));
                         PRIMARY KEY (resource_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
             
         if ( false == $this->does_table_exist('resource_properties') ) { 
@@ -442,9 +436,7 @@ error_log(var_export($_POST, TRUE));
                         PRIMARY KEY (property_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
                 
             $simple_sql = "INSERT INTO ".$wpdb->prefix ."resource_properties (property_id, description)
                             VALUES(%d, %s)";
@@ -467,9 +459,7 @@ error_log(var_export($_POST, TRUE));
                         FOREIGN KEY (property_id) REFERENCES ".$wpdb->prefix ."resource_properties(property_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
             
         if ( false == $this->does_table_exist('bookingcomment') ) { 
@@ -484,9 +474,7 @@ error_log(var_export($_POST, TRUE));
                         FOREIGN KEY (booking_id) REFERENCES ".$wpdb->prefix ."booking(booking_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
             
         if ( false == $this->does_table_exist('allocation') ) {
@@ -507,9 +495,7 @@ error_log(var_export($_POST, TRUE));
                         FOREIGN KEY (resource_id) REFERENCES ".$wpdb->prefix ."bookingresources(resource_id) 
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
 
         if ( false == $this->does_table_exist('bookingdates') ) {
@@ -525,9 +511,7 @@ error_log(var_export($_POST, TRUE));
                         FOREIGN KEY (allocation_id) REFERENCES ".$wpdb->prefix ."allocation(allocation_id)
                     ) $charset_collate;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
             
         if( false == $this->does_routine_exist('walk_tree_path')) {
@@ -556,18 +540,14 @@ error_log(var_export($_POST, TRUE));
                     
                 END;";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
             
         $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_sub1 AS
                 SELECT resource_id, name, parent_resource_id, walk_tree_path(resource_id) AS path, resource_type, room_type
                 FROM ".$wpdb->prefix."bookingresources";
 
-        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-        }
+        self::execute_simple_sql($simple_sql);
 
         $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resources_by_path AS
                 SELECT resource_id, name, parent_resource_id, path, resource_type, room_type,
@@ -578,9 +558,7 @@ error_log(var_export($_POST, TRUE));
                     ORDER BY path";
 // FIXME: remove number_children, rename capacity ==> number_beds
 
-        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-        }
+        self::execute_simple_sql($simple_sql);
 
         $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_booked_capacity (booking_date, resource_id, used_capacity) AS
                 SELECT bd.booking_date, alloc.resource_id, COUNT(*) used_capacity
@@ -588,9 +566,7 @@ error_log(var_export($_POST, TRUE));
                     JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
                     GROUP BY bd.booking_date, alloc.resource_id";
 
-        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-        }
+        self::execute_simple_sql($simple_sql);
 
         $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resource_availability (booking_date, resource_id, resource_name, path, capacity, used_capacity, avail_capacity) AS
                 SELECT bc.booking_date, 
@@ -605,10 +581,15 @@ error_log(var_export($_POST, TRUE));
                     WHERE rp.number_children = 0
                     ORDER BY bc.booking_date, rp.path";
 
-        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-            error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-        }
+        self::execute_simple_sql($simple_sql);
+        self::build_triggers();
+    }
 
+    /**
+     * Create triggers if they don't already exist.
+     */
+    function build_triggers() {
+        global $wpdb;
         if ( false == $this->does_trigger_exist('trg_enforce_availability') ) {
             $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_enforce_availability
                 -- this will raise an error by selecting from a non-existent table
@@ -629,9 +610,7 @@ error_log(var_export($_POST, TRUE));
                     END IF;
                 END";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
 
         if ( false == $this->does_trigger_exist('trg_mv_resources_by_path_ins') ) {
@@ -652,9 +631,7 @@ error_log(var_export($_POST, TRUE));
                            m.capacity = v.capacity;
                 END";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
 
         if ( false == $this->does_trigger_exist('trg_mv_resources_by_path_upd') ) {
@@ -689,9 +666,7 @@ error_log(var_export($_POST, TRUE));
                      */
                 END";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
 
         if ( false == $this->does_trigger_exist('trg_mv_resources_by_path_del') ) {
@@ -711,10 +686,19 @@ error_log(var_export($_POST, TRUE));
                            m.capacity = v.capacity;
                 END";
 
-            if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
-                error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
-            }
+            self::execute_simple_sql($simple_sql);
         }
+    }
+
+    /**
+     * Drop all triggers for this plugin.
+     */
+    function teardown_triggers() {
+        global $wpdb;
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_del");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_upd");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_ins");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_enforce_availability");
     }
 
     /**
@@ -723,10 +707,7 @@ error_log(var_export($_POST, TRUE));
      */
     function teardown_db_schema($delete_data) {
         global $wpdb;
-        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_del");
-        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_upd");
-        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_ins");
-        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_enforce_availability");
+        self::teardown_triggers();
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resource_availability");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_booked_capacity");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_by_path");
@@ -745,18 +726,44 @@ error_log(var_export($_POST, TRUE));
     }
 
     /**
+     * DROPS all db objects including ALL transactional tables and recreates them.
+     * Returns std output log from data load.
+     */
+    function reset_sample_data() {
+        // drop and recreate all db objects
+        self::teardown_db_schema(true);
+        self::build_db_schema();
+
+        // no disable trigger command in mysql; 
+        // for efficiency: drop triggers, load data, recreate triggers
+        self::teardown_triggers();
+        $output = self::load_sample_data();
+        self::build_triggers();
+        return $output;
+    }
+
+    /**
      * Executes a single SQL statement.
      * $simple_sql : sql statement to execute
      * $throw_ex_on_error : bool (when true, if error occurs, a DatabaseException() is thrown)
      */
     function execute_simple_sql($simple_sql, $throw_ex_on_error = false) {
         global $wpdb;
-        if (false === $wpdb->query($wpdb->prepare($simple_sql))) {
+        if (false === $wpdb->query($simple_sql)) {
             error_log($wpdb->last_error." executing sql: ".$wpdb->last_query);
             if ($throw_ex_on_error) {
                 throw new DatabaseException($wpdb->last_error);
             }
         }
+    }
+
+    /**
+     * Loads sample data for this plugin. Assumes an empty database to start.
+     */
+    function load_sample_data() {
+        $gtd = new GenerateTestDataContent();
+        $gtd->reloadTestData();
+        return $gtd->toHtml();
     }
 
     /**

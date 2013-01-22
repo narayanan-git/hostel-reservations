@@ -1,0 +1,1 @@
+mysql -uwordpressuser701 -pB?ZhRq*eEl1_ wordpress701 < %*

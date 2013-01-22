@@ -1,3 +1,8 @@
+SET FOREIGN_KEY_CHECKS = FALSE;
+
+TRUNCATE TABLE wp_mv_resources_by_path;
+TRUNCATE TABLE wp_bookingresources;
+
 INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_type, room_type, created_by, created_date, last_updated_by, last_updated_date) VALUES (104, "12 Bed Dorms", NULL, "group", NULL, "admin", NOW(), "admin", NOW());
 INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_type, room_type, created_by, created_date, last_updated_by, last_updated_date) VALUES (118, "Room 10 Puzzle Room", "104", "room", "M", "admin", NOW(), "admin", NOW());
 INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_type, room_type, created_by, created_date, last_updated_by, last_updated_date) VALUES (119, "Rubiks Cube", "118", "bed", NULL, "admin", NOW(), "admin", NOW());
@@ -85,3 +90,9 @@ INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_
 INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_type, room_type, created_by, created_date, last_updated_by, last_updated_date) VALUES (213, "Dunollie", "205", "bed", NULL, "admin", NOW(), "admin", NOW());
 INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_type, room_type, created_by, created_date, last_updated_by, last_updated_date) VALUES (214, "Stalker", "205", "bed", NULL, "admin", NOW(), "admin", NOW());
 INSERT INTO wp_bookingresources(resource_id, name, parent_resource_id, resource_type, room_type, created_by, created_date, last_updated_by, last_updated_date) VALUES (215, "Dunottar", "205", "bed", NULL, "admin", NOW(), "admin", NOW());
+
+INSERT INTO wp_mv_resources_by_path
+SELECT * FROM wp_v_resources_by_path;
+
+SET FOREIGN_KEY_CHECKS = TRUE;
+

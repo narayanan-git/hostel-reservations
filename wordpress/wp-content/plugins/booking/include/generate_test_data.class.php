@@ -15,19 +15,6 @@ class GenerateTestData extends XslTransform {
     }
 
     /**
-     * DELETES and recreates all test data in the database.
-     */
-    function reloadTestData() {
-        $hpFactory = new HelpPageFactory();
-        $hp_id = $hpFactory->createHelpPages();
-        $this->lastCommand[] = 'Done generating help pages... '.$hp_id;
-    }
-
-    function getScriptOutput() {
-        return implode(',', $this->lastCommand);
-    }
-
-    /**
      * Fetches this page in the following format:
      * <view>
      * </view>
@@ -35,7 +22,9 @@ class GenerateTestData extends XslTransform {
     function toXml() {
         $domtree = new DOMDocument('1.0', 'UTF-8');
         $xmlRoot = $domtree->appendChild($domtree->createElement('view'));
-        $xmlRoot->appendChild($domtree->createElement('lastCommand', $this->getScriptOutput()));
+        foreach ($this->lastCommand as $lc) {
+            $xmlRoot->appendChild($domtree->createElement('lastCommand', $lc));
+        }
         return $domtree->saveXML();
     }
 

@@ -186,6 +186,9 @@ A c t u a l   T O D O   List:
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/generate_test_data.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/generate_test_data.class.php' ); }
 
+    if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/generate_test_data_content.class.php')) 
+        { require_once(WPDEV_BK_PLUGIN_DIR. '/include/generate_test_data_content.class.php' ); }
+
     if (file_exists(WPDEV_BK_PLUGIN_DIR. '/include/help_page.class.php')) 
         { require_once(WPDEV_BK_PLUGIN_DIR. '/include/help_page.class.php' ); }
 

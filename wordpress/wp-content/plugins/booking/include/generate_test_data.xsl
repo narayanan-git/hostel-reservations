@@ -7,12 +7,13 @@
 //*****************************************************************************
 -->
 <xsl:template match="view">
-    <h3>Test Data</h3>
-    Test data goes here...
+    <h3>Reset Sample Test Data</h3>
+    This will *DELETE* all current data and recreate sample test data...
     <form class="booking_form" method="post" action="">
         <div style="float:left; text-align:left; width:450px;">
-            <div id="submitting"><xsl:comment/></div>
-            <p><div id="ajax_respond"><xsl:comment/><!-- ajax response here--></div></p>
+            <div id="ajax_respond">
+                <div id="submitting"><xsl:comment/></div>
+            </div>
             <div style="float:left; text-align:left; width:450px;">
                 <p><input type="button" value="Generate" onclick="generate_test_data(this.form);" /></p>
             </div>
