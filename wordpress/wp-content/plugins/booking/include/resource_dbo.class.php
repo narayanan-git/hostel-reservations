@@ -32,7 +32,7 @@ class ResourceDBO {
                     ". ($resourceId == null ? "" : "
                             WHERE (r.path LIKE '%%/$resourceId'
                                 OR r.path LIKE '%%/$resourceId/%%')") . "
-              ORDER BY r.path"));
+              ORDER BY r.path", null));
         
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);
