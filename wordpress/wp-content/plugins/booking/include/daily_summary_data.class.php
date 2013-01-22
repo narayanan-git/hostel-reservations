@@ -168,9 +168,7 @@ class DailySummaryData extends XslTransform {
         $xmlRoot = $domtree->appendChild($domtree->createElement('view'));
         $this->addSelfToDocument($domtree, $xmlRoot);
         $this->allocationView->addSelfToDocument($domtree, $xmlRoot);
-        $return_val = $domtree->saveXML();
-error_log($return_val);
-        return $return_val;
+        return $domtree->saveXML();
     }
     
     /**
