@@ -75,7 +75,65 @@
         }
 
         window.onload=initOnPageLoad;  // initialise form values
+
+        // script to run when Add Allocations button is pressed...
+        jQuery(document).ready(function() { 
+ 
+            //select all the a tag with name equal to modal
+            jQuery('input[id=modal]').click(function(e) {
+                //Cancel the link behavior
+                e.preventDefault();
+                //Get the tag identifier
+                var id = jQuery(this).attr('name');
+
+                // check first that first name is specified
+                if(jQuery('input[name=firstname]').val() === '') {
+                    showErrorMessage( jQuery('input[name=firstname]')[0], 'This field is required' );
+                    return;
+                }
+     
+                //Get the screen height and width
+                var maskHeight = jQuery(document).height();
+                var maskWidth = jQuery(window).width();
+
+                //Set height and width to mask to fill up the whole screen
+                jQuery('#mask').css({'width':maskWidth,'height':maskHeight});
+         
+                //transition effect    
+                jQuery('#mask').fadeIn(1000);   
+                jQuery('#mask').fadeTo("slow",0.8); 
+     
+                //Get the window height and width
+                var winH = jQuery(window).height();
+                var winW = jQuery(window).width();
+               
+                //Set the popup window to center
+                jQuery(id).css('top',  winH/2-jQuery(id).height()/2);
+                jQuery(id).css('left', winW/2-jQuery(id).width()/2);
+     
+                //transition effect
+                jQuery(id).fadeIn(2000);
+     
+            });
+     
+            //if close button is clicked
+            jQuery('.window .close').click(function (e) {
+                //Cancel the link behavior
+                e.preventDefault();
+                jQuery('#mask, .window').hide();
+            });    
+     
+            //if mask is clicked
+            jQuery('#mask').click(function () {
+                jQuery(this).hide();
+                jQuery('.window').hide();
+            });        
+     
+        });
     </script>
+
+    <!-- div#mask used to blank out screen from this point when bringing up modal window --> 
+    <div id="mask"><xsl:comment/></div>
 
     <div id="wpdev-booking-reservation-general" class="wrap bookingpage" style="margin-left:100px; margin-right:100px;">
         <div class="icon32" style="margin:10px 25px 10px 10px;"><img src="{homeurl}/wp-content/plugins/booking/img/add-1-48x48.png"/><br /></div>
@@ -96,7 +154,6 @@
                     <p>Last Name:<br />  <input type="text" name="lastname" value="{lastname}" size="40"/></p>
                     <p><span class="edit_booking_header">Booked by: </span>
                         <select id="referrer" name="referrer">
-                            <option value="">--</option>
                             <option value="hostelworld">
                                 <xsl:if test="referrer = 'hostelworld'"><xsl:attribute name="selected">selected</xsl:attribute></xsl:if>
                                 HostelWorld
@@ -137,68 +194,84 @@
                 <div class="clear" style="margin:20px;"><xsl:comment/></div>
                 <div style="clear:both;height:10px;"><xsl:comment/></div>
                 <hr/>
-                <div style="text-align:left;">
 
-                    <div class="metabox-holder">
-                        <h3>Allocations</h3>
-                        <div style="float:left; width:450px;">
-                            <p>Add <input type="text" name="num_guests_m" value="" size="3" /> Male Guest(s)<br/>
-                               Add <input type="text" name="num_guests_f" value="" size="3" /> Female Guest(s)<br/>
-                               Add <input type="text" name="num_guests_x" value="" size="3" /> Unspecified Guest(s)<br/>
-                               <input type="hidden" name="num_guests"/> <xsl:comment>placeholder for error message</xsl:comment>
-                            </p>
-                            <p>Room/Bed:<br />  
-                                <span class="wpdev-form-control-wrap"> 
-                                    <select id="booking_resource" name="booking_resource" onchange="resource_changed(this);">
-                                        <option value="0" resource_type="group">Any Free Bed...</option>
-                                        <xsl:apply-templates select="allocations/resources/resource" mode="resource_selection"/>
-                                    </select>
-                                </span>
-                            </p>
-                            <p>Requested Room Type:<br />  
-                                <span class="wpdev-form-control-wrap"> 
-                                    <select id="req_room_size" name="req_room_size" onchange="roomSizeChanged()">
-                                        <option value="4">4 Bed</option>
-                                        <option value="6">6 Bed</option>
-                                        <option value="8">8 Bed</option>
-                                        <option value="10">10 Bed</option>
-                                        <option value="10+">10+ Bed</option>
-                                        <option value="12">12 Bed</option>
-                                        <option value="14">14 Bed</option>
-                                        <option value="16">16 Bed</option>
-                                        <option value="P">Private</option>
-                                    </select>
-                                    <select id="req_room_type" name="req_room_type">
-                                        <option value="X">Mixed</option>
-                                        <option value="M">Male</option>
-                                        <option value="F">Female</option>
-                                    </select>
-                                </span>
-                            </p>
-                            <div id="resource_property_selection">
-                                <p>Assign To:<br />  
-                                    <div style="margin-left:30px;">
-                                        <xsl:apply-templates select="properties/property"/>
-                                    </div>
-                                </p>
+                <!-- ################ BEGIN MODAL DIALOG ############################# -->
+                <div id="boxes">
+                    <div id="dialog" class="window">
+                        <div class="metabox-holder" style="text-align:left;">
+
+                            <div style="float:right; text-align:right; vertical-align:top;">
+                                <!-- close button is defined as close class -->
+                                <a href="#" class="close">Close</a>
                             </div>
-                            <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form);" /></p>
-                        </div>
+
+                            <h3>Allocations</h3>
+
+                            <div style="float:left; width:450px;">
+                                <p>Add <input type="text" name="num_guests_m" value="" size="3" /> Male Guest(s)<br/>
+                                    Add <input type="text" name="num_guests_f" value="" size="3" /> Female Guest(s)<br/>
+                                    Add <input type="text" name="num_guests_x" value="" size="3" /> Unspecified Guest(s)<br/>
+                                    <input type="hidden" name="num_guests"/> <xsl:comment>placeholder for error message</xsl:comment>
+                                </p>
+                                <p>Room/Bed:<br />  
+                                    <span class="wpdev-form-control-wrap"> 
+                                        <select id="booking_resource" name="booking_resource" onchange="resource_changed(this);">
+                                            <option value="0" resource_type="group">Any Free Bed...</option>
+                                            <xsl:apply-templates select="allocations/resources/resource" mode="resource_selection"/>
+                                        </select>
+                                    </span>
+                                </p>
+                                <p>Requested Room Type:<br />  
+                                    <span class="wpdev-form-control-wrap"> 
+                                        <select id="req_room_size" name="req_room_size" onchange="roomSizeChanged()">
+                                            <option value="4">4 Bed</option>
+                                            <option value="6">6 Bed</option>
+                                            <option value="8">8 Bed</option>
+                                            <option value="10">10 Bed</option>
+                                            <option value="10+">10+ Bed</option>
+                                            <option value="12">12 Bed</option>
+                                            <option value="14">14 Bed</option>
+                                            <option value="16">16 Bed</option>
+                                            <option value="P">Private</option>
+                                        </select>
+                                        <select id="req_room_type" name="req_room_type">
+                                            <option value="X">Mixed</option>
+                                            <option value="M">Male</option>
+                                            <option value="F">Female</option>
+                                        </select>
+                                    </span>
+                                </p>
+                                <div id="resource_property_selection">
+                                    <p>Assign To:<br />  
+                                        <div style="margin-left:30px;">
+                                            <xsl:apply-templates select="properties/property"/>
+                                        </div>
+                                    </p>
+                                </div>
+                                <div id="allocation_modal_anchor"><xsl:comment/><!-- error response here --></div>
+                                <p><input type="button" value="ADD" onclick="add_booking_allocation(this.form);" /></p>
+                            </div>
                     
-                        <div style="float:left;">
-                            <div id="calendar_booking1">&#160;</div>
-                            <textarea rows="3" cols="50" id="calendar_booking1" name="calendar_booking1" style="display:none;"><xsl:comment/></textarea>
+                            <div style="float:left;">
+                                <div id="calendar_booking1">&#160;</div>
+                                <textarea rows="3" cols="50" id="calendar_booking1" name="calendar_booking1" style="display:none;"><xsl:comment/></textarea>
+                                <div id="calendar_anchor"><xsl:comment/><!-- error response here --></div>
+                            </div>
                         </div>
                     </div>
-                
-                    <div class="clear" style="margin:20px;"><xsl:comment/></div>
-                    <div style="clear:both;height:10px;"><xsl:comment/></div>
+                </div>
+                <!-- ################ END MODAL DIALOG ############################# -->
 
+                <div style="text-align:left;">
                     <!-- dorm allocations get inserted here via ajax-->
-                    <p><div id="booking_allocations"><xsl:apply-templates select="allocations" /><xsl:comment/></div></p>
-                    <p><div id="ajax_respond"><xsl:comment/><!-- ajax response here--></div></p>
+                    <div id="booking_allocations"><xsl:apply-templates select="allocations" /><xsl:comment/></div>
+                    <div class="clear" style="clear:both;height:10px;"><xsl:comment/></div>
+                    <div id="ajax_respond"><xsl:comment/><!-- ajax response here--></div>
                 
-                    <p><input type="button" value="Save" onclick="save_booking(this.form);" /></p>
+                    <p> <!-- #dialog is the identifier of the DIV defined in the code above -->
+                        <input id="modal" type="button" value="Add Allocations..." name="#dialog" onclick="javascript:;" />
+                        <input style="margin-left:20px;" type="button" value="Save" onclick="save_booking(this.form);" />
+                    </p>
                 </div>
             
             </form>

@@ -37,20 +37,18 @@ function showErrorMessage( element , errorMessage) {
 // submit_form : form being submitted
 function add_booking_allocation(submit_form) {
 
-    if(submit_form.firstname.value === '') {
-        showErrorMessage( submit_form.firstname, 'This field is required' );
-        return;
-    }
-    else if(submit_form.num_guests_m.value === '' && submit_form.num_guests_f.value === '' && submit_form.num_guests_x.value === '') {
+    if(submit_form.num_guests_m.value === '' && submit_form.num_guests_f.value === '' && submit_form.num_guests_x.value === '') {
         showErrorMessage( submit_form.num_guests, 'At least one guest must be specified' );
         return;
     }
     else if(typeof document.getElementById('calendar_booking1').value === "undefined" || 
             document.getElementById('calendar_booking1').value === '') {
-        jQuery('#ajax_respond').html("Select a date or date-range for the booking.")
+    	
+        jQuery('#calendar_anchor').html("Select a date or date-range for the booking.")
             .css( {'color' : 'red'} )
+            .fadeIn( 1500 )
             .animate( {opacity: 1}, 10000 )
-            .fadeOut( 2000 );   // hide message
+            .fadeOut( 5000 );   // hide message
         return;
     }
 
@@ -75,7 +73,7 @@ function add_booking_allocation(submit_form) {
     jQuery.ajax({                                           // Start Ajax Sending
         url: wpdev_bk_plugin_url+ '/' + wpdev_bk_plugin_filename,
         type:'POST',
-        success: function (data, textStatus){if( textStatus == 'success')   jQuery('#ajax_respond').html( data ) ;},
+        success: function (data, textStatus){if( textStatus == 'success') { jQuery('#ajax_respond').html( data ); if(data.indexOf('error') < 0) jQuery('#mask, .window').fadeOut(2000);}},
         error:function (XMLHttpRequest, textStatus, errorThrown){window.status = 'Ajax sending Error status:'+ textStatus;alert(XMLHttpRequest.status + ' ' + XMLHttpRequest.statusText);if (XMLHttpRequest.status == 500) {alert('Oops sorry.. we messed up somewhere...');}},
         data:{
             ajax_action : 'ADD_ALLOCATION',

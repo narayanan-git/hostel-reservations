@@ -309,9 +309,13 @@ error_log("save_resource $resourceId $resourceName");
             } catch (AllocationException $ae) {
                 ?> 
                 <script type="text/javascript">
-                    document.getElementById('ajax_respond').innerHTML = <?php echo json_encode($ae->getMessage()); ?>;
-                    jQuery("#ajax_respond")
-                        .css( {'color' : 'red'} );
+                    // error *used as marker to identify when to close dialog*
+                    document.getElementById('allocation_modal_anchor').innerHTML = <?php echo json_encode($ae->getMessage()); ?>;
+                    jQuery("#allocation_modal_anchor")
+                        .css( {'color' : 'red'} )
+                        .fadeIn( 1000)
+                        .animate( {opacity: 1}, 10000 )
+                        .fadeOut( 2000 );
                 </script>
                 <?php
                 return;
