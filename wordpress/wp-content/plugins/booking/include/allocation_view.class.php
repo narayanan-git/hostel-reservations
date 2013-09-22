@@ -169,11 +169,19 @@ class AllocationView extends XslTransform {
                     <id>4</id>
                     <name>Room 10</name>
                     <type>room</type>
+                    <!-- if room type property specified, this has precedence over dervied room types per day below -->
+                    <roomtype/> <!-- overriding room type property if specified against room; could be M/F/X or blank -->
+                    <roomtypes> <!-- derived room types from bookings; one per day -->
+                        <roomtype>M</roomtype>
+                        <roomtype>M</roomtype>
+                        <roomtype/>
+                        <roomtype>X</roomtype>
+                    </roomtypes>
                     <resource>
                         <id>5</id>
                         <name>Bed A</name>
                         <type>bed</type>
-                        <cells> <!-- cells comprises one row on the allocation table -->
+                        <cells> <!-- each allocation cell comprises one row and one column on the allocation table -->
                             <allocationcell/>
                             <allocationcell>
                                 <id>1</id>

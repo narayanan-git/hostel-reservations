@@ -31,6 +31,7 @@ class AllocationRow {
      * $resourceMap : array() of resource id -> resource recordset (if not specified, query db for all resources)
      */
     function AllocationRow($name, $gender, $resourceId, $reqRoomSize, $reqRoomType, $resourceMap = null) {
+        $this->rowid = null;
         $this->id = 0;
         $this->name = $name;
         $this->gender = $gender;

@@ -110,6 +110,10 @@ class AjaxController {
                 $this->generate_test_data();
                 break;
 
+            case  'RUN_UNIT_TESTS':
+                $this->run_unit_tests();
+                break;
+
             default:
                 error_log("ERROR: Undefined AJAX action  $action");
 
@@ -591,6 +595,28 @@ error_log('end TOGGLE_CHECKOUT_FOR_BOOKING '.$bookingId);
         }
 
 error_log("done generate_test_data: $msg"); 
+        echo $msg;
+
+    }
+
+    /**
+     * Executes all unit tests.
+     */
+    function run_unit_tests() {
+
+        $msg = '';
+        if (isset($_SESSION['WP_HOSTELBACKOFFICE'])) {
+            $hbo = $_SESSION['WP_HOSTELBACKOFFICE'];
+            try {
+                $msg = $hbo->run_unit_tests();
+
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                $msg = $e->getMessage();
+            }
+        }
+
+error_log("done unit tests: $msg"); 
         echo $msg;
 
     }

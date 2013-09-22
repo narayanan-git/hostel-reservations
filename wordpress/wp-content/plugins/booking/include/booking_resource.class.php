@@ -11,24 +11,28 @@ class BookingResource extends XslTransform {
     var $path;
     var $numberChildren;
     var $type;       // resource type, e.g. group, room, bed
+    var $roomType;   // applicable only if resource_type = 'room'; one of M/F/null
     var $freebeds;   // array() of free beds (if type is 'group' or 'room') in same order as allocationCells
     var $unpaid = false;  // mark this resource as unpaid (this property is date specific)
     private $childResources;  // array of BookingResource (where this is a parent resource, ie numberChildren > 0)
-    private $allocationCells;  // (optional) array of AllocationCell assigned to this resource (where this is a child node, ie. numberChildren = 0)
+    private $allocationCells;  // (optional) array of AllocationCell indexed by date [d.m.Y] assigned to this resource (where this is a child node, ie. numberChildren = 0)
+    private $derivedRoomTypes; // (optional) array of char indexed by date [d.m.Y] (only applicable where resource_type = 'room')
     
     /**
      * Default constructor.
      */
-    function BookingResource( $resourceId, $name, $level, $path, $numberChildren, $type ) {
+    function BookingResource( $resourceId, $name, $level, $path, $numberChildren, $type, $roomType = null ) {
         $this->resourceId = $resourceId;
         $this->name = $name;
         $this->level = $level;
         $this->path = $path;
         $this->numberChildren = $numberChildren;
         $this->type = $type;
+        $this->roomType = $roomType;
         $this->freebeds = array();
         $this->childResources = array();
         $this->allocationCells = array();
+        $this->derivedRoomTypes = array();
     }
     
     /**
@@ -43,10 +47,20 @@ class BookingResource extends XslTransform {
      * Sets the allocation cells assigned for this resource.
      * This is transaction specific; for any particular set of dates
      * the allocation cells may vary.
-     * $allocationCells : array of AllocationCell
+     * $allocationCells : array of AllocationCell (indexed by date [d.m.Y])
      */
     function setAllocationCells($allocationCells) {
         $this->allocationCells = $allocationCells;
+    }
+
+    /**
+     * Sets the derived room types based on current allocations
+     * if the resource type for this booking resource = 'room'.
+     * Derived room types can be 'M', 'F', or 'X'
+     * $roomTypes : array of char (indexed by date [d.m.Y])
+     */
+    function setDerivedRoomTypes($roomTypes) {
+        $this->derivedRoomTypes = $roomTypes;
     }
     
     /**
@@ -140,14 +154,67 @@ class BookingResource extends XslTransform {
         }
         
         $parentElement->appendChild($domtree->createElement('type', $this->type));
+        $parentElement->appendChild($domtree->createElement('roomtype', $this->roomType));
     
         foreach ($this->childResources as $res) {
             $res->addSelfToDocument($domtree, $parentElement);
         }
 
         $cells = $parentElement->appendChild($domtree->createElement('cells'));
+        // assumes allocation cells are ordered by date
         foreach ($this->allocationCells as $alloc) {
             $alloc->addSelfToDocument($domtree, $cells);
+        }
+
+        self::addDerivedRoomTypesToDocument($domtree, $parentElement);
+    }
+
+    /**
+     * Adds $this->derivedRoomTypes variable to the document rooted at $parentElement.
+     * $domtree : DOM document root
+     * $parentElement : DOM element where this item will be added
+     */
+    function addDerivedRoomTypesToDocument($domtree, $parentElement) {
+        if ($this->type == 'room') {
+            $roomTypesElem = $parentElement->appendChild($domtree->createElement('derivedroomtypes'));
+            $lastRoomType = null;
+            $span = 0;
+            foreach ($this->derivedRoomTypes as $dt => $roomType) {
+
+                // this cell is the same as the last
+                if ($lastRoomType == $this->derivedRoomTypes[$dt]) {
+                    $span++;
+
+                // cell is different from the last, when not the first cell
+                } else if ($span > 0) {
+                    // different from last, append last element
+                    $roomTypeElem = $roomTypesElem->appendChild($lastRoomType == null ? 
+                                $domtree->createElement('roomtype') : 
+                                $domtree->createElement('roomtype', $lastRoomType));
+                    if ($span > 1) {
+                        $spanAttr = $domtree->createAttribute('span');
+                        $spanAttr->value = $span;
+                        $roomTypeElem->appendChild($spanAttr);
+                    }
+                    $lastRoomType = $roomType;
+                    $span = 1;
+
+                // cell is first and not null
+                } else if ($span == 0) {
+                    $lastRoomType = $roomType;
+                    $span = 1;
+                }
+            }
+
+            // last element, add to document
+            $roomTypeElem = $roomTypesElem->appendChild($lastRoomType == null ? 
+                        $domtree->createElement('roomtype') : 
+                        $domtree->createElement('roomtype', $lastRoomType));
+            if ($span > 1) {
+                $spanAttr = $domtree->createAttribute('span');
+                $spanAttr->value = $span;
+                $roomTypeElem->appendChild($spanAttr);
+            }
         }
     }
     
@@ -160,6 +227,13 @@ class BookingResource extends XslTransform {
      *         <path>/1</path>
      *         <level>1</level>
      *         <numberChildren>2</numberChildren>
+     *         <!-- if room type property specified, this has precedence over dervied room types per day below -->
+     *         <roomtype/> <!-- overriding room type property if specified against room; could be M/F/X or blank -->
+     *         <derivedroomtypes> <!-- derived room types from bookings; one per day if allocationcells defined for children -->
+     *             <roomtype span="2">M</roomtype>
+     *             <roomtype span="3"/>
+     *             <roomtype>X</roomtype>
+     *         </derivedroomtypes>
      *         <freebeds>
      *             <freebed>3</freebed>
      *             ...
@@ -171,7 +245,7 @@ class BookingResource extends XslTransform {
      * For a child resource:
      *     <resource>
      *         <id>2</id>
-     *         <name>8-Bed Dorm</name>
+     *         <name>Bed A</name>
      *         <path>/1/2</path>
      *         <level>2</level>
      *         <numberChildren>0</numberChildren>

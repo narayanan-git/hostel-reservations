@@ -22,7 +22,15 @@ class GenerateTestDataContent extends GenerateTestData {
         $this->lastCommand[] = exec("sql".DIRECTORY_SEPARATOR."$loadsql sql".DIRECTORY_SEPARATOR."wp_allocation.sql");
         $this->lastCommand[] = exec("sql".DIRECTORY_SEPARATOR."$loadsql sql".DIRECTORY_SEPARATOR."wp_bookingdates.sql");
         $this->lastCommand[] = exec("sql".DIRECTORY_SEPARATOR."$loadsql sql".DIRECTORY_SEPARATOR."wp_bookingcomment.sql");
+        $this->lastCommand[] = exec("sql".DIRECTORY_SEPARATOR."$loadsql sql".DIRECTORY_SEPARATOR."wp_resource_properties_map.sql");
         $this->lastCommand[] = 'Done generating sample data... ';
+    }
+
+    /**
+     * Runs all unit tests. $this->lastCommand contains all pass/failure messages.
+     */
+    function runUnitTests() {
+        $this->lastCommand[] = self::testNewEmptyDateArray();
     }
 
     /**

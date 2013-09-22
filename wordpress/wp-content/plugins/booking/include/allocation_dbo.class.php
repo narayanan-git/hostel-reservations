@@ -10,46 +10,133 @@ class AllocationDBO {
      * Returns a map of available resources (beds) by resourceId which
      * have availability for *ALL* those dates. 
      * $resourceId  : id of resource id to get availability (null for all)
+     * $numGuests : number of guests (attempt to fit this many persons into the same room if possible)
+     * $reqRoomTypes : array of requested room type (M/F/X/MX/FX)
      * $bookingDates : array() of booking dates in format d.m.Y
+     * $excludedResourceIds : array() of resource ids; do not include these resource ids in the response
      * $resourceProps : array of resource property ids (allocate only to resources with these properties)
      *                  if null, properties will not be filtered
-     * Returns map of key => $resourceId, value => $capacity
+     * Returns array() of (leaf-level) resource ids available to assign
      */
-    static function fetchAvailability($resourceId, $bookingDates, $resourceProps) {
+//    static function fetchAvailableBeds($resourceId, $numGuests, $reqRoomTypes, $bookingDates, $excludedResourceIds, $resourceProps) {
+    static function fetchAvailableBeds($resourceId, $numGuests, $reqRoomType, $bookingDates, $excludedResourceIds, $resourceProps) {
         global $wpdb;
-error_log("fetch availability resource id : $resourceId booking dates : " . sizeof($bookingDates) . " props " . implode(',', $resourceProps));
+
+        // 2 queries? first get beds matching dates/props
+        // query distinct _derived_room_types using parent ids and dates
+        //     any with more than contain MX or FX are removed and appended to the end of list
+        // need to keep track of resource_id (parent) => array() of resource_id (leaf),
+        // resource_id (parent) => array() of room type
+        // any with parent having equal or more than requested available will be sorted ahead
+/*
+        Returned AllocationAvailability object
+            - private availability_recordset: parent_resource_id, resource_id, resource_type, room_type
+            - parent_resource_id => max(derived_room_type)  MX, M or FX, F or X
+            - Constructor($resourceId, $reqRoomType, $bookingDates, $resourceProps);
+            - doAssignAllocations($resourceId, $allocationRows, $existingAllocationRows, )
+*/
+        // too complicated?
+        // only have M/F/X rooms. Can only assign to M/F/X rooms.
+        // can manually assign (req M) to MX room (assuming all other guests are also M) => forces M room
+        // can manually assign (req X) to M room (assuming all other guests are also M)
+
+        /*
+          AllocationAvailabiity {
+              $resourceId : (non-bed level resource we want to allocate for)
+              $numF : number of female guests
+              $numM : number of male guests
+              $numX : number of guests of unspecified gender
+              $reqRoomType : requested room type; obviously if $numM > 0 and $numF > 0, 
+                             then $reqRoomType can't be anything but X (mixed)
+              $bookingDates : booking dates across all guests
+              $resourceProps : resource properties to match
+              &$existingAllocationRows : current uncommitted allocations
+              &$newAllocationRows : the allocations we are currently trying to assign beds for
+
+              // allocate all in $newAllocationRows where resourceId is not a bed
+              // IMPL: query all (bed-level) resources available with no allocations for any of the dates given
+              //       ordered by resource_id
+              //       loop thru $existingAllocationRows removing those resources already present AND 
+              //          where there is *any* overlap in dates
+              //       of those that remain; find first available where they belong to the same room 
+              //          and #available in room <= sum($numF, $numM, $numX)
+              //       this will be sorted first
+              //       now we go through newAllocationRows and assign resourceIds in turn
+              function doAllocate();
+          }
+        */
+
+        // It is possible that when looking for gender-specific rooms, that one is available
+        // but is currently filled with guests requesting mixed
+        // e.g. if a male guest requests a male-only room and no male-only rooms are available
+        //      then they can be put into a mixed room as long as all guests in that room are male.
+        // 
+        // if $reqRoomType = 'M' search for 'M' and 'MX' with 'MX' sorted to the end
+        // if $reqRoomType = 'F' search for 'F' and 'FX' with 'FX' sorted to the end
+        if ($reqRoomType == 'M') {
+            $reqRoomTypes = array('M', 'MX');
+        } else if ($reqRoomType == 'F') {
+            $reqRoomTypes = array('F', 'FX');
+        } else {
+            $reqRoomTypes = array($reqRoomType);
+        }
+
         foreach ($bookingDates as $bd) {
-            $bookingDatesString .= "STR_TO_DATE('$bd', '%%d.%%m.%%Y'),";
+            $bookingDatesString .= "STR_TO_DATE('$bd', '%d.%m.%Y'),";
         }
         $bookingDatesString = rtrim($bookingDatesString, ',');
 
         // this will bring back all beds that have no allocations for any of the dates given
-        $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT p.resource_id, p.capacity as avail_capacity, p2.resource_type AS parent_resource_type 
-               FROM ".$wpdb->prefix."mv_resources_by_path p 
+        $BASE_QUERY =
+            "  FROM ".$wpdb->prefix."mv_resources_by_path p 
                LEFT OUTER JOIN ".$wpdb->prefix."mv_resources_by_path p2 ON p.parent_resource_id = p2.resource_id
               WHERE p.resource_type = 'bed' 
                 " . ($resourceId == null ? "" : "AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')") . "
+                " . (empty($excludedResourceIds) ? "" : "AND p.resource_id NOT IN (".implode("','", $excludedResourceIds).")") . "
                 AND NOT EXISTS(
                         SELECT 1 FROM ".$wpdb->prefix."bookingdates dt 
                           JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
                          WHERE dt.booking_date IN ($bookingDatesString)
                            AND a.resource_id = p.resource_id)
                 -- if we are looking at a private room, only include beds where ALL beds are available for the given date(s)
-                AND (p2.resource_type <> 'private'    -- shared dorm
-                     OR (p2.resource_type = 'private' -- or private room
+                AND ((p2.resource_type <> 'private'    -- shared dorm
+                      AND -- room type must match based on the type of room or the people inside it
+                          -- double negation (NOT EXISTS... NOT IN...) so we catch case where no entry exists in v_derived_room_types
+                            (p2.room_type IS NULL OR p2.room_type = '".$reqRoomType."' OR NOT EXISTS(
+                                SELECT 1 FROM ".$wpdb->prefix."v_derived_room_types rt 
+                                 WHERE p2.resource_id = rt.parent_resource_id
+                                   AND rt.derived_room_type NOT IN ('" . implode("','", $reqRoomTypes) . "')
+                                   AND rt.booking_date IN ($bookingDatesString)
+                            ))
+                    ) 
+                    OR (p2.resource_type = 'private' -- or private room
                             AND NOT EXISTS(
                                 SELECT 1 FROM ".$wpdb->prefix."v_resource_availability ra
                                   JOIN wp_bookingresources r2 on r2.resource_id = ra.resource_id
                                  WHERE r2.parent_resource_id = p.parent_resource_id -- resources share the same parent
                                    AND ra.booking_date IN ($bookingDatesString)
-                                   AND ra.used_capacity > 0
-                         )))
+                                   AND ra.used_capacity > 0)
+                    ))
                 " . ($resourceProps == null ? "" : "
                 AND EXISTS( -- only match those resources with the properties specified
                         SELECT 1 FROM ".$wpdb->prefix."resource_properties_map m
                          WHERE m.resource_id = p.parent_resource_id  -- match against room only
-                           AND m.property_id IN (".implode(',', $resourceProps)."))")));
+                           AND m.property_id IN (".implode(',', $resourceProps)."))" );
+
+        $sql = // need to have subquery in twice as mysql doesn't support the WITH keyword
+            "SELECT t.parent_resource_id, t.resource_id, t.room_type, s.the_count
+               FROM (SELECT p.parent_resource_id, p.resource_id, p2.room_type " . $BASE_QUERY . ") t
+               JOIN (SELECT p.parent_resource_id, count(*) AS the_count " . $BASE_QUERY . "
+                      GROUP BY p.parent_resource_id) s
+                 ON s.parent_resource_id = t.parent_resource_id
+              ORDER BY 
+                -- if roomType matches reqRoomType, these are sorted first (followed by rooms using derived room types)
+                (CASE WHEN t.room_type IS NULL OR t.room_type = '".$reqRoomType."' THEN 0 ELSE 1 END),
+                -- if we can fit numGuests into the same room, then this room has precedence
+                (CASE WHEN s.the_count >= $numGuests THEN t.parent_resource_id ELSE (SELECT MAX(resource_id) FROM ".$wpdb->prefix."bookingresources) + t.parent_resource_id END),
+                t.resource_id";
+
+        $resultset = $wpdb->get_results($sql);
 
 error_log("fetch availability " . $wpdb->last_query);
 
@@ -58,11 +145,57 @@ error_log("fetch availability " . $wpdb->last_query);
             throw new DatabaseException($wpdb->last_error);
         }
 
-        $result = array();
+        $return_val = array();
         foreach ($resultset as $res) {
-            $result[$res->resource_id] = $res->avail_capacity;
+            $return_val[] = $res->resource_id;
         }
-        return $result;
+error_log("fetchAvailableBeds: ".implode(",", $return_val));
+        return $return_val;
+    }
+
+    /**
+     * Gets the derived room types based on 
+     * 1) room property 
+     * 2) guests currently allocated in room if room property not specified
+     * $resourceId : id of parent room
+     * $bookingDates : array() of booking dates (DateTime)
+     * Returns array(): parent_resource_id => derived_room_type (M/F/X/MX/FX/E)
+     */
+    static function fetchRoomTypes($resourceId, $bookingDates) {
+        global $wpdb;
+
+        foreach ($bookingDates as $bd) {
+            $bookingDatesString .= "STR_TO_DATE('$bd', '%%d.%%m.%%Y'),";
+        }
+        $bookingDatesString = rtrim($bookingDatesString, ',');
+
+        $resultset = $wpdb->get_results(
+               "SELECT DISTINCT t.parent_resource_id, t.room_type, t.derived_room_type
+                  FROM ".$wpdb->prefix."v_derived_room_types t 
+                 WHERE t.booking_date IN ($bookingDatesString) 
+                 ORDER BY t.parent_resource_id, t.derived_room_type");
+
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        // create an array indexed by resource_id => derived room type (null/F/M/MX/FX/X/E)
+        $return_val = array();
+
+        // iterate through resultset, updating the array to the derived room type as we go along
+        // where there is more than one derived room type for the dates given, 
+        // MX (male/mixed) will have precedence over M (male only), 
+        // FX (female/mixed) will have precedence over F (female only)
+        // this is so when doing the actual allocations, we fill the rooms marked as 'M' or 'F' first
+        // then followed by those rooms marked as male/mixed or female/mixed
+        foreach ($resultset as $res) {
+
+            // because it is also ordered by derived_room_type, MX will get sorted after M
+            // so the final value will be MX (where both MX and M exist). Likewise for FX and F.
+            $return_val[$res->parent_resource_id] = 
+                $res->room_type == null ? $res->derived_room_type : $res->room_type;
+        }
+        return $return_val;
     }
     
     /**
@@ -72,7 +205,7 @@ error_log("fetch availability " . $wpdb->last_query);
      * $numGuests : number of guests to fit 
      * Returns : array() of resource ids with the same parent from $resourceIds
      *           or empty array if no parent can fit $numGuests
-     */
+     *
     static function fetchResourcesUnderOneParentResource($resourceIds, $numGuests) {
 
         // no resources, nothing to assign
@@ -609,8 +742,11 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             }
         }
 
-        // now get all the resources an bind the allocations above to them
-        $bookingResources = self::getBookingResourcesById($resourceMap, $resourceBookingDateMap);
+        // yet another 2D map, to store the derived room types when resource_type = 'room'
+        $derivedRoomTypes = self::getDerivedRoomTypesForDates($startDate, $endDate);
+
+        // now get all the resources and bind the allocations above to them
+        $bookingResources = self::getBookingResourcesById($resourceMap, $resourceBookingDateMap, $derivedRoomTypes);
         return $bookingResources;
     }
     
@@ -619,15 +755,19 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
      * The result will be a nested tree based on their path.
      * $resourceMap : array() of resource recordset indexed by resource id
      * $allocationCellMap : 2D map of resource id, date [d.m.Y] => array() of AllocationCell to populate for any matched resource
+     * $derivedRoomTypes : array() of resource_id, date [d.m.Y] => derived room type (M/F/MX/FX/X/E) to initialise BookingResource with
      * Returns array of BookingResource
      */
-    private static function getBookingResourcesById($resourceMap, $allocationCellMap) {
+    private static function getBookingResourcesById($resourceMap, $allocationCellMap, $derivedRoomTypes) {
         
         // resources are path-ordered
         $return_val = array();
         $return_val_map = array();  // map of all resource id => BookingResource in return_val
         foreach ($resourceMap as $res) {
-            $br = new BookingResource($res->resource_id, $res->name, $res->level, $res->path, $res->number_children, $res->resource_type);
+            $br = new BookingResource($res->resource_id, $res->name, $res->level, $res->path, $res->number_children, $res->resource_type, $res->room_type);
+            if(isset($derivedRoomTypes[$res->resource_id])) {
+                $br->setDerivedRoomTypes($derivedRoomTypes[$res->resource_id]);
+            }
 
             // if parent exists, add child to parent... otherwise set it as root
             if ($res->parent_resource_id != '' && isset($return_val_map[$res->parent_resource_id])) {
@@ -635,7 +775,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             } else {
                 $return_val[] = $br;
             }
-            
+
             if($allocationCellMap != null && isset($allocationCellMap[$br->resourceId]) && $br->type == 'bed') {
                 $br->setAllocationCells($allocationCellMap[$br->resourceId]);
             }
@@ -643,6 +783,73 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         }
         return $return_val;
     }
+
+    /**
+     * Find the room types based on the current allocations for all resource_type = 'room'
+     * between the given dates (inclusive).
+     * $startDate : return room types from this date (inclusive)
+     * $endDate : return room types to this date (inclusive)
+     * Returns array() of derived room types between $startDate and $endDate indexed by (room) resource_id.
+     * Entries can be M/F/MX/FX/X
+     */
+    public static function getDerivedRoomTypesForDates($startDate, $endDate) {
+        global $wpdb;
+        $resultset = $wpdb->get_results($wpdb->prepare(
+               "SELECT br.resource_id, br.room_type, ot.booking_date, ot.derived_room_type
+                  FROM ".$wpdb->prefix."bookingresources br
+                  LEFT OUTER JOIN (
+                       SELECT t.parent_resource_id, DATE_FORMAT(t.booking_date, '%%d.%%m.%%Y') AS booking_date, t.derived_room_type
+                         FROM ".$wpdb->prefix."v_derived_room_types t
+                        WHERE t.booking_date >= STR_TO_DATE(%s, '%%d.%%m.%%Y') 
+                          AND t.booking_date <= STR_TO_DATE(%s, '%%d.%%m.%%Y')
+                  ) ot ON br.resource_id = ot.parent_resource_id
+                 WHERE br.resource_type = 'room'
+                 ORDER BY br.resource_id, ot.booking_date", $startDate->format('d.m.Y'), $endDate->format('d.m.Y')));
+
+        if($wpdb->last_error) {
+            throw new DatabaseException($wpdb->last_error);
+        }
+
+        // create a 2D array indexed by resource_id, booking_date (in order) => derived room type (null/F/M/MX/FX/X/E)
+        $return_val = array();
+
+        // iterate through resultset, updating the 2D array to the derived room type as we go along
+        foreach ($resultset as $res) {
+            if (false === isset($return_val[$res->resource_id])) {
+                // initialise date array
+                $return_val[$res->resource_id] = self::newEmptyDateArray($startDate, $endDate, $res->room_type);
+            } 
+
+            // always show derived room type even if room type is set
+            // if there is a conflict, it will show up as error
+            if ($res->booking_date != null) {
+                $return_val[$res->resource_id][$res->booking_date] = $res->derived_room_type;
+            }
+        }
+//error_log("getDerivedRoomTypesForDates " . var_export($return_val, true));
+        return $return_val;
+    }
+
+    /** 
+     * Creates an array indexed by date (d.m.Y) from $startDate to $endDate (inclusive)
+     * initialised with $defaultValue.
+     * $startDate : DateTime of start date
+     * $endDate : DateTime of end date
+     * $defaultValue : default value for each array value (optional)
+     * Returns array with each element initialised with $defaultValue indexed 
+     * by every day between $startDate and $endDate (d.m.Y) inclusive
+     */
+    static function newEmptyDateArray($startDate, $endDate, $defaultValue = null) {
+
+        $return_val = array();
+        $start = clone $startDate;  // we will incrementally move $start until $start = $endDate
+        while ($start <= $endDate) {
+            $return_val[$start->format('d.m.Y')] = $defaultValue;
+            $start->add(new DateInterval('P1D'));  // increment by day
+        }
+        return $return_val;
+    }
+    
     
     /**
      * Since we're trying to display all allocations in a grid, for each contiguous allocation, we will try to
@@ -727,7 +934,7 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
         $resourceMap = $resourceMap == null ? ResourceDBO::getAllResources() : $resourceMap;
         
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT a.allocation_id, a.guest_name, a.gender, a.resource_id, a.req_room_size, a.req_room_type
+            "SELECT a.allocation_id, a.guest_name, a.gender, a.resource_id, a.req_room_size, IFNULL(a.req_room_type, 'X') AS req_room_type
                FROM ".$wpdb->prefix."allocation a
               WHERE a.booking_id = %d
               ORDER BY a.resource_id, a.guest_name", $bookingId));

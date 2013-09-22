@@ -248,7 +248,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
      * $maxDate : latest date (DateTime)
      * $dateMatchType : type of dates to apply search for (one of 'checkin', 'creation', 'reserved')
      * $resourceId : id of resource to match (optional)
-     * $status : one of 'reserved', 'checkedin', 'checkedout', 'cancelled' (optional)
+     * $status : one of 'all', 'reserved', 'checkedin', 'checkedout', 'cancelled' (optional)
      * $matchName : (partial) name to match (case-insensitive) (optional)
      * $startRow : row to start returning records (default 0)
      * $maxRows : maximum number of bookings to return (default 20)
@@ -258,6 +258,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
         global $wpdb;
 
         $matchNameSql = $matchName == null ? null : '%'.strtolower($matchName).'%';
+        $status = $status == null ? "all" : $status;  // null == all
         
         // match date by first date on any allocation (there could be multiple checkin dates for a single booking!)
         if ($dateMatchType == 'checkin') {
@@ -337,6 +338,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
         $sqlparams[] = $maxDate->format('d.m.Y');
         $sqlparams[] = $startRow;
         $sqlparams[] = $maxRows;
+error_log($sql.implode(',', $sqlparams));
 //debuge($sql, $sqlparams);
         // execute our query 
         $resultset = $wpdb->get_results($wpdb->prepare($sql, $sqlparams));

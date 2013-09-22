@@ -5,6 +5,8 @@
  */
 class ResourceDBO {
 
+    const OVERFLOW_RESOURCE_ID = 0;
+
     /**
      * Returns all resources indexed by resource_id. 
      * Each object in the collection returned has the following properties:
@@ -25,14 +27,14 @@ class ResourceDBO {
         global $wpdb;
 
         // query all our resources (in order)
-        $resultset = $wpdb->get_results($wpdb->prepare(
+        $resultset = $wpdb->get_results(
             "SELECT r.resource_id, r.name, r.level, r.path, r.number_children, r.parent_resource_id, rp.name AS parent_name, r.resource_type, r.room_type
                FROM ".$wpdb->prefix."mv_resources_by_path r
                LEFT OUTER JOIN ".$wpdb->prefix."bookingresources rp ON r.parent_resource_id = rp.resource_id
                     ". ($resourceId == null ? "" : "
                             WHERE (r.path LIKE '%%/$resourceId'
                                 OR r.path LIKE '%%/$resourceId/%%')") . "
-              ORDER BY r.path", null));
+              ORDER BY r.path");
         
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);

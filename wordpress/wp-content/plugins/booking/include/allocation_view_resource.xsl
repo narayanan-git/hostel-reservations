@@ -38,6 +38,10 @@
                                             <th class="alloc_resource_attrib"><xsl:value-of select="name"/></th>
                                             <xsl:apply-templates select="//dateheaders/datecol" mode="availability_date_header"/>
                                         </tr>
+                                        <tr class="odd">
+                                            <xsl:apply-templates select="roomtype"/>
+                                            <xsl:apply-templates select="derivedroomtypes/roomtype"/>
+                                        </tr>
                                     </thead>
                                     <tbody>
                                         <xsl:apply-templates select="resource/cells"/>
@@ -54,6 +58,33 @@
             <xsl:apply-templates select="resource"/>
         </xsl:otherwise>
     </xsl:choose>
+</xsl:template>
+
+<!-- adds row entries for room type -->
+<xsl:template match="roomtype">
+    <th>
+        <xsl:if test="string-length(.) > 0">
+            <xsl:attribute name="class">
+                <xsl:if test=". = 'X'">mixed</xsl:if>
+                <xsl:if test=". = 'M' or . = 'MX'">male</xsl:if>
+                <xsl:if test=". = 'F' or . = 'FX'">female</xsl:if>
+                <xsl:if test=". = 'E'">error</xsl:if>
+            </xsl:attribute>
+        </xsl:if>
+        <xsl:if test="@span">
+            <xsl:attribute name="colspan">
+                <xsl:value-of select="@span"/>
+            </xsl:attribute>
+        </xsl:if>
+        <xsl:if test=". = 'X'">Mixed</xsl:if>
+        <xsl:if test=". = 'M'">Male</xsl:if>
+        <xsl:if test=". = 'F'">Female</xsl:if>
+        <xsl:if test=". = 'MX' and @span &gt; 1">Male/Mixed</xsl:if>
+        <xsl:if test=". = 'MX' and not(@span)">M/MX</xsl:if>
+        <xsl:if test=". = 'FX' and @span &gt; 1">Female/Mixed</xsl:if>
+        <xsl:if test=". = 'FX' and not(@span)">F/MX</xsl:if>
+        <xsl:if test=". = 'E'">*Conflict?*</xsl:if>
+    </th>
 </xsl:template>
 
 <!-- adds header entries for the availability table -->

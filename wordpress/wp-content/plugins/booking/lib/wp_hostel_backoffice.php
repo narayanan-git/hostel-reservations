@@ -107,6 +107,11 @@ class WP_HostelBackoffice {
         $pagehook7 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Generate Test Data', 'wpdev-booking'), __('Test Data', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-testdata', array(&$this, 'content_of_testdata_page')  );
         add_action("admin_print_scripts-" . $pagehook7, array( &$this, 'add_js_css_files'));
+
+        // UNIT TESTS
+        $pagehook8 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Run Unit Tests', 'wpdev-booking'), __('Unit Tests', 'wpdev-booking'), 'administrator',
+                WPDEV_BK_FILE .'wpdev-booking-unittests', array(&$this, 'content_of_unittests_page')  );
+        add_action("admin_print_scripts-" . $pagehook8, array( &$this, 'add_js_css_files'));
     }
 
     /**
@@ -291,6 +296,14 @@ error_log(var_export($_POST, TRUE));
     }
 
     /**
+     * Unit Test generation page.
+     */
+    function content_of_unittests_page() {
+        $td = new RunUnitTests();
+        echo $td->toHtml();
+    }
+
+    /**
      * Display a top-level menu dropdown on the admin menu (when logged in as admin).
      */
     function add_admin_bar_bookings_menu(){
@@ -448,7 +461,8 @@ error_log(var_export($_POST, TRUE));
             $wpdb->query($wpdb->prepare($simple_sql, 6, '16-Bed Dorm'));
             $wpdb->query($wpdb->prepare($simple_sql, 7, 'Twin Room'));
             $wpdb->query($wpdb->prepare($simple_sql, 8, 'Double Room'));
-            $wpdb->query($wpdb->prepare($simple_sql, 9, 'Double Deluxe Room'));
+            $wpdb->query($wpdb->prepare($simple_sql, 9, 'Triple Room'));
+            $wpdb->query($wpdb->prepare($simple_sql, 10, 'Quad Room'));
         }
             
         if ( false == $this->does_table_exist('resource_properties_map') ) { 
@@ -582,6 +596,40 @@ error_log(var_export($_POST, TRUE));
                     ORDER BY bc.booking_date, rp.path";
 
         self::execute_simple_sql($simple_sql);
+
+        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_req_room_types AS
+                -- subquery summing requested room types by room and booking date
+                SELECT r.parent_resource_id, bd.booking_date, pr.room_type, 
+                       SUM(CASE WHEN a.req_room_type = 'M' THEN 1 ELSE 0 END) AS num_m, -- number of male only room requests
+                       SUM(CASE WHEN a.req_room_type = 'F' THEN 1 ELSE 0 END) AS num_f, -- number of female only room requests
+                       SUM(CASE WHEN IFNULL(a.req_room_type, 'X') = 'X' AND a.gender = 'M' THEN 1 ELSE 0 END) as num_mx, -- number of mixed req but of all males
+                       SUM(CASE WHEN IFNULL(a.req_room_type, 'X') = 'X' AND a.gender = 'F' THEN 1 ELSE 0 END) as num_fx, -- number of mixed req but of all female
+                       SUM(CASE WHEN IFNULL(a.req_room_type, 'X') = 'X' AND a.gender = 'X' THEN 1 ELSE 0 END) as num_x -- number of mixed req and of unknown gender (forces mixed room)
+                  FROM ".$wpdb->prefix."bookingresources r
+                  JOIN ".$wpdb->prefix."bookingresources pr ON r.parent_resource_id = pr.resource_id AND pr.resource_type = 'room'
+                  JOIN ".$wpdb->prefix."allocation a ON a.resource_id = r.resource_id
+                  JOIN ".$wpdb->prefix."bookingdates bd ON a.allocation_id = bd.allocation_id
+                 GROUP BY r.parent_resource_id, bd.booking_date, pr.room_type
+                 ORDER BY r.parent_resource_id, bd.booking_date";
+
+        self::execute_simple_sql($simple_sql);
+
+        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_derived_room_types AS
+                -- view used for determining the requested room types by date
+                SELECT parent_resource_id, booking_date, room_type, num_m, num_f, num_mx, num_fx, num_x,
+                       CASE WHEN num_m > 0 AND num_f = 0 AND num_mx >= 0 AND num_fx = 0  AND num_x = 0 THEN 'M' -- male only
+                            WHEN num_m = 0 AND num_f > 0 AND num_mx = 0  AND num_fx = 0  AND num_x = 0 THEN 'F' -- female only
+                            WHEN num_m = 0 AND num_f = 0 AND num_mx >= 0 AND num_fx = 0  AND num_x > 0 THEN 'X' -- mixed
+                            WHEN num_m = 0 AND num_f = 0 AND num_mx = 0  AND num_fx >= 0 AND num_x > 0 THEN 'X' -- mixed
+                            WHEN num_m = 0 AND num_f = 0 AND num_mx > 0  AND num_fx = 0  AND num_x = 0 THEN 'MX' -- male/mixed
+                            WHEN num_m = 0 AND num_f = 0 AND num_mx = 0  AND num_fx > 0  AND num_x = 0 THEN 'FX' -- female/mixed
+                            WHEN num_m = 0 AND num_f = 0 AND (num_mx + num_fx + num_x) > 0 THEN 'X' -- mixed
+                            ELSE 'E' -- error
+                        END AS derived_room_type
+                  FROM ".$wpdb->prefix."v_req_room_types";
+
+        self::execute_simple_sql($simple_sql);
+
         self::build_triggers();
     }
 
@@ -712,6 +760,9 @@ error_log(var_export($_POST, TRUE));
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_booked_capacity");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_by_path");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_sub1");
+        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_derived_room_types");
+        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_req_room_types");
+
         self::execute_simple_sql("DROP FUNCTION walk_tree_path");
         self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."mv_resources_by_path");
         if ($delete_data) {
@@ -723,6 +774,17 @@ error_log(var_export($_POST, TRUE));
             self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."bookingcomment");
             self::execute_simple_sql("DROP TABLE ".$wpdb->prefix ."booking");
         }
+    }
+
+    /**
+     * Clears *ALL* transactional data. Used for unit testing only!!
+     */
+    function delete_transactional_data() {
+        global $wpdb;
+        self::execute_simple_sql("TRUNCATE TABLE ".$wpdb->prefix ."bookingdates");
+        self::execute_simple_sql("TRUNCATE TABLE ".$wpdb->prefix ."allocation");
+        self::execute_simple_sql("TRUNCATE TABLE ".$wpdb->prefix ."bookingcomment");
+        self::execute_simple_sql("TRUNCATE TABLE ".$wpdb->prefix ."booking");
     }
 
     /**
@@ -740,6 +802,15 @@ error_log(var_export($_POST, TRUE));
         $output = self::load_sample_data();
         self::build_triggers();
         return $output;
+    }
+
+    /**
+     * Executes all unit tests
+     */
+    function run_unit_tests() {
+        $ut = new RunUnitTestsContent();
+        $ut->runUnitTests();
+        return $ut->toHtml();
     }
 
     /**

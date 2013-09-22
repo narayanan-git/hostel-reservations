@@ -60,29 +60,26 @@ class AllocationTable extends XslTransform {
      */
     function addAllocation($bookingName, $numVisitors, $resourceId, $reqRoomSize, $reqRoomType, $dates, $resourceProps) {
         $bookingName = trim($bookingName) == '' ? 'Unspecified' : $bookingName;
-        $newAllocationRows = array();  // the new allocations we will be adding
-        $this->insertNewAllocationRows($bookingName, $numVisitors['M'], 'M', $resourceId, $reqRoomSize, $reqRoomType, $newAllocationRows, $dates);
-        $this->insertNewAllocationRows($bookingName, $numVisitors['F'], 'F', $resourceId, $reqRoomSize, $reqRoomType, $newAllocationRows, $dates);
-        $this->insertNewAllocationRows($bookingName, $numVisitors['X'], 'X', $resourceId, $reqRoomSize, $reqRoomType, $newAllocationRows, $dates);
 
         // this will perform the individual assignments to beds if a parent resource id is specified
-        $this->allocationStrategy->assignResourcesForAllocations($newAllocationRows, $this->allocationRows, $resourceProps);
+        $newAllocationRows = $this->allocationStrategy->addAllocation(trim($bookingName) == '' ? 'Unspecified' : $bookingName, 
+            $numVisitors, $resourceId, $reqRoomSize, $reqRoomType, $dates, $resourceProps, $this->allocationRows);
         
         // check that all of the ones we just added have been assigned "leaf" resources (beds)
-        foreach ($newAllocationRows as $newAlloc) {
-            if (false == $newAlloc->isAvailable) {
-error_log("AllocationTable::addAllocation throws ex ".$newAlloc->resourceId . " with name ". $newAlloc->name);
-                throw new AllocationException("Insufficient resources to allocate $bookingName.");
+        foreach ($newAllocationRows as $alloc) {
+            if (false == $alloc->isAvailable) {
+error_log("AllocationTable::addAllocation throws ex ".$alloc->resourceId . " with name ". $alloc->name);
+                throw new AllocationException("Insufficient availability to allocate resource on the specified date(s).");
             }
-else error_log("AllocationTable::addAllocation OK ".$newAlloc->resourceId . " with name ". $newAlloc->name);
+else error_log("AllocationTable::addAllocation OK ".$alloc->resourceId . " with name ". $alloc->name);
         }
-error_log("Allocating ".sizeof($newAllocationRows));
+error_log("Allocating ");
         // allocation successful; add them to the existing ones we have for this booking
-        foreach ($newAllocationRows as $newAlloc) {
-            $this->allocationRows[] = $newAlloc;
+        foreach ($newAllocationRows as $alloc) {
+            $this->allocationRows[] = $alloc;
             // keep the unique id for the row so we can reference it later when updating via ajax
-            $newAlloc->rowid = array_search($newAlloc, $this->allocationRows);
-error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
+            $alloc->rowid = array_search($alloc, $this->allocationRows);
+error_log("assigning row id ".$alloc->rowid." to ".$alloc->resourceId);
         }
     }
     
@@ -178,11 +175,12 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
      */
     function updateAllocationRow($rowid, $allocationName, $resourceId) {
         if (isset($this->allocationRows[$rowid])) {
-            $this->allocationRows[$rowid]->name = $allocationName;
+            $editingRow = $this->allocationRows[$rowid];
+            $editingRow->name = $allocationName;
             
             // save and assign resources
-            if($this->allocationRows[$rowid]->resourceId != $resourceId) {
-                $this->allocationRows[$rowid]->resourceId = $resourceId;
+            if($editingRow->resourceId != $resourceId) {
+                $editingRow->resourceId = $resourceId;
                 
                 // perform the individual assignments to beds if a parent resource id is specified
                 // validation (on availability) will be done on save
@@ -193,8 +191,8 @@ error_log("assigning row id ".$newAlloc->rowid." to ".$newAlloc->resourceId);
                     }
                 }
                 
-                $this->allocationStrategy->assignResourcesForAllocations(
-                    array($this->allocationRows[$rowid]), $existingAllocations);
+                $this->allocationStrategy->allocateResources($resourceId, 
+                    array($editingRow->reqRoomType), $editingRow->getBookingDates(), null, $existingAllocations);
             }
         }
     }
