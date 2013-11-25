@@ -743,6 +743,15 @@ error_log(var_export($_POST, TRUE));
 
             self::execute_simple_sql($simple_sql);
         }
+
+        // now rebuild our materialized view
+        $simple_sql = "TRUNCATE TABLE ".$wpdb->prefix."mv_resources_by_path
+            SELECT * FROM ".$wpdb->prefix."v_resources_by_path";
+        self::execute_simple_sql($simple_sql);
+
+        $simple_sql = "INSERT INTO ".$wpdb->prefix."mv_resources_by_path
+            SELECT * FROM ".$wpdb->prefix."v_resources_by_path";
+        self::execute_simple_sql($simple_sql);
     }
 
     /**
