@@ -566,70 +566,6 @@ error_log("updateBookingDates intersection ".var_export($bookingDates, true));
     }
     
     /**
-     * Checks whether the current allocation violates the current availability rules.
-     * $mysqli : database link (to enforce manual transaction handling)
-     * $allocationId : id of allocation record
-     * Returns true if the insert complies with current availability, false otherwise.
-     */
-     // TODO: should not be necessary anymore
-    static function isAvailabilityViolated($mysqli, $allocationId) {
-        global $wpdb;
-
-        // check that the allocation does not break availability rules
-        $stmt = $mysqli->prepare(
-            "SELECT MIN(avail_capacity)
-               FROM ".$wpdb->prefix."v_resource_availability ra
-              WHERE ra.booking_date IN (SELECT booking_date from ".$wpdb->prefix."bookingdates 
-                                        WHERE allocation_id = ?)
-                AND ra.resource_id IN (SELECT resource_id FROM ".$wpdb->prefix."allocation 
-                                        WHERE allocation_id = ?)");
-        $stmt->bind_param('ii', $allocationId, $allocationId);
-        
-        if(false === $stmt->execute()) {
-            throw new DatabaseException("Error during SELECT: " . $mysqli->error);
-        }
-        
-        $stmt->bind_result($availCapacity);
-        $compliesWithAvailability = (! $stmt->fetch()) || $availCapacity >= 0;
-error_log("isAvailabilityViolated: availCapacity $availCapacity");
-        $stmt->close();
-error_log("allocation $allocationId on $bookingDate complies with availability: ". ($compliesWithAvailability ? 'true' : 'false'));
-        return $compliesWithAvailability;
-    }
-    
-    /**
-     * Checks whether there is current availability for the given allocation and booking date.
-     * $mysqli : database link (to enforce manual transaction handling)
-     * $allocationId : id of allocation record
-     * $bookingDate : date of booking (DateTime)
-     * Returns true if availability exists, false otherwise.
-     */
-     // TODO not required??
-    static function isResourceAvailable($mysqli, $allocationId, $bookingDate) {
-        global $wpdb;
-
-        // check that the record does not break availability rules
-        $stmt = $mysqli->prepare(
-            "SELECT avail_capacity
-               FROM ".$wpdb->prefix."v_resource_availability ra
-              WHERE ra.booking_date = STR_TO_DATE(?, '%d.%m.%Y')
-                AND ra.resource_id = (SELECT resource_id FROM ".$wpdb->prefix."allocation 
-                                       WHERE allocation_id = ?)");
-        $stmt->bind_param('si', $bookingDate->format('d.m.Y'), $allocationId);
-        
-        if(false === $stmt->execute()) {
-            throw new DatabaseException("Error during SELECT: " . $mysqli->error);
-        }
-        
-        $stmt->bind_result($availCapacity);
-        $compliesWithAvailability = (! $stmt->fetch()) || $availCapacity > 0;
-error_log("isResourceAvailable: availCapacity $availCapacity");
-        $stmt->close();
-error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complies with availability: ". ($compliesWithAvailability ? 'true' : 'false'));       
-        return $compliesWithAvailability;
-    }
-    
-    /**
      * Fetches (filtered) allocations between the given start end dates
      * and optionally matched by resource, status, name.
      * $startDate : include allocations where a booking exists after this date (inclusive)  (DateTime)
@@ -673,6 +609,8 @@ error_log("allocation $allocationId on ".$bookingDate->format('d.m.Y')." complie
             $status == null ? '__ALL__' : $status, 
             $nameToMatch, $nameToMatch, $nameToMatch,
             $start->format('d.m.Y'), $end->format('d.m.Y')));
+
+error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
 
         if($wpdb->last_error) {
             throw new DatabaseException($wpdb->last_error);
