@@ -478,9 +478,15 @@ error_log("done generate_test_data: $msg");
         // extend booking by 1 day but only for 1 bed into next booking...
         $rowid = (string)$allocation->rowid;
         $booking->toggleBookingStateAt($rowid, "07.04.2013");
-        $booking->save();
 
-        $this->assertFail("Expecting save to fail");
+        try {
+            $booking->save();
+            $this->assertFail("Expecting save to fail");
+
+        } catch( AllocationException $ex ) {
+            $this->assertEquals( "One or more allocations did not have sufficient availability", 
+                $ex->getMessage(), "Allocation exception expected" );
+        }
     }
 
     /**

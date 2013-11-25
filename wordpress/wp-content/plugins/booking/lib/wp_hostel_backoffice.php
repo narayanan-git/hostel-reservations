@@ -574,29 +574,6 @@ error_log(var_export($_POST, TRUE));
 
         self::execute_simple_sql($simple_sql);
 
-        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_booked_capacity (booking_date, resource_id, used_capacity) AS
-                SELECT bd.booking_date, alloc.resource_id, COUNT(*) used_capacity
-                    FROM ".$wpdb->prefix."bookingdates bd
-                    JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
-                    GROUP BY bd.booking_date, alloc.resource_id";
-
-        self::execute_simple_sql($simple_sql);
-
-        $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_resource_availability (booking_date, resource_id, resource_name, path, capacity, used_capacity, avail_capacity) AS
-                SELECT bc.booking_date, 
-                        rp.resource_id, 
-                        rp.name AS resource_name,
-                        rp.path, 
-                        rp.capacity, 
-                        bc.used_capacity,
-                        CAST(rp.capacity - IFNULL(bc.used_capacity, 0) AS SIGNED) AS avail_capacity 
-                    FROM ".$wpdb->prefix."mv_resources_by_path rp
-                    LEFT OUTER JOIN ".$wpdb->prefix."v_booked_capacity bc ON rp.resource_id = bc.resource_id
-                    WHERE rp.number_children = 0
-                    ORDER BY bc.booking_date, rp.path";
-
-        self::execute_simple_sql($simple_sql);
-
         $simple_sql = "CREATE OR REPLACE VIEW ".$wpdb->prefix."v_req_room_types AS
                 -- subquery summing requested room types by room and booking date
                 SELECT r.parent_resource_id, bd.booking_date, pr.room_type, 
@@ -638,23 +615,53 @@ error_log(var_export($_POST, TRUE));
      */
     function build_triggers() {
         global $wpdb;
-        if ( false == $this->does_trigger_exist('trg_enforce_availability') ) {
-            $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_enforce_availability
-                -- this will raise an error by selecting from a non-existent table
-                -- in order to enforce availability for a particular resource/date
-                BEFORE INSERT ON ".$wpdb->prefix."bookingdates FOR EACH ROW
+        if ( false == $this->does_trigger_exist('trg_privates_conflict') ) {
+            $simple_sql = "CREATE TRIGGER ".$wpdb->prefix."trg_privates_conflict
+                AFTER INSERT ON ".$wpdb->prefix."bookingdates FOR EACH ROW
                 BEGIN
-                    DECLARE p_avail_capacity INT;
-                    SELECT avail_capacity INTO p_avail_capacity
-                    FROM ".$wpdb->prefix."v_resource_availability ra
-                    JOIN ".$wpdb->prefix."allocation alloc ON ra.resource_id = alloc.resource_id
-                    WHERE ra.booking_date = NEW.booking_date
-                    AND alloc.allocation_id = NEW.allocation_id;
-                        
-                    IF p_avail_capacity <= 0 THEN
-                        SELECT 'Reservation conflicts with an existing reservation' INTO p_avail_capacity 
-                        FROM SANITY_CHECK_RESERVATION_CONFLICT_FOUND
-                        WHERE SANITY_CHECK_RESERVATION_CONFLICT_FOUND.id = NEW.allocation_id;
+                    DECLARE p_resource_id INT;
+                    DECLARE p_parent_resource_id INT;
+                    DECLARE p_parent_resource_type VARCHAR(10);
+                    DECLARE p_distinct_ids INT;
+
+                    -- first, find the resource and parent resource for the date we are inserting
+                    SELECT r.resource_id, r.parent_resource_id, parent_res.resource_type 
+                      INTO p_resource_id, p_parent_resource_id, p_parent_resource_type
+                      FROM ".$wpdb->prefix."mv_resources_by_path r
+                      JOIN ".$wpdb->prefix."allocation alloc ON alloc.resource_id = r.resource_id
+                      JOIN ".$wpdb->prefix."bookingresources parent_res ON r.parent_resource_id = parent_res.resource_id
+                     WHERE alloc.allocation_id = NEW.allocation_id;
+
+                    -- make sure there are no other allocations sharing the same resource for the same day!
+                    SELECT COUNT(1) INTO p_distinct_ids
+                      FROM ".$wpdb->prefix."bookingdates bd
+                      JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
+                     WHERE bd.booking_date = NEW.booking_date
+                       AND alloc.resource_id = p_resource_id;
+
+                    IF p_distinct_ids > 1 THEN
+                        SELECT 'Reservation conflicts with an existing reservation' INTO p_distinct_ids 
+                        FROM SANITY_CHECK_RESERVATION_CONFLICT_FOUND;
+                    END IF;
+
+                    -- if we're adding a date onto a private booking, check that we don't overlap with another private booking!
+                    IF p_parent_resource_type = 'private' THEN
+        
+                        SELECT COUNT(DISTINCT a.booking_id) INTO p_distinct_ids
+                          FROM ".$wpdb->prefix."bookingdates bd
+                          JOIN ".$wpdb->prefix."allocation a ON bd.allocation_id = a.allocation_id
+                          JOIN ".$wpdb->prefix."mv_resources_by_path r ON a.resource_id = r.resource_id
+                          JOIN ".$wpdb->prefix."bookingresources parent_res ON r.parent_resource_id = parent_res.resource_id
+                         WHERE parent_res.resource_type = 'private'
+                           AND parent_res.resource_id = p_parent_resource_id
+                           AND bd.booking_date = NEW.booking_date
+                         GROUP BY parent_res.resource_id, bd.booking_date;
+
+                        IF p_distinct_ids > 1 THEN
+                            SELECT 'Reservation for private room conflicts with an existing reservation' INTO p_distinct_ids 
+                            FROM SANITY_CHECK_RESERVATION_CONFLICT_FOUND;
+                        END IF;
+
                     END IF;
                 END";
 
@@ -746,7 +753,7 @@ error_log(var_export($_POST, TRUE));
         self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_del");
         self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_upd");
         self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_mv_resources_by_path_ins");
-        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_enforce_availability");
+        self::execute_simple_sql("DROP TRIGGER ".$wpdb->prefix."trg_privates_conflict");
     }
 
     /**
@@ -756,8 +763,6 @@ error_log(var_export($_POST, TRUE));
     function teardown_db_schema($delete_data) {
         global $wpdb;
         self::teardown_triggers();
-        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resource_availability");
-        self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_booked_capacity");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_by_path");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_resources_sub1");
         self::execute_simple_sql("DROP VIEW ".$wpdb->prefix."v_derived_room_types");

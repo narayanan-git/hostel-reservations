@@ -198,6 +198,7 @@ class AllocationRow {
      * $mysqli : manual db connection (for transaction handling)
      * $bookingId : booking id for this allocation
      * Returns allocation id of newly created record
+     * Throws AllocationException on resource conflict
      */
     function save($mysqli, $bookingId) {
     
@@ -210,7 +211,7 @@ class AllocationRow {
 error_log("inserted allocation $allocationId");
 
             // then create the booking dates for the allocation
-            $this->isAvailable = AllocationDBO::insertBookingDates($mysqli, $allocationId, $this->bookingDates);
+            AllocationDBO::insertBookingDates($mysqli, $allocationId, $this->bookingDates);
 
         } else { // update the existing allocation
             AllocationDBO::updateAllocation($mysqli, $this->id, $this->resourceId, $this->name, $this->gender, $this->resourceMap);
@@ -224,7 +225,7 @@ error_log("updating allocation $this->id");
             }
 
             // diff existing booking dates with the ones we want to save
-            $this->isAvailable = AllocationDBO::mergeUpdateBookingDates($mysqli, $this->id, $this->bookingDates);
+            AllocationDBO::mergeUpdateBookingDates($mysqli, $this->id, $this->bookingDates);
         }
 
         return $allocationId;

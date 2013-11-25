@@ -92,7 +92,7 @@ class AllocationDBO {
                LEFT OUTER JOIN ".$wpdb->prefix."mv_resources_by_path p2 ON p.parent_resource_id = p2.resource_id
               WHERE p.resource_type = 'bed' 
                 " . ($resourceId == null ? "" : "AND (p.path LIKE '%%/$resourceId' OR p.path LIKE '%%/$resourceId/%%')") . "
-                " . (empty($excludedResourceIds) ? "" : "AND p.resource_id NOT IN (".implode("','", $excludedResourceIds).")") . "
+                " . (empty($excludedResourceIds) ? "" : "AND p.resource_id NOT IN (".implode(",", $excludedResourceIds).")") . "
                 AND NOT EXISTS(
                         SELECT 1 FROM ".$wpdb->prefix."bookingdates dt 
                           JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
@@ -111,12 +111,15 @@ class AllocationDBO {
                     ) 
                     OR (p2.resource_type = 'private' -- or private room
                             AND NOT EXISTS(
-                                SELECT 1 FROM ".$wpdb->prefix."v_resource_availability ra
-                                  JOIN wp_bookingresources r2 on r2.resource_id = ra.resource_id
-                                 WHERE r2.parent_resource_id = p.parent_resource_id -- resources share the same parent
-                                   AND ra.booking_date IN ($bookingDatesString)
-                                   AND ra.used_capacity > 0)
-                    ))
+                                -- any booking on the date(s) sharing the same parent resource
+                                SELECT 1 FROM ".$wpdb->prefix."bookingdates bd
+                                  JOIN ".$wpdb->prefix."allocation a ON bd.allocation_id = a.allocation_id
+                                  JOIN ".$wpdb->prefix."mv_resources_by_path pp ON a.resource_id = pp.resource_id
+                                 WHERE pp.parent_resource_id = p.parent_resource_id
+                                   AND bd.booking_date IN ($bookingDatesString)
+                            )
+                       )
+                    )
                 " . ($resourceProps == null ? "" : "
                 AND EXISTS( -- only match those resources with the properties specified
                         SELECT 1 FROM ".$wpdb->prefix."resource_properties_map m
@@ -378,29 +381,29 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
      * $bookingDate : date to add booking (BookingDate)
-     * Returns true if the insert complies with current availability, false otherwise.
+     * Throws AllocationException on resource conflict
      */
     static function insertBookingDate($mysqli, $allocationId, $bookingDate) {
         global $wpdb;
 error_log(var_export($bookingDate, true));
-        $compliesWithAvailability = self::isResourceAvailable($mysqli, $allocationId, $bookingDate->bookingDate);
         
         // insert the record only if availability exists
-        if ($compliesWithAvailability) {
-            $userLogin = wp_get_current_user()->user_login;
-            $checkedOut = $bookingDate->checkedOut ? 'Y' : 'N';
-            $stmt = $mysqli->prepare(
-                "INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date, status, checked_out, created_by, created_date, last_updated_by, last_updated_date) 
-                 VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'), ?, ?, ?, NOW(), ?, NOW())");
-            $stmt->bind_param('isssss', $allocationId, $bookingDate->bookingDate->format('d.m.Y'), 
-                    $bookingDate->status, $checkedOut, $userLogin, $userLogin);
-            if(false === $stmt->execute()) {
-                throw new DatabaseException("Error during INSERT: " . $mysqli->error);
-            }
-            $stmt->close();
-        }
+        $userLogin = wp_get_current_user()->user_login;
+        $checkedOut = $bookingDate->checkedOut ? 'Y' : 'N';
+        $stmt = $mysqli->prepare(
+            "INSERT INTO ".$wpdb->prefix."bookingdates (allocation_id, booking_date, status, checked_out, created_by, created_date, last_updated_by, last_updated_date) 
+                VALUES (?, STR_TO_DATE(?, '%d.%m.%Y'), ?, ?, ?, NOW(), ?, NOW())");
+        $stmt->bind_param('isssss', $allocationId, $bookingDate->bookingDate->format('d.m.Y'), 
+                $bookingDate->status, $checkedOut, $userLogin, $userLogin);
 
-        return $compliesWithAvailability;
+        // resource conflict check implemented as a post insert db trigger
+        if(false === $stmt->execute()) {
+            if ( false !== strpos( $mysqli->error, "Reservation conflicts" ) ) {
+                throw new AllocationException( "Reservation conflicts with existing reservation" );
+            }
+            throw new DatabaseException("Error during INSERT: " . $mysqli->error);
+        }
+        $stmt->close();
     }
 
     /**
@@ -408,29 +411,27 @@ error_log(var_export($bookingDate, true));
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
      * $bookingDates : array() of BookingDate() to be inserted
-     * Returns true if the insert complies with current availability, false otherwise.
+     * Throws AllocationException on resource conflict
      */
     static function insertBookingDates($mysqli, $allocationId, $bookingDates) {
         global $wpdb;
         
         if (empty($bookingDates)) {
-            return true;  // nothing to do
+            return ;  // nothing to do
         }
         
         // fetch allocation details
         $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
-        $compliesWithAvailability = true;
         $auditMsg = "Adding dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": ";
 
         foreach ($bookingDates as $bd) {
             $auditMsg .= $bd->bookingDate->format('d.m.Y') . " => $bd->status, ";
-            $compliesWithAvailability &= self::insertBookingDate($mysqli, $allocationId, $bd);
+            self::insertBookingDate($mysqli, $allocationId, $bd);
         }
         $auditMsg = rtrim($auditMsg, ', ');
         
         // keep an audit trail...
         BookingDBO::insertBookingComment($mysqli, new BookingComment($allocationRs->booking_id, $auditMsg, BookingComment::COMMENT_TYPE_AUDIT));
-        return $compliesWithAvailability;
     }
 
     /**
@@ -439,14 +440,14 @@ error_log(var_export($bookingDate, true));
      * $mysqli : database link (to enforce manual transaction handling)
      * $allocationId : id of parent allocation record
      * $bookingDates : array() of BookingDate indexed by date (d.m.Y) to be saved
-     * Returns true if the update complies with current availability, false otherwise.
+     * Throws AllocationException on resource conflict
      */
     static function mergeUpdateBookingDates($mysqli, $allocationId, $bookingDates) {
+
 error_log("mergeUpdateBookingDates $allocationId ");
 
         // first find the ones currently saved for this allocationId
         $oldBookingDates = self::fetchBookingDates($allocationId);
-        $compliesWithAvailability = true;
         
         // diff existing booking dates with the ones we want to save
         // if it exists in the old but not in the new, delete it
@@ -456,15 +457,10 @@ error_log(var_export(array($oldBookingDates, $bookingDates), true));
         
         // if it exists in the new but not in the old, add it
         $datesToAdd = array_diff_key($bookingDates, $oldBookingDates);
-        $compliesWithAvailability &= self::insertBookingDates($mysqli, $allocationId, $datesToAdd);
+        self::insertBookingDates($mysqli, $allocationId, $datesToAdd);
         
         // if it exists in both, update it
         self::updateBookingDates($mysqli, $allocationId, $oldBookingDates, $bookingDates);
-        
-        // now we need to check that we didn't overbook anywhere!
-        $compliesWithAvailability &= self::isAvailabilityViolated($mysqli, $allocationId);
-error_log("mergeUpdateBookingDates returning $compliesWithAvailability");
-        return $compliesWithAvailability;
     }
     
     /**
@@ -575,6 +571,7 @@ error_log("updateBookingDates intersection ".var_export($bookingDates, true));
      * $allocationId : id of allocation record
      * Returns true if the insert complies with current availability, false otherwise.
      */
+     // TODO: should not be necessary anymore
     static function isAvailabilityViolated($mysqli, $allocationId) {
         global $wpdb;
 
@@ -607,6 +604,7 @@ error_log("allocation $allocationId on $bookingDate complies with availability: 
      * $bookingDate : date of booking (DateTime)
      * Returns true if availability exists, false otherwise.
      */
+     // TODO not required??
     static function isResourceAvailable($mysqli, $allocationId, $bookingDate) {
         global $wpdb;
 

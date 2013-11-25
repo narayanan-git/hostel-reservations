@@ -244,9 +244,13 @@ error_log("allocation table.save() : ".var_export(array(array_keys($oldAllocatio
         
         $failedAllocation = false;
         foreach ($this->allocationRows as $alloc) {
-            $alloc_id = $alloc->save($mysqli, $bookingId);
-
-            if( ! $alloc->isAvailable) {
+            try {
+                $alloc_id = $alloc->save($mysqli, $bookingId);
+                $alloc->isAvailable = true;
+            }
+            catch( Exception $e ) {
+error_log( "Update allocation row failed with exception: " . $e );
+                $alloc->isAvailable = false;
                 $failedAllocation = true;
             }
         }
