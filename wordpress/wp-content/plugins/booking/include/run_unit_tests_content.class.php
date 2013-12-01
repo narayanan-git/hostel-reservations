@@ -137,7 +137,7 @@ error_log("done generate_test_data: $msg");
             $this->assertFail( "Expecting save to fail..." );
 
         } catch( AllocationException $ex ) {
-            $this->assertEquals( "One or more allocations did not have sufficient availability", 
+            $this->assertEquals( "Reservation conflicts with existing reservation", 
                 $ex->getMessage(), "Allocation exception expected" );
         }
 
@@ -484,7 +484,7 @@ error_log("done generate_test_data: $msg");
             $this->assertFail("Expecting save to fail");
 
         } catch( AllocationException $ex ) {
-            $this->assertEquals( "One or more allocations did not have sufficient availability", 
+            $this->assertEquals( "Reservation conflicts with existing reservation", 
                 $ex->getMessage(), "Allocation exception expected" );
         }
     }
@@ -531,7 +531,7 @@ error_log("done generate_test_data: $msg");
             null, // $status, 
             'FemalesInMixedDorm' // $matchName
             );
-        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created from earlier test");
+        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created");
         
         // verify booking summary query brings back the saved values
         $bookingSummary = array_shift(array_values($bookingSummaryArr));
@@ -543,7 +543,7 @@ error_log("done generate_test_data: $msg");
         $this->assertEquals(1, sizeof($allocationArr), "expecting 1 allocation with name 'NoShowFemales-1'");
         $allocation = array_shift($allocationArr);
 
-        // extend booking by 1 day but only for 1 bed into next booking...
+        // toggle until cancelled
         $rowid = (string)$allocation->rowid;
         $booking->toggleBookingStateAt($rowid, "09.04.2014");
         $booking->toggleBookingStateAt($rowid, "09.04.2014");
@@ -576,6 +576,61 @@ error_log("done generate_test_data: $msg");
 
         $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["10.04.2014"], "mixed for 10.04.2014" );
         $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["11.04.2014"], "mixed for 11.04.2014" );
+    }
+
+    // create a new booking with a single allocation
+    // remove all dates from the allocation and save
+    // save should fail
+    public function testRemoveLastBookingDateFromAllocation() {
+
+        self::createTestBooking(
+            "single", 
+            "allocationWithNoDates", 
+            array( "M" => 1, "F" => 0, "X" => 0), // $numVisitors
+            118, // $resourceId = Puzzle Room
+            "12", // $reqRoomSize
+            "M", // $reqRoomType
+            array('08.04.2014'), // $dates
+            array("4")); // $resourceProps: 4 = '12 Bed Dorm'
+
+        // find the booking that was just created
+        $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            'checkin', 
+            null, // $resourceId
+            null, // $status, 
+            'allocationWithNoDates' // $matchName
+            );
+        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created");
+        
+        // verify booking summary query brings back the saved values
+        $bookingSummary = array_shift(array_values($bookingSummaryArr));
+
+        // load existing booking
+        $booking = new AddBooking();
+        $booking->load($bookingSummary->id);
+        $allocationArr = $this->queryByXPath('/editbooking/allocations/allocation[name="single-1"]', $booking->toXml());
+        $this->assertEquals(1, sizeof($allocationArr), "expecting 1 allocation with name 'single-1'");
+        $allocation = array_shift($allocationArr);
+
+        // toggle until unselected...
+        $rowid = (string)$allocation->rowid;
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $state = $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $this->assertEquals(null, $state, "expecting state on 08.04.2014 to be 'null'");
+
+        try {
+            $booking->save();
+            $this->assertFail( "Expecting save booking to fail..." );
+
+        } catch( AllocationException $ex ) {
+            $this->assertEquals( "At least one date must be specified for an allocation", 
+                $ex->getMessage(), "Allocation exception expected" );
+        }
     }
 
     /**

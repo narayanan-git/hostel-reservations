@@ -343,7 +343,7 @@ error_log("fetchResourcesUnderOneParentResource returning ".sizeof($result));
         // fetch allocation details
         $allocationRs = self::fetchAllocationForId($mysqli, $allocationId);
         $bookingId = $allocationRs->booking_id;
-        $bookingDates = self::fetchBookingDates($allocationId);
+        $bookingDates = self::fetchBookingDatesWithinTxn($mysqli, $allocationId);
         
         $auditMsg = "Deleting allocation $allocationId (".$allocationRs->guest_name.") assigned to ".$allocationRs->resource_name."
                      Booking Dates: ";
@@ -400,7 +400,7 @@ error_log(var_export($bookingDate, true));
 
         // resource conflict check implemented as a post insert db trigger
         if(false === $stmt->execute()) {
-            if ( false !== strpos( $mysqli->error, "Reservation conflicts" ) ) {
+            if ( strpos( $mysqli->error, "SANITY_CHECK_RESERVATION_CONFLICT_FOUND" ) ) {
                 throw new AllocationException( "Reservation conflicts with existing reservation" );
             }
             throw new DatabaseException("Error during INSERT: " . $mysqli->error);
@@ -449,7 +449,7 @@ error_log(var_export($bookingDate, true));
 error_log("mergeUpdateBookingDates $allocationId ");
 
         // first find the ones currently saved for this allocationId
-        $oldBookingDates = self::fetchBookingDates($allocationId);
+        $oldBookingDates = self::fetchBookingDatesWithinTxn($mysqli, $allocationId);
         
         // diff existing booking dates with the ones we want to save
         // if it exists in the old but not in the new, delete it
@@ -463,6 +463,9 @@ error_log(var_export(array($oldBookingDates, $bookingDates), true));
         
         // if it exists in both, update it
         self::updateBookingDates($mysqli, $allocationId, $oldBookingDates, $bookingDates);
+
+        // now verify that everything is still as it should be
+        self::validateAllocationDates($mysqli, $allocationId);
     }
     
     /**
@@ -564,6 +567,23 @@ error_log("updateBookingDates intersection ".var_export($bookingDates, true));
             // keep an audit trail...
             $auditMsg = "Updating dates for allocation $allocationId ($allocationRs->guest_name) and ".$allocationRs->resource_name.": " . $auditMsg;
             BookingDBO::insertBookingComment($mysqli, new BookingComment($allocationRs->booking_id, $auditMsg, BookingComment::COMMENT_TYPE_AUDIT));
+        }
+    }
+
+    /**
+     * Validates the booking dates for the given allocation.
+     * At the moment, it only checks that there is at least one allocation date 
+     * (including cancellations) for a given allocationId.
+     *
+     * $mysqli : database link (to enforce manual transaction handling)
+     * $allocationId : id of parent allocation record
+     * Throws AllocationException if no booking dates found for allocationId
+     */
+    static function validateAllocationDates($mysqli, $allocationId) {
+        $bookingDates = self::fetchBookingDatesWithinTxn($mysqli, $allocationId);
+
+        if( empty($bookingDates) ) {
+            throw new AllocationException( "At least one date must be specified for an allocation" );
         }
     }
     
@@ -898,6 +918,10 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
     
     /**
      * Returns a map of booking date (d.m.Y) -> BookingDate() for the given allocation id.
+     * This call uses the existing wp connection. I've left this in as otherwise, if i were
+     * to reuse fetchBookingDatesWithinTxn(), it would require setting up a new connection
+     * which is grossly inefficient.
+     *
      * $allocationId : existing allocation id
      * Returns array() of BookingDate indexed by booking date (String in format d.m.Y)
      */
@@ -905,7 +929,7 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
         global $wpdb;
 
         $resultset = $wpdb->get_results($wpdb->prepare(
-            "SELECT DATE_FORMAT(booking_date, '%%d.%%m.%%Y') AS booking_date, status, checked_out
+            "SELECT allocation_id, DATE_FORMAT(booking_date, '%%d.%%m.%%Y') AS booking_date, status, checked_out
                FROM ".$wpdb->prefix."bookingdates
               WHERE allocation_id = %d
               ORDER BY booking_date", $allocationId));
@@ -916,13 +940,47 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
 
         $return_val = array();
         foreach ($resultset as $res) {
-            $return_val[$res->booking_date] = new BookingDate(
-                    $allocationId, 
-                    DateTime::createFromFormat('!d.m.Y', $res->booking_date, new DateTimeZone('UTC')), 
-                    $res->status,
-                    $res->checked_out == 'Y' ? true : false);
+            $return_val[$res->booking_date] = self::buildBookingDate($res);
         }
         return $return_val;
+	}
+
+    /**
+     * Returns a map of booking date (d.m.Y) -> BookingDate() for the given allocation id.
+     * This method operates within the current transaction.
+     *
+     * $mysqli : database link (to enforce manual transaction handling)
+     * $allocationId : existing allocation id
+     * Returns array() of BookingDate indexed by booking date (String in format d.m.Y)
+     */
+    static function fetchBookingDatesWithinTxn($mysqli, $allocationId) {
+        global $wpdb;
+
+        $resultset = $mysqli->query(
+            "SELECT allocation_id, DATE_FORMAT(booking_date, '%d.%m.%Y') AS booking_date, status, checked_out
+               FROM ".$wpdb->prefix."bookingdates
+              WHERE allocation_id = $allocationId
+              ORDER BY booking_date");
+
+        $return_val = array();
+        while ( $res = $resultset->fetch_object() ) {
+            $return_val[$res->booking_date] = self::buildBookingDate($res);
+        }
+        $resultset->close();
+        return $return_val;
+    }
+
+    /**
+     * Builds a BookingDate object from a resultset.
+     * $rsObject : object return from resultset
+     * Returns non-null BookingDate()
+     */
+    private static function buildBookingDate( $rsObject ) {
+        return new BookingDate(
+            $rsObject->allocation_id, 
+            DateTime::createFromFormat('!d.m.Y', $rsObject->booking_date, new DateTimeZone('UTC')), 
+            $rsObject->status,
+            $rsObject->checked_out == 'Y' ? true : false);
     }
 
     /**

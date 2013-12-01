@@ -251,13 +251,13 @@ error_log("allocation table.save() : ".var_export(array(array_keys($oldAllocatio
             catch( Exception $e ) {
 error_log( "Update allocation row failed with exception: " . $e );
                 $alloc->isAvailable = false;
-                $failedAllocation = true;
+                $failedMessage = $e->getMessage();
             }
         }
         
-        // report business error if demand > supply
-        if ($failedAllocation) {
-            throw new AllocationException("One or more allocations did not have sufficient availability");
+        // report (the last) error if any of the rows failed to save
+        if ($failedMessage) {
+            throw new AllocationException( $failedMessage );
         }
     }
     
