@@ -35,7 +35,9 @@ abstract class XslTransform {
         if ($html = $xp->transformToXML($xml_doc)) {
             return $html;
         } else {
-            trigger_error('XSL transformation failed.', E_USER_ERROR);
+            //trigger_error('XSL transformation failed.', E_USER_ERROR);
+            error_log( "XSL transformation failed: " . $this->toXml() );
+            return 'XSL transformation failed.';
         } // if 
         return 'XSL transformation failed.';
     }

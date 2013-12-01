@@ -67,7 +67,7 @@ error_log("done generate_test_data: $msg");
             118, // $resourceId = Puzzle Room
             "12", // $reqRoomSize
             "M", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array("4")); // $resourceProps: 4 = '12 Bed Dorm'
     }
 
@@ -81,7 +81,7 @@ error_log("done generate_test_data: $msg");
             132, // $resourceId = Snow White...
             "10", // $reqRoomSize
             "X", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array()); // $resourceProps
     }
 
@@ -95,7 +95,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array()); // $resourceProps
 
         self::createTestBooking(
@@ -105,7 +105,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array()); // $resourceProps
     }
 
@@ -125,7 +125,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array()); // $resourceProps
 
         // doValidate() does not handle allocation errors
@@ -145,8 +145,8 @@ error_log("done generate_test_data: $msg");
 
         // verify saved contents
         $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
-            DateTime::createFromFormat('!Y-m-d', '2013-04-05'), 
-            DateTime::createFromFormat('!Y-m-d', '2013-04-05'), 
+            DateTime::createFromFormat('!Y-m-d', '2014-04-05'), 
+            DateTime::createFromFormat('!Y-m-d', '2014-04-05'), 
             'checkin', 
             null, // $resourceId
             null, // $status, 
@@ -166,7 +166,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('04.04.2013', '05.04.2013', '06.04.2013'), // $dates
+            array('04.04.2014', '05.04.2014', '06.04.2014'), // $dates
             array()); // $resourceProps
 
         self::createTestBooking(
@@ -176,7 +176,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('07.04.2013', '08.04.2013'), // $dates
+            array('07.04.2014', '08.04.2014'), // $dates
             array()); // $resourceProps
 
         // if the above allocate correctly, then we have space for 2 more for the 5-7 april
@@ -188,7 +188,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array()); // $resourceProps
     }
 
@@ -205,7 +205,7 @@ error_log("done generate_test_data: $msg");
             169, // $resourceId = Whisky
             "10+", // $reqRoomSize
             "F", // $reqRoomType
-            array('07.04.2013'), // $dates
+            array('07.04.2014'), // $dates
             array()); // $resourceProps
 
         // attempt to allocate more to room
@@ -222,7 +222,7 @@ error_log("done generate_test_data: $msg");
                 169, // $resourceId = Whisky
                 "10+", // $reqRoomSize
                 "F", // $reqRoomType
-                array('06.04.2013'), // $dates
+                array('06.04.2014'), // $dates
                 array()); // $resourceProps
 
             $this->assertFail( "Expecting addAllocation to fail..." );
@@ -243,21 +243,21 @@ error_log("done generate_test_data: $msg");
             132, // $resourceId = Snow White...
             "10", // $reqRoomSize
             null, // $reqRoomType
-            array('07.04.2013', '08.04.2013', '09.04.2013'), // $dates
+            array('07.04.2014', '08.04.2014', '09.04.2014'), // $dates
             array()); // $resourceProps
 
         // verify derived room type for the given dates
         $resourceIdDateRoomToRoomType = AllocationDBO::getDerivedRoomTypesForDates( 
-            DateTime::createFromFormat('!d.m.Y', "04.04.2013"), 
-            DateTime::createFromFormat('!d.m.Y', "10.04.2013"));
+            DateTime::createFromFormat('!d.m.Y', "04.04.2014"), 
+            DateTime::createFromFormat('!d.m.Y', "10.04.2014"));
 
-        $this->assertEquals( null, $resourceIdDateRoomToRoomType[132]["04.04.2013"], "no room type for 04.04.2013" );
-        $this->assertEquals( "FX", $resourceIdDateRoomToRoomType[132]["05.04.2013"], "female/mixed for 05.04.2013" );
-        $this->assertEquals( "FX", $resourceIdDateRoomToRoomType[132]["06.04.2013"], "female/mixed for 06.04.2013" );
-        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["07.04.2013"], "mixed for 07.04.2013" );
-        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["08.04.2013"], "mixed for 08.04.2013" );
-        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["09.04.2013"], "mixed for 09.04.2013" );
-        $this->assertEquals( null, $resourceIdDateRoomToRoomType[132]["10.04.2013"], "no room type for 10.04.2013" );
+        $this->assertEquals( null, $resourceIdDateRoomToRoomType[132]["04.04.2014"], "no room type for 04.04.2014" );
+        $this->assertEquals( "FX", $resourceIdDateRoomToRoomType[132]["05.04.2014"], "female/mixed for 05.04.2014" );
+        $this->assertEquals( "FX", $resourceIdDateRoomToRoomType[132]["06.04.2014"], "female/mixed for 06.04.2014" );
+        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["07.04.2014"], "mixed for 07.04.2014" );
+        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["08.04.2014"], "mixed for 08.04.2014" );
+        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["09.04.2014"], "mixed for 09.04.2014" );
+        $this->assertEquals( null, $resourceIdDateRoomToRoomType[132]["10.04.2014"], "no room type for 10.04.2014" );
     }
 
     // create a booking specifying a group rather than a room/bed.
@@ -270,7 +270,7 @@ error_log("done generate_test_data: $msg");
             131, // $resourceId = 10 Bed Dorms
             "10", // $reqRoomSize
             "X", // $reqRoomType
-            array('07.04.2013'), // $dates
+            array('07.04.2014'), // $dates
             array()); // $resourceProps
 
         // they should've been assigned to the first room in the group, 132: Snow White...
@@ -278,7 +278,7 @@ error_log("done generate_test_data: $msg");
             132, // $resourceId = Snow White...
             1, // $numGuests
             "X", // $reqRoomType
-            array('07.04.2013'), // $bookingDates
+            array('07.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array() ); // $resourceProps
 
@@ -296,7 +296,7 @@ error_log("done generate_test_data: $msg");
             131, // $resourceId = 10 Bed Dorms
             "10", // $reqRoomSize
             "X", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013', '08.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014', '08.04.2014'), // $dates
             array()); // $resourceProps
 
         // they should've been assigned to the next room in the group, 194: Beetles...
@@ -305,7 +305,7 @@ error_log("done generate_test_data: $msg");
             132, // $resourceId = Snow White...
             1, // $numGuests
             "X", // $reqRoomType
-            array('07.04.2013'), // $bookingDates
+            array('07.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array() ); // $resourceProps
 
@@ -315,7 +315,7 @@ error_log("done generate_test_data: $msg");
             194, // $resourceId = Beetles
             1, // $numGuests
             "X", // $reqRoomType
-            array('07.04.2013'), // $bookingDates
+            array('07.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array() ); // $resourceProps
 
@@ -331,15 +331,15 @@ error_log("done generate_test_data: $msg");
             131, // $resourceId = 10 Bed Dorms
             "10", // $reqRoomSize
             "X", // $reqRoomType
-            array('05.04.2013', '06.04.2013', '07.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014', '07.04.2014'), // $dates
             array()); // $resourceProps
 
         // at the moment, just verify this saved correctly
         // it's not very clever at the moment, this will not
         // attempt to minimize the number of rooms
         $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
-            DateTime::createFromFormat('!d.m.Y', '05.04.2013'), 
-            DateTime::createFromFormat('!d.m.Y', '05.04.2013'), 
+            DateTime::createFromFormat('!d.m.Y', '05.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '05.04.2014'), 
             'checkin', // $dateMatchType
             null, // $resourceId,
             null, // $status 
@@ -361,14 +361,14 @@ error_log("done generate_test_data: $msg");
             216, // $resourceId = Privates
             "P", // $reqRoomSize
             null, // $reqRoomType
-            array('05.04.2013', '06.04.2013'), // $dates
+            array('05.04.2014', '06.04.2014'), // $dates
             array( 8 )); // $resourceProps = Double Room
 
         $freeBedIds = AllocationDBO::fetchAvailableBeds( 
             217, // $resourceId = Double Room
             1, // $numGuests
             null, // $reqRoomType
-            array('05.04.2013', '06.04.2013'), // $bookingDates
+            array('05.04.2014', '06.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array() ); // $resourceProps
 
@@ -384,14 +384,14 @@ error_log("done generate_test_data: $msg");
             216, // $resourceId = Privates
             "P", // $reqRoomSize
             null, // $reqRoomType
-            array('07.04.2013'), // $dates
+            array('07.04.2014'), // $dates
             array( 8 )); // $resourceProps = Double Room
 
         $freeBedIds = AllocationDBO::fetchAvailableBeds( 
             216, // $resourceId = Privates
             1, // $numGuests
             null, // $reqRoomType
-            array('07.04.2013'), // $bookingDates
+            array('07.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array( 8 ) ); // $resourceProps = Double Room
 
@@ -408,14 +408,14 @@ error_log("done generate_test_data: $msg");
             217, // $resourceId = Double Room
             "P", // $reqRoomSize
             null, // $reqRoomType
-            array('07.04.2013'), // $dates
+            array('07.04.2014'), // $dates
             array()); // $resourceProps
 
         $freeBedIds = AllocationDBO::fetchAvailableBeds( 
             216, // $resourceId = Privates
             1, // $numGuests
             null, // $reqRoomType
-            array('07.04.2013'), // $bookingDates
+            array('07.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array( 8 ) ); // $resourceProps = Double Room
 
@@ -439,7 +439,7 @@ error_log("done generate_test_data: $msg");
                 217, // $resourceId = Double Room
                 "P", // $reqRoomSize
                 null, // $reqRoomType
-                array('07.04.2013'), // $dates
+                array('07.04.2014'), // $dates
                 array()); // $resourceProps
 
             $this->assertFail( "Expecting addAllocation to fail..." );
@@ -456,8 +456,8 @@ error_log("done generate_test_data: $msg");
         
         // extend the current booking in testCreatePrivateBookingForDouble() for one person
         $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
-            DateTime::createFromFormat('!d.m.Y', '05.04.2013'), 
-            DateTime::createFromFormat('!d.m.Y', '05.04.2013'), 
+            DateTime::createFromFormat('!d.m.Y', '05.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '05.04.2014'), 
             'checkin', 
             null, // $resourceId
             null, // $status, 
@@ -477,7 +477,7 @@ error_log("done generate_test_data: $msg");
 
         // extend booking by 1 day but only for 1 bed into next booking...
         $rowid = (string)$allocation->rowid;
-        $booking->toggleBookingStateAt($rowid, "07.04.2013");
+        $booking->toggleBookingStateAt($rowid, "07.04.2014");
 
         try {
             $booking->save();
@@ -487,6 +487,95 @@ error_log("done generate_test_data: $msg");
             $this->assertEquals( "One or more allocations did not have sufficient availability", 
                 $ex->getMessage(), "Allocation exception expected" );
         }
+    }
+
+    // create a booking into a mixed dorm
+    // cancel booking
+    // create a new booking into the same room
+    public function testCancellationNoShowInDormStillBookable() {
+
+        self::createTestBooking(
+            "NoShowFemales", 
+            "FemalesInMixedDorm", 
+            array( "M" => 0, "F" => 2, "X" => 0), // $numVisitors
+            132, // $resourceId = Snow White...
+            "10", // $reqRoomSize
+            null, // $reqRoomType
+            array('09.04.2014', '10.04.2014'), // $dates
+            array()); // $resourceProps
+
+        // verify derived room type for the given dates
+        $resourceIdDateRoomToRoomType = AllocationDBO::getDerivedRoomTypesForDates( 
+            DateTime::createFromFormat('!d.m.Y', "09.04.2014"), 
+            DateTime::createFromFormat('!d.m.Y', "10.04.2014"));
+
+        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["09.04.2014"], "mixed for 09.04.2014" );
+        $this->assertEquals( "FX", $resourceIdDateRoomToRoomType[132]["10.04.2014"], "female/mixed for 10.04.2014" );
+
+        $freeBedIds = AllocationDBO::fetchAvailableBeds( 
+            132, // $resourceId = Snow White...
+            1, // $numGuests
+            null, // $reqRoomType
+            array('09.04.2014', '10.04.2014'), // $bookingDates
+            array(), // $excludedResourceIds
+            array() ); // $resourceProps
+
+        $this->assertEquals( 6, sizeof($freeBedIds), "Expecting 6 free beds in Snow White room");
+
+        // find the booking that was just created
+        $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
+            DateTime::createFromFormat('!d.m.Y', '09.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '09.04.2014'), 
+            'checkin', 
+            null, // $resourceId
+            null, // $status, 
+            'FemalesInMixedDorm' // $matchName
+            );
+        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created from earlier test");
+        
+        // verify booking summary query brings back the saved values
+        $bookingSummary = array_shift(array_values($bookingSummaryArr));
+
+        // load existing booking
+        $booking = new AddBooking();
+        $booking->load($bookingSummary->id);
+        $allocationArr = $this->queryByXPath('/editbooking/allocations/allocation[name="NoShowFemales-1"]', $booking->toXml());
+        $this->assertEquals(1, sizeof($allocationArr), "expecting 1 allocation with name 'NoShowFemales-1'");
+        $allocation = array_shift($allocationArr);
+
+        // extend booking by 1 day but only for 1 bed into next booking...
+        $rowid = (string)$allocation->rowid;
+        $booking->toggleBookingStateAt($rowid, "09.04.2014");
+        $booking->toggleBookingStateAt($rowid, "09.04.2014");
+        $booking->toggleBookingStateAt($rowid, "09.04.2014");
+        $state = $booking->toggleBookingStateAt($rowid, "09.04.2014");
+        $this->assertEquals("cancelled", $state, "expecting state on 09.04.2014 to be 'cancelled'");
+
+        $booking->toggleBookingStateAt($rowid, "10.04.2014");
+        $booking->toggleBookingStateAt($rowid, "10.04.2014");
+        $booking->toggleBookingStateAt($rowid, "10.04.2014");
+        $state = $booking->toggleBookingStateAt($rowid, "10.04.2014");
+        $this->assertEquals("cancelled", $state, "expecting state on 10.04.2014 to be 'cancelled'");
+        $booking->save();
+
+        // i should be able to fit 9 more people on the 10/11 of April
+        self::createTestBooking(
+            "FillUpTheRoom", 
+            "WithMaxOccupants", 
+            array( "M" => 5, "F" => 4, "X" => 0), // $numVisitors
+            132, // $resourceId = Snow White...
+            "10", // $reqRoomSize
+            null, // $reqRoomType
+            array('10.04.2014', '11.04.2014'), // $dates
+            array()); // $resourceProps
+
+        // verify derived room type for the given dates
+        $resourceIdDateRoomToRoomType = AllocationDBO::getDerivedRoomTypesForDates( 
+            DateTime::createFromFormat('!d.m.Y', "10.04.2014"), 
+            DateTime::createFromFormat('!d.m.Y', "11.04.2014"));
+
+        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["10.04.2014"], "mixed for 10.04.2014" );
+        $this->assertEquals( "X", $resourceIdDateRoomToRoomType[132]["11.04.2014"], "mixed for 11.04.2014" );
     }
 
     /**

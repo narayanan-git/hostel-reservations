@@ -586,6 +586,7 @@ error_log(var_export($_POST, TRUE));
                   JOIN ".$wpdb->prefix."bookingresources pr ON r.parent_resource_id = pr.resource_id AND pr.resource_type = 'room'
                   JOIN ".$wpdb->prefix."allocation a ON a.resource_id = r.resource_id
                   JOIN ".$wpdb->prefix."bookingdates bd ON a.allocation_id = bd.allocation_id
+                 WHERE bd.status <> 'cancelled'
                  GROUP BY r.parent_resource_id, bd.booking_date, pr.room_type
                  ORDER BY r.parent_resource_id, bd.booking_date";
 
@@ -637,6 +638,7 @@ error_log(var_export($_POST, TRUE));
                       FROM ".$wpdb->prefix."bookingdates bd
                       JOIN ".$wpdb->prefix."allocation alloc ON bd.allocation_id = alloc.allocation_id
                      WHERE bd.booking_date = NEW.booking_date
+                       AND bd.status <> 'cancelled'
                        AND alloc.resource_id = p_resource_id;
 
                     IF p_distinct_ids > 1 THEN
@@ -655,6 +657,7 @@ error_log(var_export($_POST, TRUE));
                          WHERE parent_res.resource_type = 'private'
                            AND parent_res.resource_id = p_parent_resource_id
                            AND bd.booking_date = NEW.booking_date
+                           AND bd.status <> 'cancelled'
                          GROUP BY parent_res.resource_id, bd.booking_date;
 
                         IF p_distinct_ids > 1 THEN

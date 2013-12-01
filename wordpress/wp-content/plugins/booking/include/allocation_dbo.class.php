@@ -97,7 +97,8 @@ class AllocationDBO {
                         SELECT 1 FROM ".$wpdb->prefix."bookingdates dt 
                           JOIN ".$wpdb->prefix."allocation a ON dt.allocation_id = a.allocation_id
                          WHERE dt.booking_date IN ($bookingDatesString)
-                           AND a.resource_id = p.resource_id)
+                           AND a.resource_id = p.resource_id
+                           AND dt.status <> 'cancelled')
                 -- if we are looking at a private room, only include beds where ALL beds are available for the given date(s)
                 AND ((p2.resource_type <> 'private'    -- shared dorm
                       AND -- room type must match based on the type of room or the people inside it
@@ -117,6 +118,7 @@ class AllocationDBO {
                                   JOIN ".$wpdb->prefix."mv_resources_by_path pp ON a.resource_id = pp.resource_id
                                  WHERE pp.parent_resource_id = p.parent_resource_id
                                    AND bd.booking_date IN ($bookingDatesString)
+                                   AND bd.status <> 'cancelled'
                             )
                        )
                     )
@@ -622,8 +624,10 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
 
         foreach ($resultset as $res) {
             foreach (self::fetchBookingDates($res->allocation_id) as $bookingDate => $bdObj) {
-                $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
-                    new AllocationCell($res->allocation_id, $res->booking_id, $res->guest_name, $res->gender, $bdObj->status, null, $bdObj->checkedOut);
+                if ( $bdObj->status !== "cancelled" ) {
+                    $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
+                        new AllocationCell($res->allocation_id, $res->booking_id, $res->guest_name, $res->gender, $bdObj->status, null, $bdObj->checkedOut);
+                }
             }
         }
         

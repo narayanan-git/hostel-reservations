@@ -7,6 +7,10 @@
 //*****************************************************************************
 -->
 
+<xsl:template match="comments[not(comment)]">
+  <xsl:comment>There are no comments</xsl:comment>
+</xsl:template>
+
 <xsl:template match="comment">
     <p><xsl:value-of select="createdDate"/> [<xsl:value-of select="createdBy"/>]: <xsl:value-of select="value"/></p>
 </xsl:template>
