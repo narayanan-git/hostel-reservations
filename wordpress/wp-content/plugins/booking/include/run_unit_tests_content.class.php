@@ -633,6 +633,99 @@ error_log("done generate_test_data: $msg");
         }
     }
 
+    // create a booking for a double room
+    // cancel the booking
+    // create a new booking for the same room and dates
+    // booking should succeed
+    public function testCreatePrivateBookingOverCancelledRoomShouldSucceed() {
+
+        self::createTestBooking(
+            "private", 
+            "privatebooking-cancelled", 
+            array( "M" => 0, "F" => 0, "X" => 2), // $numVisitors
+            221, // $resourceId = Romeo and Juliet
+            "P", // $reqRoomSize
+            null, // $reqRoomType
+            array('08.04.2014'), // $dates
+            array()); // $resourceProps
+
+        // find the booking that was just created
+        $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            'checkin', 
+            null, // $resourceId
+            null, // $status, 
+            'privatebooking-cancelled' // $matchName
+            );
+        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created");
+        
+        // verify booking summary query brings back the saved values
+        $bookingSummary = array_shift(array_values($bookingSummaryArr));
+
+        // load existing booking
+        $booking = new AddBooking();
+        $booking->load($bookingSummary->id);
+        $allocationArr = $this->queryByXPath('/editbooking/allocations/allocation[name="private-1"]', $booking->toXml());
+        $this->assertEquals(1, sizeof($allocationArr), "expecting 1 allocation with name 'private-1'");
+        $allocation = array_shift($allocationArr);
+
+        // toggle until cancelled
+        $rowid = (string)$allocation->rowid;
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $state = $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $this->assertEquals('cancelled', $state, "expecting state on 08.04.2014 to be 'cancelled'");
+
+        $allocationArr = $this->queryByXPath('/editbooking/allocations/allocation[name="private-2"]', $booking->toXml());
+        $this->assertEquals(1, sizeof($allocationArr), "expecting 1 allocation with name 'private-2'");
+        $allocation = array_shift($allocationArr);
+
+        // toggle until cancelled
+        $rowid = (string)$allocation->rowid;
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $state = $booking->toggleBookingStateAt($rowid, "08.04.2014");
+        $this->assertEquals('cancelled', $state, "expecting state on 08.04.2014 to be 'cancelled'");
+
+        $booking->save();
+
+        // find the booking that was just cancelled
+        $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            'checkin', 
+            null, // $resourceId
+            'cancelled', // $status, 
+            'privatebooking-cancelled' // $matchName
+            );
+        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 cancelled booking");
+
+        // create new booking overlapping the cancelled booking above
+        self::createTestBooking(
+            "overlap", 
+            "privatebooking-overlaps-cancelled", 
+            array( "M" => 1, "F" => 1, "X" => 0), // $numVisitors
+            221, // $resourceId = Romeo and Juliet
+            "P", // $reqRoomSize
+            null, // $reqRoomType
+            array('08.04.2014', '09.04.2014'), // $dates
+            array()); // $resourceProps
+
+        // find the booking that was just created
+        $bookingSummaryArr = BookingDBO::getBookingsForDateRange(
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            DateTime::createFromFormat('!d.m.Y', '08.04.2014'), 
+            'checkin', 
+            null, // $resourceId
+            null, // $status, 
+            'privatebooking-overlaps-cancelled' // $matchName
+            );
+        $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created");
+    }
+
     /**
      * Create a sample booking and verify it is saved correctly.
      *
