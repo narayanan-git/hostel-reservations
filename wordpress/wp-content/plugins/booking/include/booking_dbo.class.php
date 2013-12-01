@@ -272,7 +272,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
                           JOIN ".$wpdb->prefix."bookingdates bd ON bd.allocation_id = al.allocation_id
                          WHERE 1 = 1 
                                ".($resourceId == null ? "" : " AND al.resource_id = %d")."
-                               ".($status == 'all' ? "" : " AND al.status = %s")."
+                               ".($status == 'all' ? "" : " AND bd.status = %s")."
                                ".($matchNameSql == null ? "" : 
                                     " AND (LOWER(bk.firstname) LIKE %s OR
                                            LOWER(bk.lastname) LIKE %s OR
@@ -292,7 +292,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
                     JOIN ".$wpdb->prefix."bookingdates bd ON bd.allocation_id = al.allocation_id
                    WHERE 1 = 1
                          ".($resourceId == null ? "" : "AND al.resource_id = %d")."
-                         ".($status == 'all' ? "" : "AND al.status = %s")."
+                         ".($status == 'all' ? "" : "AND bd.status = %s")."
                          ".($matchNameSql == null ? "" : 
                             " AND (LOWER(bk.firstname) LIKE %s OR
                                    LOWER(bk.lastname) LIKE %s OR
@@ -308,7 +308,7 @@ error_log("insertBookingComment $bookingComment->bookingId  $bookingComment->com
                       JOIN ".$wpdb->prefix."allocation al ON bk.booking_id = al.booking_id
                      WHERE 1 = 1
                            ".($resourceId == null ? "" : "AND al.resource_id = %d")."
-                           ".($status == 'all' ? "" : "AND al.status = %s")."
+                           ".($status == 'all' ? "" : "AND bd.status = %s")."
                            ".($matchNameSql == null ? "" : 
                              " AND (LOWER(bk.firstname) LIKE %s OR
                                     LOWER(bk.lastname) LIKE %s OR
