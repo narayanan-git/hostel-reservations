@@ -11,7 +11,7 @@ class AllocationDBO {
      * have availability for *ALL* those dates. 
      * $resourceId  : id of resource id to get availability (null for all)
      * $numGuests : number of guests (attempt to fit this many persons into the same room if possible)
-     * $reqRoomTypes : array of requested room type (M/F/X/MX/FX)
+     * $reqRoomType : array of requested room type (M/F/X/MX/FX)
      * $bookingDates : array() of booking dates in format d.m.Y
      * $excludedResourceIds : array() of resource ids; do not include these resource ids in the response
      * $resourceProps : array of resource property ids (allocate only to resources with these properties)
@@ -73,10 +73,21 @@ class AllocationDBO {
         // 
         // if $reqRoomType = 'M' search for 'M' and 'MX' with 'MX' sorted to the end
         // if $reqRoomType = 'F' search for 'F' and 'FX' with 'FX' sorted to the end
+        // if $reqRoomType = 'X' search for 'MX', 'X', 'FX' with 'X' sorted first
+        // $allowableRoomTypes are fixed room types that this allocation can go into
+        $allowableRoomTypes = array($reqRoomType);  
         if ($reqRoomType == 'M') {
             $reqRoomTypes = array('M', 'MX');
         } else if ($reqRoomType == 'F') {
             $reqRoomTypes = array('F', 'FX');
+        } else if ($reqRoomType == 'X') {
+            $reqRoomTypes = array('MX', 'FX', 'X');
+        } else if ($reqRoomType == 'MX') {
+            $reqRoomTypes = array('MX', 'X');
+            $allowableRoomTypes = array('M', 'X'); // can go into a male only or mixed dorm
+        } else if ($reqRoomType == 'FX') {
+            $reqRoomTypes = array('FX', 'X');
+            $allowableRoomTypes = array('F', 'X'); // can go into a female only or mixed dorm
         } else {
             $reqRoomTypes = array($reqRoomType);
         }
@@ -87,6 +98,7 @@ class AllocationDBO {
         $bookingDatesString = rtrim($bookingDatesString, ',');
 
         // this will bring back all beds that have no allocations for any of the dates given
+        // i realise this is a whole lot of mess .. will need to clean this up somehow
         $BASE_QUERY =
             "  FROM ".$wpdb->prefix."mv_resources_by_path p 
                LEFT OUTER JOIN ".$wpdb->prefix."mv_resources_by_path p2 ON p.parent_resource_id = p2.resource_id
@@ -103,11 +115,12 @@ class AllocationDBO {
                 AND ((p2.resource_type <> 'private'    -- shared dorm
                       AND -- room type must match based on the type of room or the people inside it
                           -- double negation (NOT EXISTS... NOT IN...) so we catch case where no entry exists in v_derived_room_types
-                            (p2.room_type IS NULL OR p2.room_type = '".$reqRoomType."' OR NOT EXISTS(
-                                SELECT 1 FROM ".$wpdb->prefix."v_derived_room_types rt 
-                                 WHERE p2.resource_id = rt.parent_resource_id
-                                   AND rt.derived_room_type NOT IN ('" . implode("','", $reqRoomTypes) . "')
-                                   AND rt.booking_date IN ($bookingDatesString)
+                            ((p2.room_type IS NULL OR p2.room_type IN ('" . implode("','", $allowableRoomTypes) . "')) 
+                                AND NOT EXISTS(
+                                    SELECT 1 FROM ".$wpdb->prefix."v_derived_room_types rt 
+                                     WHERE p2.resource_id = rt.parent_resource_id
+                                       AND rt.derived_room_type NOT IN ('" . implode("','", $reqRoomTypes) . "')
+                                       AND rt.booking_date IN ($bookingDatesString)
                             ))
                     ) 
                     OR (p2.resource_type = 'private' -- or private room
@@ -136,7 +149,7 @@ class AllocationDBO {
                  ON s.parent_resource_id = t.parent_resource_id
               ORDER BY 
                 -- if roomType matches reqRoomType, these are sorted first (followed by rooms using derived room types)
-                (CASE WHEN t.room_type IS NULL OR t.room_type = '".$reqRoomType."' THEN 0 ELSE 1 END),
+                (CASE WHEN t.room_type IS NULL OR t.room_type IN ('" . implode("','", $allowableRoomTypes) . "') THEN 0 ELSE 1 END),
                 -- if we can fit numGuests into the same room, then this room has precedence
                 (CASE WHEN s.the_count >= $numGuests THEN t.parent_resource_id ELSE (SELECT MAX(resource_id) FROM ".$wpdb->prefix."bookingresources) + t.parent_resource_id END),
                 t.resource_id";
@@ -645,13 +658,15 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
         foreach ($resultset as $res) {
             foreach (self::fetchBookingDates($res->allocation_id) as $bookingDate => $bdObj) {
                 if ( $bdObj->status !== "cancelled" ) {
+error_log( 'processing ' . $bookingDate );
                     $resourceToBookingDateAllocationMap[$res->resource_id][$bookingDate] = 
                         new AllocationCell($res->allocation_id, $res->booking_id, $res->guest_name, $res->gender, $bdObj->status, null, $bdObj->checkedOut);
                 }
             }
         }
         
-//error_log('processed allocations and dates, building resource tree');
+error_log('processed allocations and dates, building resource tree');
+error_log( var_export( $resourceToBookingDateAllocationMap, TRUE ));
         $return_val = self::buildResourceTree($startDate, $endDate, $resourceId, $resourceToBookingDateAllocationMap);
 //error_log('END getAllocationsByResourceForDateRange');
         return $return_val;
@@ -673,6 +688,7 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
 
         // another 2D map, to store the final allocation "cells"
         $resourceBookingDateMap = array();
+error_log('building resource tree');
         
         $resourceMap = ResourceDBO::getAllResources($filteredResourceId);
         foreach (array_keys($resourceMap) as $resourceId) {
@@ -681,7 +697,7 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
             while ($start <= $endDate) {
                 if(isset($resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')])) {
                     $allocCell = $resourceToBookingDateAllocationMap[$resourceId][$start->format('d.m.Y')];
-                    
+
                     $allocCell->renderState = self::getRenderStateForAllocation(
                         $resourceToBookingDateAllocationMap, $resourceId, $start);
 
@@ -694,13 +710,17 @@ error_log("getAllocationsByResourceForDateRange " . $wpdb->last_query);
                     }
 
                     $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = $allocCell;
+error_log( "allocated cell on ".$start->format('d.m.Y').": " . var_export($allocCell, true));
 
                 } else { // allocation doesn't exist for date, place empty cell
                     $resourceBookingDateMap[$resourceId][$start->format('d.m.Y')] = new AllocationCell();
+error_log( 'allocated empty cell for: ' . $start->format('d.m.Y'));
                 }
                 $start->add(new DateInterval('P1D'));  // increment by day
             }
         }
+
+error_log( var_export( $resourceBookingDateMap, TRUE ));
 
         // yet another 2D map, to store the derived room types when resource_type = 'room'
         $derivedRoomTypes = self::getDerivedRoomTypesForDates($startDate, $endDate);

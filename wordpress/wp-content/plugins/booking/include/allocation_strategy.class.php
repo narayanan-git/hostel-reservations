@@ -81,7 +81,17 @@ error_log($alloc->resourceId ." has this many children : ".$this->resourceMap[$a
 
             // if "parent" node, we need to assign a specific leaf (bed)
             if ($alloc->resourceId == null || $this->resourceMap[$alloc->resourceId]->number_children > 0) {
-                $this->allocateResources($alloc->resourceId, $reqRoomType, $bookingDates, $resourceProps, $existingAllocationRows, $newAllocations);
+
+                // if the requested room type is mixed, then we can find available beds for (FX/X) or (MX/X) if
+                // the group is all female or all male. otherwise, keep as mixed.
+                $allowableRoomTypes = $reqRoomType;
+                if( $reqRoomType == 'X' && $numGuests['F'] == 0 && $numGuests['X'] == 0 ) {
+                    $allowableRoomTypes = 'MX';
+                } else if( $reqRoomType == 'X' && $numGuests['M'] == 0 && $numGuests['X'] == 0 ) {
+                    $allowableRoomTypes = 'FX';
+                }
+
+                $this->allocateResources($alloc->resourceId, $allowableRoomTypes, $dates, $resourceProps, $existingAllocationRows, $newAllocations);
             }
 
 /*
@@ -118,8 +128,7 @@ error_log("found resource ids ".implode(',', array_keys($reservedResourceIds)));
      * Assigns all allocation rows matching $resourceId with a specific leaf-level resource (bed)
      * based on current availability, requested room type and existing allocations.
      * $resourceId : id of (parent) resource to update
-     * $numGuests : total number of unallocated guests (try and fit in the same room if possible)
-     * $reqRoomType : requested room type (M/F/X)
+     * $reqRoomType : requested room type (M/F/X/MX/FX)
      * $bookingDates : array() of booking dates in format d.M.y
      * $resourceProps : array of resource property ids (allocate only to resources with these properties)
      * $allocationRows : array() of current AllocationRows
@@ -293,7 +302,7 @@ error_log("exit fetchAvailableCapacity ".sizeof($resultMap));
     /**
      * Collect all dates for all allocations sharing the specified resourceId and requested room type.
      * $resourceId : id of parent resource id to filter on (null for any)
-     * $reqRoomType : requested room type (M/F/X)
+     * $reqRoomType : requested room type (M/F/X/MX/FX)
      * $allocationRows : array() of AllocationRow
      * $bookingDates : reference to array() to save booking dates with matching $resourceId
      * Returns : array() of unique booking dates (DateTime)
@@ -302,7 +311,11 @@ error_log("exit fetchAvailableCapacity ".sizeof($resultMap));
         $bookingDates = array();
         foreach ($allocationRows as $alloc) {
             if ($alloc->resourceId === $resourceId || $resourceId == null) {
-                if ($reqRoomType == $alloc->reqRoomType) {
+
+                // find $alloc->reqRoomType could be M/F/X
+                // use stripos() to match MX with M or X, FX with F or X
+error_log( "stricmp $reqRoomType  with  $alloc->reqRoomType ");
+                if (stripos($reqRoomType, $alloc->reqRoomType) !== false) {
                     $bookingDates = array_merge($bookingDates, $alloc->getBookingDates());
                 }
             }

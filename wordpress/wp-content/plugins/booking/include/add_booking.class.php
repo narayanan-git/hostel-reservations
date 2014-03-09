@@ -35,7 +35,8 @@ class AddBooking extends XslTransform {
      */
     function addAllocation($numVisitors, $resourceId, $reqRoomSize, $reqRoomType, $dates, $resourceProps) {
 error_log("addAllocation $resourceId ".var_export($numVisitors, true));
-        $this->allocationTable->addAllocation($this->firstname, $numVisitors, $resourceId, $reqRoomSize, $reqRoomType, $dates, $resourceProps);
+        $this->allocationTable->addAllocation($this->firstname, $numVisitors, $resourceId, 
+            $reqRoomSize, $reqRoomType == null ? "X" : $reqRoomType, $dates, $resourceProps);
         
         if($this->allocationTable->showMinDate == null || $this->allocationTable->showMaxDate == null) {
             $this->allocationTable->setDefaultMinMaxDates();

@@ -54,6 +54,89 @@ class BookingResource extends XslTransform {
     }
 
     /**
+     * Returns the allocation cells assigned for this resource.
+     */
+    function getAllocationCells() {
+        return $this->allocationCells;
+    }
+
+    /**
+     * Updates the renderState for each of the allocation cells
+     * for the given resource. The allocationCells must be initialized
+     * before calling this method.
+     */
+    function updateRenderStateForAllocations() {
+
+        foreach( $this->allocationCells as $bookingDate => $allocCell ) {
+            $dt = DateTime::createFromFormat('!d.m.Y', $bookingDate, new DateTimeZone('UTC'));
+            $allocCell->renderState = $this->getRenderStateForAllocation($dt);
+
+            // if we are continuing an existing record, blank out name/gender so we don't display it
+            // reduces the amount of xml we generate as well
+            if( key($this->allocationCells) !== $bookingDate // not the first cell (display name if we are continuing from off the screen)
+                    && ($allocCell->renderState == 'rounded_right' || $allocCell->renderState == 'rounded_neither')) {
+                $allocCell->name = '';
+                $allocCell->gender = '';
+            }
+        }
+    }
+
+    /**
+     * Since we're trying to display all allocations in a grid, for each contiguous allocation, we will try to
+     * display the "ends" of the allocation with rounded corners. This will return either 
+     * "rounded_left", "rounded_right", "rounded_both", or "rounded_neither"
+     * depending on whether there are allocations on the day before and/or day after the given date.
+     * $forDate : current date to get state of
+     * Returns one of:
+     * rounded_left: allocation exists on day after but not day before
+     * rounded_right: allocation exists on day before but not day after
+     * rounded_both: no allocation exists on day before NOR after
+     * rounded_neither: allocation exists on day before AND on day after
+     */
+    private function getRenderStateForAllocation($forDate) {
+        $daybefore = clone $forDate;
+        $daybefore->sub(new DateInterval('P1D'));  // decrement by day
+        $dayafter = clone $forDate;
+        $dayafter->add(new DateInterval('P1D'));  // increment by day
+
+        // check if we share the same allocationId on the day before or on the day after
+        $allocationId = $this->getAllocationCell($forDate)->id;
+
+        $allocCellDayBefore = $this->getAllocationCell($resourceId, $daybefore);
+        $allocCellDayAfter = $this->getAllocationCell($resourceId, $dayafter);
+        
+        if ( $allocCellDayBefore != null && $allocCellDayBefore->id == $allocationId) {
+
+            if ( $allocCellDayAfter != null && $allocCellDayAfter->id == $allocationId) {
+                return "rounded_neither";
+            } else {
+                return "rounded_right";
+            }
+
+        } else {
+
+            if ( $allocCellDayAfter != null && $allocCellDayAfter->id == $allocationId) {
+                return "rounded_left";
+            } else {
+                return "rounded_both";
+            }
+        }
+    }
+
+    /**
+     * Returns the allocation cell for the given resourceId and booking date.
+     *
+     * $bookingDate : datetime of booking
+     * Returns allocation cell (or null if no allocation found)
+     */
+    function getAllocationCell( $bookingDate ) {
+        if( isset( $this->allocationCells[$bookingDate->format('d.m.Y')] )) {
+            return $this->allocationCells[$bookingDate->format('d.m.Y')];
+        }
+        return null;
+    }
+
+    /**
      * Sets the derived room types based on current allocations
      * if the resource type for this booking resource = 'room'.
      * Derived room types can be 'M', 'F', or 'X'

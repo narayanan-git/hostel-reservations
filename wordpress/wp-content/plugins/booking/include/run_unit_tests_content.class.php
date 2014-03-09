@@ -515,7 +515,7 @@ error_log("done generate_test_data: $msg");
         $freeBedIds = AllocationDBO::fetchAvailableBeds( 
             132, // $resourceId = Snow White...
             1, // $numGuests
-            null, // $reqRoomType
+            "X", // $reqRoomType
             array('09.04.2014', '10.04.2014'), // $bookingDates
             array(), // $excludedResourceIds
             array() ); // $resourceProps
@@ -724,6 +724,25 @@ error_log("done generate_test_data: $msg");
             'privatebooking-overlaps-cancelled' // $matchName
             );
         $this->assertEquals(1, sizeof($bookingSummaryArr), "Expecting 1 booking created");
+    }
+
+    // create a new booking with a double allocation and verify it saves
+    public function testAddBookingFemaleIntoMaleOnlyRoomShouldFail() {
+        try {
+            self::createTestBooking(
+                "female", 
+                "testAddBookingFemaleIntoMaleOnlyRoomShouldFail", 
+                array( "M" => 0, "F" => 1, "X" => 0), // $numVisitors
+                118, // $resourceId = Puzzle Room (Male dorm)
+                "10", // $reqRoomSize
+                "X", // $reqRoomType
+                array('06.04.2014', '07.04.2014'), // $dates
+                array()); // $resourceProps
+
+        } catch( AllocationException $ex ) {
+            $this->assertEquals( "Insufficient availability to allocate resource on the specified date(s).", 
+                $ex->getMessage(), "Allocation exception expected" );
+        }
     }
 
     /**
