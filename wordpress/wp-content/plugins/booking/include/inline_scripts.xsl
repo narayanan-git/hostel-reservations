@@ -5,7 +5,7 @@
 
     <script type="text/javascript">
         jQuery(document).ready( function(){
-            jQuery('input.wpdevbk-filters-section-calendar').datepick(
+            jQuery('input.wpdevbk-filters-section-calendar').datepicker(
                 {   showOn: 'focus',
                     multiSelect: 0,
                     numberOfMonths: 1,
@@ -26,13 +26,9 @@
                     mandatory: true
                 }
             );
+/**********
 
-            jQuery('# a.popover_here').popover( {
-                placement: 'bottom'
-                , delay: { show: 100, hide: 100 }
-                , content: ''
-                , template: '<div class="wpdevbk popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>'
-                });
+        TODO: FIX TOOLTIPS 
 
             jQuery('.tooltip_right').tooltip( {
                 animation: true
@@ -73,6 +69,7 @@
                 , title: ''
                 , template: '<div class="wpdevbk tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner"></div></div>'
             });
+**************/
        });
     </script>
 </xsl:template>

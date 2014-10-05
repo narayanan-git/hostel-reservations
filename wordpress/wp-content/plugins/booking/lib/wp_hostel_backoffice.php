@@ -41,6 +41,7 @@ class WP_HostelBackoffice {
         add_option('hbo_summary_url', 'admin/summary');
         add_option('hbo_resources_url', 'admin/resources');
         add_option('hbo_editbooking_url', 'edit-booking');
+        add_option('hbo_housekeeping_url', 'housekeeping');
         self::build_db_schema();
         self::insert_site_pages();
     }
@@ -55,6 +56,7 @@ class WP_HostelBackoffice {
         delete_option('hbo_summary_url');
         delete_option('hbo_resources_url');
         delete_option('hbo_editbooking_url');
+        delete_option('hbo_housekeeping_url');
         self::delete_site_pages();
         self::teardown_db_schema(get_option('hbo_delete_db_on_deactivate') == 'On');
         delete_option('hbo_delete_db_on_deactivate');
@@ -81,6 +83,11 @@ class WP_HostelBackoffice {
         $pagehook5 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Summary', 'wpdev-booking'), __('Summary', 'wpdev-booking'), 'administrator',
                 WPDEV_BK_FILE .'wpdev-booking-summary', array(&$this, 'content_of_summary_page')  );
         add_action("admin_print_scripts-" . $pagehook5 , array( &$this, 'add_js_css_files'));
+            
+        ///////////////// HOUSEKEEPING /////////////////////////////////////////////
+        $pagehook9 = add_submenu_page(WPDEV_BK_FILE . 'wpdev-booking',__('Housekeeping', 'wpdev-booking'), __('Summary', 'wpdev-booking'), 'administrator',
+                WPDEV_BK_FILE .'wpdev-booking-housekeeping', array(&$this, 'content_of_housekeeping_page')  );
+        add_action("admin_print_scripts-" . $pagehook9 , array( &$this, 'add_js_css_files'));
             
         ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // A D D     R E S E R V A T I O N
@@ -120,12 +127,13 @@ class WP_HostelBackoffice {
     function enqueue_scripts() {
 error_log('enqueue scripts: jquery');
         wp_enqueue_script('jquery');
+        wp_enqueue_script('jquery-ui-datepicker');
+        wp_enqueue_style('jquery-style', 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.2/themes/smoothness/jquery-ui.css');
         if (strpos($_SERVER['REQUEST_URI'], 'wpdev-booking.phpwpdev-booking') !== false) {
             if (defined('WP_ADMIN') && WP_ADMIN === true) { 
 error_log("is this used? jquery-ui-dialog");
                 wp_enqueue_script('jquery-ui-dialog'); 
             }
-            wp_enqueue_style('hbo-jquery-ui', WPDEV_BK_PLUGIN_URL. '/css/jquery-ui.css', array(), false, 'screen');
         }
     }
 
@@ -304,6 +312,19 @@ error_log(var_export($_POST, TRUE));
     }
 
     /**
+     * Write the contents of the Daily Summary page.
+     */
+    function content_of_housekeeping_page() {
+        $hk = new HouseKeeping();
+        if (isset($_POST['housekeeping_date']) && trim($_POST['housekeeping_date']) != '') {
+            $hk->doViewForDate(DateTime::createFromFormat('!Y-m-d', trim($_POST['housekeeping_date']), new DateTimeZone('UTC')));
+        } else {
+            $hk->doViewForDate(new DateTime());
+        }
+        echo $hk->toHtml();
+    }
+
+    /**
      * Display a top-level menu dropdown on the admin menu (when logged in as admin).
      */
     function add_admin_bar_bookings_menu(){
@@ -344,6 +365,7 @@ error_log(var_export($_POST, TRUE));
         $this->do_redirect_for_page(get_option('hbo_summary_url'), 'summary.php');
         $this->do_redirect_for_page(get_option('hbo_editbooking_url'), 'edit-booking.php');
         $this->do_redirect_for_page(get_option('hbo_resources_url'), 'resources.php');
+        $this->do_redirect_for_page(get_option('hbo_housekeeping_url'), 'housekeeping.php');
     }
 
     /**
@@ -527,6 +549,15 @@ error_log(var_export($_POST, TRUE));
 
             self::execute_simple_sql($simple_sql);
         }
+
+        if ( false == $this->does_table_exist('daterange') ) {
+            $simple_sql = "CREATE TABLE ".$wpdb->prefix ."daterange (
+              `a_date` datetime NOT NULL,
+              PRIMARY KEY(`a_date`)
+            ) $charset_collate;";
+
+            self::execute_simple_sql($simple_sql);
+        }
             
         if( false == $this->does_routine_exist('walk_tree_path')) {
             $simple_sql = "CREATE FUNCTION walk_tree_path(p_resource_id BIGINT(20) UNSIGNED) RETURNS VARCHAR(255)
@@ -609,6 +640,67 @@ error_log(var_export($_POST, TRUE));
         self::execute_simple_sql($simple_sql);
 
         self::build_triggers();
+    }
+
+    /**
+     * Builds the schema specific for little hotelier
+     */
+    function build_lh_schema() {
+
+        global $wpdb;
+        $charset_collate = '';
+        if (false === empty($wpdb->charset)) {
+            $charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
+        }
+
+        if ( false == $this->does_table_exist('lh_jobs') ) {
+            $simple_sql = "CREATE TABLE ".$wpdb->prefix ."lh_jobs (
+              `job_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+              `name` varchar(50) NOT NULL,
+              `status` varchar(20) NOT NULL, -- one of submitted, processing, completed, failed
+              `created_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+              `last_updated_date` timestamp DEFAULT 0,
+              PRIMARY KEY (`job_id`)
+            ) $charset_collate;";
+
+            self::execute_simple_sql($simple_sql);
+        }
+
+        if ( false == $this->does_table_exist('lh_calendar') ) {
+            $simple_sql = "CREATE TABLE ".$wpdb->prefix ."lh_calendar (
+              `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+              `job_id` bigint(2) unsigned,
+              `room_id` integer(10) unsigned,
+              `room` varchar(50) NOT NULL,
+              `bed_name` varchar(50) DEFAULT NULL,
+              `reservation_id` bigint(20) unsigned,
+              `guest_name` varchar(255),
+              `checkin_date` datetime NOT NULL,
+              `checkout_date` datetime NOT NULL,
+              `payment_total` decimal(10,2),
+              `payment_outstanding` decimal(10,2),
+              `rate_plan_name` varchar(50) DEFAULT NULL,
+              `payment_status` varchar(50) DEFAULT NULL,
+              `num_guests` int(10) unsigned,
+              `data_href` varchar(255) DEFAULT NULL,
+              `created_date` timestamp DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`id`)
+            ) $charset_collate;";
+
+            self::execute_simple_sql($simple_sql);
+        }
+            
+        if ( false == $this->does_table_exist('lh_rooms') ) {
+            $simple_sql = "CREATE TABLE ".$wpdb->prefix ."lh_rooms (
+              `id` bigint(20) unsigned NOT NULL,
+              `room` int(5) unsigned,
+              `bed_name` varchar(50) DEFAULT NULL,
+              PRIMARY KEY (`id`)
+            ) $charset_collate;";
+
+            self::execute_simple_sql($simple_sql);
+        }
+
     }
 
     /**

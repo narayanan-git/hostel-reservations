@@ -63,6 +63,7 @@ class PageFactory {
                 $post_id = $this->createReadOnlyPage('bookings', 'Bookings', 'template content goes here', $admin_id, 20);
                 $post_id = $this->createReadOnlyPage('summary', 'Daily Summary', 'template content goes here', $admin_id, 30);
                 $post_id = $this->createReadOnlyPage('resources', 'Resources', 'template content goes here', $admin_id, 40);
+                $post_id = $this->createReadOnlyPage('housekeeping', 'Housekeeping', 'template content goes here', $admin_id, 50);
             }
         }
     }

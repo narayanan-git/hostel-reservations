@@ -25,7 +25,7 @@ class HouseKeeping extends XslTransform {
 
         // show view from 3 days ago
         $startDate = clone $selectionDate;
-        $startDate->sub(new DateInterval('P3D'));
+//        $startDate->sub(new DateInterval('P3D'));   FIXME
 
         $this->jobInfo = LilHotelierDBO::getLatestJobOfType( "bedsheets" );
 error_log( 'job resultset: ' . var_export( $this->jobInfo, TRUE ) );
@@ -33,7 +33,9 @@ error_log( 'job resultset: ' . var_export( $this->jobInfo, TRUE ) );
         if( $this->jobInfo ) {
             //$this->bedsheetView = LilHotelierDBO::fetchBedSheetsFrom($startDate, $this->jobInfo->job_id);
             $this->bedsheetView = LilHotelierDBO::fetchBedSheetsFrom(
-            DateTime::createFromFormat('!Y-m-d', '2014-08-10', new DateTimeZone('UTC')), $this->jobInfo->job_id);
+            //DateTime::createFromFormat('!Y-m-d', '2014-08-10', new DateTimeZone('UTC')), 
+            $selectionDate,
+            $this->jobInfo->job_id);
         }
     }
     
@@ -45,7 +47,7 @@ error_log( 'job resultset: ' . var_export( $this->jobInfo, TRUE ) );
      */
     function addSelfToDocument($domtree, $parentElement) {
         $parentElement->appendChild($domtree->createElement('homeurl', home_url()));
-        $parentElement->appendChild($domtree->createElement('selectiondate', $this->selectionDate->format('d.m.Y')));
+        $parentElement->appendChild($domtree->createElement('selectiondate', $this->selectionDate->format('Y-m-d')));
 
         // ignore these rooms
         if( ! $this->isNullOrEmptyString( get_option('hbo_housekeeping_ignore_rooms') ) ) {
@@ -93,7 +95,7 @@ error_log( "BED : " . var_export( $bed, TRUE ));
       Generates the following xml:
         <view>
             <homeurl>/yourwebapp/</homeurl>
-            <selectiondate>21.05.2012</selectiondate>
+            <selectiondate>2012-05-21</selectiondate>
             <job>
               <id>5</id>
               <name>calendar</name>

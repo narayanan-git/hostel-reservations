@@ -6,67 +6,46 @@
 // Distributed under the GNU General Public Licence
 //*****************************************************************************
 -->
+<xsl:include href="inline_scripts.xsl"/>
+
 <xsl:template match="view">
 
     <div class="wpdevbk center">
         <h3 id="selected_date_label"><xsl:comment/></h3>
     </div>
 
-    <div class="wpdevbk-filters-section ">
-                <div class="control-group" style="float:left;">
-                    <label for="calendar_selected_date" class="control-label"><xsl:comment/></label>
-                    <div class="inline controls">
-                        <div class="btn-group">
-                            <input style="width:100px;" type="text" id="calendar_selected_date" class="span2span2" 
-                                value="07.09.14" name="bookingmindate" />
-                            <span class="add-on"><span class="icon-calendar"></span></span>
+    <div class="wpdevbk">
+        <div class="booking-submenu-tab-container">
+            <div class="nav-tabs booking-submenu-tab-insidecontainer">
+                <form id="housekeeping_form" class="form-inline" method="post" action="" name="housekeeping_form">
+                    <a class="btn btn-primary" style="float: left; margin-right: 15px;" onclick="javascript:housekeeping_form.submit();">Apply <span class="icon-refresh icon-white"></span></a>
+
+                    <div class="control-group" style="float: left;">
+                        <div class="inline controls">
+                            <div class="btn-group">
+                                <input style="width:100px;" class="span2span2 wpdevbk-filters-section-calendar" value="{selectiondate}" id="calendar_selected_date" name="housekeeping_date" type="text"/>
+                                <span class="add-on"><span class="icon-calendar"><xsl:comment/></span></span>
+                            </div>
+                            <p class="help-block" style="float:left;padding-left:5px;">Date</p>
                         </div>
-                    <p class="help-block" style="text-align:left;padding-left:15px;">Date (from)</p>
                     </div>
-                </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-        <script type="text/javascript">
+<script type="text/javascript">
 
-            jQuery(document).ready( function(){
-                jQuery('#calendar_selected_date').datepick(
-                    {   showOn: 'focus',
-                        multiSelect: 0,
-                        defaultDate: 0,
-                        selectDefaultDate: true,
-                        numberOfMonths: 1,
-                        stepMonths: 1,
-                        prevText: '&lt;&lt;',
-                        nextText: '&gt;&gt;',
-                        dateFormat: 'dd.mm.yy',
-                        changeMonth: false,
-                        changeYear: false,
-                        minDate: null, maxDate: '1Y',
-                        showStatus: false,
-                        multiSeparator: ', ',
-                        closeAtTop: false,
-                        firstDay: 0, // 0 = sunday
-                        gotoCurrent: false,
-                        hideIfNoPrevNext:true,
-                        useThemeRoller :false,
-                        mandatory: true,
-                        onSelect: function(thedate) { 
-alert('date selected');
-                            var parsedDate = jQuery.datepick.parseDate('dd.mm.yy', thedate);
-                            var formattedDate = jQuery.datepick.formatDate('D, MM d, yy', parsedDate);
-                            jQuery('#selected_date_label').html(formattedDate);
-//                            select_daily_summary_date(thedate);
-                        } 
-                    }
-                );
-                jQuery('#calendar_selected_date').datepick('setDate', '<xsl:value-of select="selectiondate"/>');
+jQuery(document).ready(function() {
 
-                // pre-populate label on first time through
-                var parsedDate = jQuery.datepick.parseDate('dd.mm.yy', '<xsl:value-of select="selectiondate"/>');
-                var formattedDate = jQuery.datepick.formatDate('D, MM d, yy', parsedDate);
-                jQuery('#selected_date_label').html(formattedDate);
-        });
-        </script>
+    // pre-populate label on first time through
+    var parsedDate = jQuery.datepicker.parseDate('yy-mm-dd', '<xsl:value-of select="selectiondate"/>');
+    var formattedDate = jQuery.datepicker.formatDate('D, MM d, yy', parsedDate);
+    jQuery('#selected_date_label').html(formattedDate);
+});
+
+</script>
+    
 
 
     Home URL: <xsl:value-of select="home_url"/><br/>
@@ -96,6 +75,8 @@ alert('date selected');
             <xsl:apply-templates select="bed" mode="bedsheet_row"/>
         </tbody>
     </table>
+
+    <xsl:call-template name="write_inline_js"/>
 
 </xsl:template>
 

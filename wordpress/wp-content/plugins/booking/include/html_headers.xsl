@@ -27,11 +27,6 @@
         var wpdev_bk_plugin_filename = '<xsl:value-of select="pluginfilename"/>';
     </script>
 
-    <script type="text/javascript" src="{pluginurl}/js/datepick/jquery.datepick.js"><xsl:comment/></script>
-    <xsl:if test="substring(locale, 1, 2) != 'en' and string-length(locale) &gt; 0">
-        <script type="text/javascript" src="{pluginurl}/js/datepick/jquery.datepick-{substring(locale, 1, 2)}.js"><xsl:comment/></script>
-    </xsl:if>
-    
     <script type="text/javascript" src="{pluginurl}/js/common.js"><xsl:comment/></script>  
 
     <!-- C S S -->
